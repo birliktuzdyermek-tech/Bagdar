@@ -1,0 +1,90 @@
+{
+  "$defs": {
+    "Disruption": {
+      "properties": {
+        "at": {
+          "title": "At",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        }
+      },
+      "required": [
+        "at",
+        "type"
+      ],
+      "title": "Disruption",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "summary": {
+      "default": "",
+      "title": "Summary",
+      "type": "string"
+    },
+    "mode": {
+      "default": "light",
+      "title": "Mode",
+      "type": "string"
+    },
+    "seed": {
+      "default": 42,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "start_time": {
+      "default": "06:00",
+      "title": "Start Time",
+      "type": "string"
+    },
+    "difficulty": {
+      "default": 1,
+      "title": "Difficulty",
+      "type": "integer"
+    },
+    "wave": {
+      "default": 0,
+      "title": "Wave",
+      "type": "integer"
+    },
+    "world": {
+      "additionalProperties": true,
+      "title": "World",
+      "type": "object"
+    },
+    "traffic": {
+      "additionalProperties": true,
+      "title": "Traffic",
+      "type": "object"
+    },
+    "disruptions": {
+      "items": {
+        "$ref": "#/$defs/Disruption"
+      },
+      "title": "Disruptions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "title"
+  ],
+  "title": "Scenario",
+  "type": "object"
+}

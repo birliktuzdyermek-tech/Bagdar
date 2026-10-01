@@ -1,0 +1,66 @@
+/* Shared tokens, copied from the existing simulator style (frontend/src/styles.css).
+   Timing tokens are added for the V2 animations and are not yet used by the UI. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110;
+  --surface-1: #1a1a19;
+  --surface-2: #222220;
+  --surface-3: #2c2c29;
+  --border: #33332f;
+  --border-strong: #4a4a45;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8f8e87;
+  --accent: #3987e5;
+  --accent-soft: rgba(57, 135, 229, 0.18);
+  --rail: #6b6a64;
+  --track: #55544f;
+  --station-fill: #232321;
+  --cls-fast: #3987e5;
+  --cls-pax: #199e70;
+  --cls-freight: #9a9890;
+  --cls-engine: #cfcdc4;
+  --cls-extra: #d55181;
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --on-warning: #1a1a19;
+  --on-critical: #ffffff;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f2ef;
+  --surface-1: #fcfcfb;
+  --surface-2: #f5f4f1;
+  --surface-3: #ebeae6;
+  --border: #dcdbd6;
+  --border-strong: #b9b8b1;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #77766f;
+  --accent: #2a78d6;
+  --accent-soft: rgba(42, 120, 214, 0.14);
+  --rail: #8a8983;
+  --track: #b3b2ab;
+  --station-fill: #f0efeb;
+  --cls-fast: #2a78d6;
+  --cls-pax: #12855d;
+  --cls-freight: #7c7b75;
+  --cls-engine: #a9a8a0;
+  --cls-extra: #c63f72;
+}
+
+:root {
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  --t-fast: 150ms;
+  --t-base: 300ms;
+  --t-slow: 700ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-base: 0ms; --t-slow: 0ms; }
+}
