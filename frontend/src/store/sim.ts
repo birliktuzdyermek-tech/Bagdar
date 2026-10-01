@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { SimEvent, State, Station, Section, TrainStatic, World } from "../api/types";
+import type { DecisionCard, SimEvent, State, Station, Section, TrainStatic, World } from "../api/types";
 
 export type Conn = "connecting" | "open" | "closed";
 
@@ -32,6 +32,7 @@ interface SimStore {
   prevRecvAt: number;
   events: SimEvent[];
   lastSeq: number;
+  cards: DecisionCard[];
   selectedTrain: string | null;
   selectedStation: string | null;
   error: string | null;
@@ -41,6 +42,7 @@ interface SimStore {
   setWorld: (w: World) => void;
   pushState: (s: State) => void;
   pushEvents: (evs: SimEvent[], reset: boolean) => void;
+  pushCards: (cards: DecisionCard[], reset: boolean) => void;
   selectTrain: (id: string | null) => void;
   selectStation: (id: string | null) => void;
   setError: (e: string | null) => void;
@@ -57,13 +59,14 @@ export const useSim = create<SimStore>()((set, get) => ({
   prevRecvAt: 0,
   events: [],
   lastSeq: 0,
+  cards: [],
   selectedTrain: null,
   selectedStation: null,
   error: null,
 
   setConn: (conn) => set({ conn }),
   setHello: (runId) => {
-    if (runId !== get().runId) set({ runId, events: [], lastSeq: 0, prev: null });
+    if (runId !== get().runId) set({ runId, events: [], lastSeq: 0, prev: null, cards: [] });
   },
   setWorld: (world) => {
     const keepStation = get().selectedStation;
@@ -91,6 +94,12 @@ export const useSim = create<SimStore>()((set, get) => ({
     const trimmed = merged.length > MAX_EVENTS ? merged.slice(merged.length - MAX_EVENTS) : merged;
     const lastSeq = trimmed.length ? trimmed[trimmed.length - 1].seq : 0;
     set({ events: trimmed, lastSeq });
+  },
+  pushCards: (cards, reset) => {
+    const base = reset ? [] : get().cards;
+    const seen = new Set(base.map((c) => c.id));
+    const merged = base.concat(cards.filter((c) => !seen.has(c.id)));
+    set({ cards: merged.slice(-200) });
   },
   selectTrain: (id) => set({ selectedTrain: id }),
   selectStation: (id) => set({ selectedStation: id }),

@@ -208,6 +208,34 @@ class PerfOut(BaseModel):
     load_ms: float
 
 
+class PlannerSummaryOut(BaseModel):
+    version: int
+    solver: str | None
+    status: Literal["feasible", "delayed", "infeasible"] | None
+    compute_ms: float | None = Field(description="Время последнего пересчёта целиком, мс")
+    cpsat_ms: float | None
+    cp_status: str | None
+    t0: float | None
+    J: float | None = Field(description="Целевая функция плана, у.е. (условные)")
+    busy: bool
+    pending: list[str]
+    conflicts: int
+    max_deviation_s: int
+    reason: str | None
+    late_trains: list[str]
+    held: list[str]
+    cards_total: int
+
+
+class ConflictOut(BaseModel):
+    kind: str
+    resource: str
+    trains: list[str]
+    t: float
+    in_s: int
+    message: str
+
+
 class StateOut(BaseModel):
     type: Literal["state"] = "state"
     run_id: str
@@ -224,6 +252,8 @@ class StateOut(BaseModel):
     signals: list[SignalStateOut]
     metrics: MetricsOut
     perf: PerfOut
+    planner: PlannerSummaryOut
+    conflicts: list[ConflictOut]
 
 
 # ------------------------------------------------------------------- план
@@ -248,7 +278,101 @@ class PlanOut(BaseModel):
     compute_ms: float
     notes: list[str]
     cost: dict[str, float]
+    horizon_end: float
+    hold_all: bool
+    held: list[str]
     legs: list[PlanLegOut]
+
+
+class CardEffectOut(BaseModel):
+    train_id: str
+    number: str
+    delay_plan_min: float
+    delay_alt_min: float | None
+    stops_plan: int
+    stops_alt: int | None
+    weight: float
+
+
+class DecisionCardOut(BaseModel):
+    id: str
+    seq: int = 0
+    plan_version: int
+    t: float
+    type: Literal["crossing", "overtake", "track", "hold", "no_plan"]
+    level: Literal["A", "B", "C"] = Field(description="A — авто, B — авто с уведомлением, C — нужен выбор")
+    station_id: str | None
+    station: str | None
+    section_id: str | None
+    trains: list[str]
+    action: str
+    reason: str
+    alternative: str
+    cost_plan: float | None
+    cost_alt: float | None
+    delta_cost: float | None = Field(description="На сколько альтернатива хуже с учётом слоя ПТЭ (для ранжирования)")
+    delta_money: float | None = Field(None, description="На сколько альтернатива дороже, у.е. (условные)")
+    alt_pte_violations: int = 0
+    alt_feasible: bool
+    note: str | None = None
+    wait_min: float | None
+    effects: list[CardEffectOut]
+    index_before: float | None
+    index_after: float | None
+    status: str
+    full_auto: bool = True
+
+
+class DecisionsOut(BaseModel):
+    run_id: str
+    cards: list[DecisionCardOut]
+
+
+class CandidateOut(BaseModel):
+    name: str
+    ms: float
+    valid: bool
+    J: float | None
+    J_lex: float | None
+    pte_violations: int
+    violations: list[str]
+    held: list[str]
+    deadlock: bool
+
+
+class SolveStatsOut(BaseModel):
+    version: int
+    t0: float
+    status: str
+    solver: str
+    reason: str
+    J: dict | None
+    candidates: list[CandidateOut]
+    cpsat: dict
+    cp_notes: list[str]
+    timings: dict[str, float]
+    held: list[str]
+    late_trains: list[str]
+    cards: int
+    applied_at: float | None = None
+    lag_s: float | None = None
+
+
+class PlannerOut(BaseModel):
+    summary: PlannerSummaryOut
+    history: list[SolveStatsOut]
+
+
+class EventIn(BaseModel):
+    type: Literal["train_delay"]
+    train_id: str | None = None
+    minutes: float | None = Field(None, ge=1, le=240)
+    reason: str | None = None
+
+
+class EventAck(BaseModel):
+    ok: bool
+    message: str
 
 
 # ------------------------------------------------------------------ события
@@ -334,6 +458,12 @@ class EventsMsg(BaseModel):
     events: list[EventOut]
 
 
+class DecisionsMsg(BaseModel):
+    type: Literal["decisions"] = "decisions"
+    reset: bool
+    cards: list[DecisionCardOut]
+
+
 class StreamSchema(BaseModel):
     """Документация WebSocket /api/stream. Сервер шлёт hello, затем world (если версия
     мира у клиента устарела), events и state; дальше state с частотой broadcast_hz и
@@ -342,3 +472,4 @@ class StreamSchema(BaseModel):
     world: WorldMsg
     events: EventsMsg
     state: StateOut
+    decisions: DecisionsMsg

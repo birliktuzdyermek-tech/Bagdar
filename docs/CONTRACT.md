@@ -29,7 +29,11 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | GET | `/api/health` | Живость сервиса |
 | GET | `/api/world` | Инфраструктура и поезда с исходным расписанием (`WorldOut`) |
 | GET | `/api/state` | Текущее состояние (`StateOut`) |
-| GET | `/api/plan` | Действующий план (`PlanOut`); на этапе 1 это исходный график, версия 0 |
+| GET | `/api/plan?which=current\|previous` | Действующий или предыдущий план (`PlanOut`) |
+| GET | `/api/decisions?since=&limit=` | Карточки решений (`DecisionCardOut`) |
+| GET | `/api/planner` | Статус планировщика и история пересчётов: время, решатель, кандидаты, J |
+| POST | `/api/plan/replan` | Пересчитать план сейчас |
+| POST | `/api/events` | Внешнее событие: `{type: "train_delay", train_id, minutes}` |
 | GET | `/api/events?since=&limit=&min_severity=` | Журнал событий текущего прогона |
 | GET | `/api/scenarios` | Список сценариев |
 | POST | `/api/sim/control` | `{action: start\|pause\|speed\|step\|reset, speed?, step_s?}` |
@@ -50,10 +54,12 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 2. `world {world}` — только если `world_version` клиента устарела.
 3. `events {reset, events[]}` — если `run_id` совпадает, только пропущенные после
    `last_seq` (`reset=false`); иначе последние события с `reset=true`.
-4. `state {...}` — полный снимок динамики.
+4. `decisions {reset, cards[]}` — последние карточки решений.
+5. `state {...}` — полный снимок динамики, включая `planner` (версия плана, решатель, статус,
+   время пересчёта, число прогнозных конфликтов) и `conflicts[]` (прогноз на час).
 
 Дальше `state` идёт с частотой `sim.broadcast_hz` (10 Гц в лёгком режиме), пока
-симуляция идёт или что-то изменилось, а `events` — сразу по мере появления. При загрузке
+симуляция идёт или что-то изменилось, `events` и `decisions` — сразу по мере появления. При загрузке
 нового мира сервер сам шлёт `world`, `events(reset=true)`, `state`.
 
 **Согласованность после обрыва.** Клиент переподключается с экспоненциальной паузой
@@ -87,8 +93,14 @@ StateOut      run_id, world_version, seq, tick, t, running, speed,
               metrics{active_trains,avg_delay_s,max_delay_s,on_time_share,waiting_trains,...},
               perf{step_us,tick_ms,steps_per_s,load_ms}
 
-PlanOut       version, created_at, solver, status, compute_ms, notes[], cost{},
+PlanOut       version, created_at, solver(cpsat|greedy|repair|hold), status(feasible|delayed|infeasible),
+              compute_ms, notes[], cost{}, horizon_end, hold_all, held[],
               legs[{train_id,k,section_id,from_id,to_id,direction,dep,arr,track_id,stop}]
+
+DecisionCardOut id, plan_version, t, type(crossing|overtake|track|no_plan), level(A|B|C),
+              station_id, section_id, trains[], action, reason, alternative,
+              cost_plan, cost_alt, delta_cost, delta_money, alt_pte_violations, alt_feasible,
+              wait_min, effects[], status, full_auto, note
 
 EventOut      seq, t, kind, severity(debug|info|warn|critical), message,
               train_id?, station_id?, section_id?, data{}

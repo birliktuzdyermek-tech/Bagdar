@@ -95,3 +95,25 @@ def test_interlocking_rejects_long_train_on_short_track(rules, light42):
     il.occupy_track(main.id, "X")
     assert il.pick_track(st.id, "L", siding.length_m + 100, 0.0, None, prefer_main=True) is None
     assert il.pick_track(st.id, "S", siding.length_m - 50, 0.0, None, prefer_main=True) == siding.id
+
+
+def test_hold_all_plan_keeps_trains_at_stations(cfg, light42):
+    from bagdar.models.plan import Plan
+    world, tt = light42
+    eng = Engine(world, tt.trains, tt.plan, cfg, 42, START)
+    hold = Plan(version=9, created_at=eng.t, solver="hold", status="infeasible", legs={}, origin_track={},
+                hold_all=True)
+    eng.apply_plan(hold)
+    at_station = [rt for rt in eng.active() if rt.status == "station"]
+    eng.advance(900)
+    assert all(rt.status == "station" for rt in at_station)
+    assert any(rt.wait_reason and "план не найден" in rt.wait_reason for rt in at_station)
+
+
+def test_injected_delay_is_applied(cfg, light42):
+    world, tt = light42
+    eng = Engine(world, tt.trains, tt.plan, cfg, 42, START)
+    rt = next(r for r in eng.active() if r.status == "station" and r.k < len(r.train.route) - 1)
+    before = rt.dwell_until
+    eng.inject_delay(rt.train.id, 600)
+    assert rt.dwell_until >= max(before, eng.t) + 600

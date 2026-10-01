@@ -72,10 +72,23 @@
   "/api/plan": {
    "get": {
     "tags": [
-     "state"
+     "planner"
     ],
-    "summary": "Действующий план движения",
+    "summary": "Действующий или предыдущий план",
     "operationId": "get_plan_api_plan_get",
+    "parameters": [
+     {
+      "name": "which",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^(current|previous)$",
+       "default": "current",
+       "title": "Which"
+      }
+     }
+    ],
     "responses": {
      "200": {
       "description": "Successful Response",
@@ -86,11 +99,158 @@
         }
        }
       }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/decisions": {
+   "get": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Лента карточек решений",
+    "operationId": "get_decisions_api_decisions_get",
+    "parameters": [
+     {
+      "name": "since",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "minimum": 0,
+       "default": 0,
+       "title": "Since"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 300,
+       "minimum": 1,
+       "default": 100,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DecisionsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/planner": {
+   "get": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Статус планировщика и история пересчётов (время, решатель, J)",
+    "operationId": "get_planner_api_planner_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlannerOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/plan/replan": {
+   "post": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Пересчитать план сейчас",
+    "operationId": "replan_api_plan_replan_post",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlannerSummaryOut"
+        }
+       }
+      }
      }
     }
    }
   },
   "/api/events": {
+   "post": {
+    "tags": [
+     "simulation"
+    ],
+    "summary": "Внешнее событие (в демо: задержка поезда; сбои — этап 4)",
+    "operationId": "post_event_api_events_post",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EventIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventAck"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
    "get": {
     "tags": [
      "state"
@@ -314,6 +474,27 @@
  },
  "components": {
   "schemas": {
+   "AutonomyConfig": {
+    "properties": {
+     "full_auto": {
+      "type": "boolean",
+      "title": "Full Auto",
+      "default": true
+     },
+     "b_cancel_s": {
+      "type": "number",
+      "title": "B Cancel S",
+      "default": 30
+     },
+     "a_max_shift_min": {
+      "type": "number",
+      "title": "A Max Shift Min",
+      "default": 5
+     }
+    },
+    "type": "object",
+    "title": "AutonomyConfig"
+   },
    "BagdarConfig": {
     "properties": {
      "mode": {
@@ -373,6 +554,28 @@
        "fallback": "greedy"
       }
      },
+     "planner": {
+      "$ref": "#/components/schemas/PlannerConfig",
+      "default": {
+       "enabled": true,
+       "min_interval_s": 1.0,
+       "period_sim_s": 300.0,
+       "check_sim_s": 30.0,
+       "pair_window_min": 40.0,
+       "run_margin": 0.03,
+       "workers": 8,
+       "max_cards": 5,
+       "deviation_s": 120.0
+      }
+     },
+     "autonomy": {
+      "$ref": "#/components/schemas/AutonomyConfig",
+      "default": {
+       "full_auto": true,
+       "b_cancel_s": 30.0,
+       "a_max_shift_min": 5.0
+      }
+     },
      "sim": {
       "$ref": "#/components/schemas/SimConfig",
       "default": {
@@ -399,6 +602,177 @@
     },
     "type": "object",
     "title": "BagdarConfig"
+   },
+   "CandidateOut": {
+    "properties": {
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "ms": {
+      "type": "number",
+      "title": "Ms"
+     },
+     "valid": {
+      "type": "boolean",
+      "title": "Valid"
+     },
+     "J": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "J"
+     },
+     "J_lex": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "J Lex"
+     },
+     "pte_violations": {
+      "type": "integer",
+      "title": "Pte Violations"
+     },
+     "violations": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Violations"
+     },
+     "held": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Held"
+     },
+     "deadlock": {
+      "type": "boolean",
+      "title": "Deadlock"
+     }
+    },
+    "type": "object",
+    "required": [
+     "name",
+     "ms",
+     "valid",
+     "J",
+     "J_lex",
+     "pte_violations",
+     "violations",
+     "held",
+     "deadlock"
+    ],
+    "title": "CandidateOut"
+   },
+   "CardEffectOut": {
+    "properties": {
+     "train_id": {
+      "type": "string",
+      "title": "Train Id"
+     },
+     "number": {
+      "type": "string",
+      "title": "Number"
+     },
+     "delay_plan_min": {
+      "type": "number",
+      "title": "Delay Plan Min"
+     },
+     "delay_alt_min": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delay Alt Min"
+     },
+     "stops_plan": {
+      "type": "integer",
+      "title": "Stops Plan"
+     },
+     "stops_alt": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stops Alt"
+     },
+     "weight": {
+      "type": "number",
+      "title": "Weight"
+     }
+    },
+    "type": "object",
+    "required": [
+     "train_id",
+     "number",
+     "delay_plan_min",
+     "delay_alt_min",
+     "stops_plan",
+     "stops_alt",
+     "weight"
+    ],
+    "title": "CardEffectOut"
+   },
+   "ConflictOut": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "title": "Kind"
+     },
+     "resource": {
+      "type": "string",
+      "title": "Resource"
+     },
+     "trains": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Trains"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "in_s": {
+      "type": "integer",
+      "title": "In S"
+     },
+     "message": {
+      "type": "string",
+      "title": "Message"
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "resource",
+     "trains",
+     "t",
+     "in_s",
+     "message"
+    ],
+    "title": "ConflictOut"
    },
    "ControlIn": {
     "properties": {
@@ -500,6 +874,355 @@
     },
     "type": "object",
     "title": "CostConfig"
+   },
+   "DecisionCardOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "seq": {
+      "type": "integer",
+      "title": "Seq",
+      "default": 0
+     },
+     "plan_version": {
+      "type": "integer",
+      "title": "Plan Version"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "crossing",
+       "overtake",
+       "track",
+       "hold",
+       "no_plan"
+      ],
+      "title": "Type"
+     },
+     "level": {
+      "type": "string",
+      "enum": [
+       "A",
+       "B",
+       "C"
+      ],
+      "title": "Level",
+      "description": "A — авто, B — авто с уведомлением, C — нужен выбор"
+     },
+     "station_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Station Id"
+     },
+     "station": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Station"
+     },
+     "section_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Section Id"
+     },
+     "trains": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Trains"
+     },
+     "action": {
+      "type": "string",
+      "title": "Action"
+     },
+     "reason": {
+      "type": "string",
+      "title": "Reason"
+     },
+     "alternative": {
+      "type": "string",
+      "title": "Alternative"
+     },
+     "cost_plan": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Plan"
+     },
+     "cost_alt": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Alt"
+     },
+     "delta_cost": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delta Cost",
+      "description": "На сколько альтернатива хуже с учётом слоя ПТЭ (для ранжирования)"
+     },
+     "delta_money": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delta Money",
+      "description": "На сколько альтернатива дороже, у.е. (условные)"
+     },
+     "alt_pte_violations": {
+      "type": "integer",
+      "title": "Alt Pte Violations",
+      "default": 0
+     },
+     "alt_feasible": {
+      "type": "boolean",
+      "title": "Alt Feasible"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "wait_min": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Wait Min"
+     },
+     "effects": {
+      "items": {
+       "$ref": "#/components/schemas/CardEffectOut"
+      },
+      "type": "array",
+      "title": "Effects"
+     },
+     "index_before": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index Before"
+     },
+     "index_after": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index After"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "full_auto": {
+      "type": "boolean",
+      "title": "Full Auto",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "plan_version",
+     "t",
+     "type",
+     "level",
+     "station_id",
+     "station",
+     "section_id",
+     "trains",
+     "action",
+     "reason",
+     "alternative",
+     "cost_plan",
+     "cost_alt",
+     "delta_cost",
+     "alt_feasible",
+     "wait_min",
+     "effects",
+     "index_before",
+     "index_after",
+     "status"
+    ],
+    "title": "DecisionCardOut"
+   },
+   "DecisionsMsg": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "const": "decisions",
+      "title": "Type",
+      "default": "decisions"
+     },
+     "reset": {
+      "type": "boolean",
+      "title": "Reset"
+     },
+     "cards": {
+      "items": {
+       "$ref": "#/components/schemas/DecisionCardOut"
+      },
+      "type": "array",
+      "title": "Cards"
+     }
+    },
+    "type": "object",
+    "required": [
+     "reset",
+     "cards"
+    ],
+    "title": "DecisionsMsg"
+   },
+   "DecisionsOut": {
+    "properties": {
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "cards": {
+      "items": {
+       "$ref": "#/components/schemas/DecisionCardOut"
+      },
+      "type": "array",
+      "title": "Cards"
+     }
+    },
+    "type": "object",
+    "required": [
+     "run_id",
+     "cards"
+    ],
+    "title": "DecisionsOut"
+   },
+   "EventAck": {
+    "properties": {
+     "ok": {
+      "type": "boolean",
+      "title": "Ok"
+     },
+     "message": {
+      "type": "string",
+      "title": "Message"
+     }
+    },
+    "type": "object",
+    "required": [
+     "ok",
+     "message"
+    ],
+    "title": "EventAck"
+   },
+   "EventIn": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "const": "train_delay",
+      "title": "Type"
+     },
+     "train_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Train Id"
+     },
+     "minutes": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 240.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Minutes"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     }
+    },
+    "type": "object",
+    "required": [
+     "type"
+    ],
+    "title": "EventIn"
    },
    "EventOut": {
     "properties": {
@@ -1051,6 +1774,21 @@
       "type": "object",
       "title": "Cost"
      },
+     "horizon_end": {
+      "type": "number",
+      "title": "Horizon End"
+     },
+     "hold_all": {
+      "type": "boolean",
+      "title": "Hold All"
+     },
+     "held": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Held"
+     },
      "legs": {
       "items": {
        "$ref": "#/components/schemas/PlanLegOut"
@@ -1068,9 +1806,254 @@
      "compute_ms",
      "notes",
      "cost",
+     "horizon_end",
+     "hold_all",
+     "held",
      "legs"
     ],
     "title": "PlanOut"
+   },
+   "PlannerConfig": {
+    "properties": {
+     "enabled": {
+      "type": "boolean",
+      "title": "Enabled",
+      "default": true
+     },
+     "min_interval_s": {
+      "type": "number",
+      "minimum": 0.1,
+      "title": "Min Interval S",
+      "description": "не чаще, с реального времени",
+      "default": 1.0
+     },
+     "period_sim_s": {
+      "type": "number",
+      "minimum": 30.0,
+      "title": "Period Sim S",
+      "description": "плановый пересчёт по скользящему горизонту",
+      "default": 300
+     },
+     "check_sim_s": {
+      "type": "number",
+      "minimum": 5.0,
+      "title": "Check Sim S",
+      "description": "как часто проверять отклонения от плана",
+      "default": 30
+     },
+     "pair_window_min": {
+      "type": "number",
+      "minimum": 5.0,
+      "title": "Pair Window Min",
+      "description": "пары поездов дальше этого окна не переупорядочиваются",
+      "default": 40
+     },
+     "run_margin": {
+      "type": "number",
+      "title": "Run Margin",
+      "default": 0.03
+     },
+     "workers": {
+      "type": "integer",
+      "maximum": 32.0,
+      "minimum": 1.0,
+      "title": "Workers",
+      "default": 8
+     },
+     "max_cards": {
+      "type": "integer",
+      "title": "Max Cards",
+      "default": 5
+     },
+     "deviation_s": {
+      "type": "number",
+      "title": "Deviation S",
+      "description": "отклонение от плана, после которого нужен пересчёт",
+      "default": 120
+     }
+    },
+    "type": "object",
+    "title": "PlannerConfig"
+   },
+   "PlannerOut": {
+    "properties": {
+     "summary": {
+      "$ref": "#/components/schemas/PlannerSummaryOut"
+     },
+     "history": {
+      "items": {
+       "$ref": "#/components/schemas/SolveStatsOut"
+      },
+      "type": "array",
+      "title": "History"
+     }
+    },
+    "type": "object",
+    "required": [
+     "summary",
+     "history"
+    ],
+    "title": "PlannerOut"
+   },
+   "PlannerSummaryOut": {
+    "properties": {
+     "version": {
+      "type": "integer",
+      "title": "Version"
+     },
+     "solver": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Solver"
+     },
+     "status": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "feasible",
+         "delayed",
+         "infeasible"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status"
+     },
+     "compute_ms": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Compute Ms",
+      "description": "Время последнего пересчёта целиком, мс"
+     },
+     "cpsat_ms": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cpsat Ms"
+     },
+     "cp_status": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cp Status"
+     },
+     "t0": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "T0"
+     },
+     "J": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "J",
+      "description": "Целевая функция плана, у.е. (условные)"
+     },
+     "busy": {
+      "type": "boolean",
+      "title": "Busy"
+     },
+     "pending": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Pending"
+     },
+     "conflicts": {
+      "type": "integer",
+      "title": "Conflicts"
+     },
+     "max_deviation_s": {
+      "type": "integer",
+      "title": "Max Deviation S"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     },
+     "late_trains": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Late Trains"
+     },
+     "held": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Held"
+     },
+     "cards_total": {
+      "type": "integer",
+      "title": "Cards Total"
+     }
+    },
+    "type": "object",
+    "required": [
+     "version",
+     "solver",
+     "status",
+     "compute_ms",
+     "cpsat_ms",
+     "cp_status",
+     "t0",
+     "J",
+     "busy",
+     "pending",
+     "conflicts",
+     "max_deviation_s",
+     "reason",
+     "late_trains",
+     "held",
+     "cards_total"
+    ],
+    "title": "PlannerSummaryOut"
    },
    "PriorityEntry": {
     "properties": {
@@ -1483,6 +2466,125 @@
     "type": "object",
     "title": "SimConfig"
    },
+   "SolveStatsOut": {
+    "properties": {
+     "version": {
+      "type": "integer",
+      "title": "Version"
+     },
+     "t0": {
+      "type": "number",
+      "title": "T0"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "solver": {
+      "type": "string",
+      "title": "Solver"
+     },
+     "reason": {
+      "type": "string",
+      "title": "Reason"
+     },
+     "J": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "J"
+     },
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/CandidateOut"
+      },
+      "type": "array",
+      "title": "Candidates"
+     },
+     "cpsat": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Cpsat"
+     },
+     "cp_notes": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Cp Notes"
+     },
+     "timings": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Timings"
+     },
+     "held": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Held"
+     },
+     "late_trains": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Late Trains"
+     },
+     "cards": {
+      "type": "integer",
+      "title": "Cards"
+     },
+     "applied_at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Applied At"
+     },
+     "lag_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lag S"
+     }
+    },
+    "type": "object",
+    "required": [
+     "version",
+     "t0",
+     "status",
+     "solver",
+     "reason",
+     "J",
+     "candidates",
+     "cpsat",
+     "cp_notes",
+     "timings",
+     "held",
+     "late_trains",
+     "cards"
+    ],
+    "title": "SolveStatsOut"
+   },
    "SolverConfig": {
     "properties": {
      "horizon_min": {
@@ -1586,6 +2688,16 @@
      },
      "perf": {
       "$ref": "#/components/schemas/PerfOut"
+     },
+     "planner": {
+      "$ref": "#/components/schemas/PlannerSummaryOut"
+     },
+     "conflicts": {
+      "items": {
+       "$ref": "#/components/schemas/ConflictOut"
+      },
+      "type": "array",
+      "title": "Conflicts"
      }
     },
     "type": "object",
@@ -1603,7 +2715,9 @@
      "throats",
      "signals",
      "metrics",
-     "perf"
+     "perf",
+     "planner",
+     "conflicts"
     ],
     "title": "StateOut"
    },
@@ -1682,6 +2796,9 @@
      },
      "state": {
       "$ref": "#/components/schemas/StateOut"
+     },
+     "decisions": {
+      "$ref": "#/components/schemas/DecisionsMsg"
      }
     },
     "type": "object",
@@ -1689,7 +2806,8 @@
      "hello",
      "world",
      "events",
-     "state"
+     "state",
+     "decisions"
     ],
     "title": "StreamSchema",
     "description": "Документация WebSocket /api/stream. Сервер шлёт hello, затем world (если версия\nмира у клиента устарела), events и state; дальше state с частотой broadcast_hz и\nevents по мере появления. Переподключение: /api/stream?world_version=N&last_seq=M&run_id=R."

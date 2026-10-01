@@ -31,11 +31,48 @@ def get_state(request: Request) -> dict:
     return rt(request).state_payload()
 
 
-@router.get("/plan", response_model=S.PlanOut, tags=["state"], summary="Действующий план движения")
-def get_plan(request: Request) -> dict:
+@router.get("/plan", response_model=S.PlanOut, tags=["planner"], summary="Действующий или предыдущий план")
+def get_plan(request: Request, which: str = Query("current", pattern="^(current|previous)$")) -> dict:
     r = rt(request)
     assert r.engine is not None
-    return dto.plan_dto(r.engine.ex.plan)
+    plan = r.engine.ex.plan if which == "current" else r.planner.previous
+    if plan is None:
+        raise HTTPException(404, "Предыдущего плана ещё нет")
+    return dto.plan_dto(plan)
+
+
+@router.get("/decisions", response_model=S.DecisionsOut, tags=["planner"], summary="Лента карточек решений")
+def get_decisions(request: Request, since: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=300)) -> dict:
+    r = rt(request)
+    cards = [c for c in r.planner.cards if c.get("seq", 0) > since]
+    return {"run_id": r.run_id, "cards": cards[-limit:]}
+
+
+@router.get("/planner", response_model=S.PlannerOut, tags=["planner"],
+            summary="Статус планировщика и история пересчётов (время, решатель, J)")
+def get_planner(request: Request) -> dict:
+    r = rt(request)
+    return {"summary": r.planner.summary(), "history": list(r.planner.history)}
+
+
+@router.post("/plan/replan", response_model=S.PlannerSummaryOut, tags=["planner"], summary="Пересчитать план сейчас")
+def replan(request: Request) -> dict:
+    r = rt(request)
+    r.planner.request("запрос диспетчера", urgent=True)
+    if r.planner.sync:
+        r.planner.tick()
+    return r.planner.summary()
+
+
+@router.post("/events", response_model=S.EventAck, tags=["simulation"],
+             summary="Внешнее событие (в демо: задержка поезда; сбои — этап 4)")
+def post_event(body: S.EventIn, request: Request) -> dict:
+    r = rt(request)
+    try:
+        msg = r.external_event(body.type, body.model_dump(exclude_none=True))
+    except (ValueError, KeyError) as e:
+        raise HTTPException(422, str(e)) from e
+    return {"ok": True, "message": msg}
 
 
 @router.get("/events", response_model=S.EventsOut, tags=["state"], summary="Журнал событий текущего прогона")
@@ -93,4 +130,5 @@ def stream_schema(request: Request) -> dict:
         "world": {"type": "world", "world": r.world_payload()},
         "events": {"type": "events", "reset": True, "events": r.events_since(0)[-20:]},
         "state": r.state_payload(),
+        "decisions": {"type": "decisions", "reset": True, "cards": list(r.planner.cards)[-10:]},
     }

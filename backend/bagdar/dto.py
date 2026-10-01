@@ -127,7 +127,7 @@ def plan_dto(plan: Plan) -> dict:
     return {
         "version": plan.version, "created_at": plan.created_at, "solver": plan.solver,
         "status": plan.status, "compute_ms": round(plan.compute_ms, 1), "notes": plan.notes,
-        "cost": plan.cost,
+        "cost": plan.cost, "horizon_end": plan.horizon_end, "hold_all": plan.hold_all, "held": plan.held,
         "legs": [{"train_id": lg.train_id, "k": lg.k, "section_id": lg.section_id, "from_id": lg.from_id,
                   "to_id": lg.to_id, "direction": lg.direction, "dep": round(lg.dep, 1),
                   "arr": round(lg.arr, 1), "track_id": lg.track_id, "stop": lg.stop}

@@ -77,11 +77,12 @@ class ReservationTable:
         return retry
 
     def pick_track(self, station: Station, length_m: int, h0: float, h1: float,
-                   prefer_main: bool) -> tuple[str | None, float | None]:
-        fitting = [t for t in station.tracks if t.length_m >= length_m]
+                   prefer_main: bool, preferred: str | None = None,
+                   exclude: set[str] | frozenset[str] = frozenset()) -> tuple[str | None, float | None]:
+        fitting = [t for t in station.tracks if t.length_m >= length_m and t.id not in exclude]
         if not fitting:
             return None, None
-        fitting.sort(key=lambda t: (0 if t.is_main == prefer_main else 1, t.length_m))
+        fitting.sort(key=lambda t: (0 if t.id == preferred else 1, 0 if t.is_main == prefer_main else 1, t.length_m))
         best_retry: float | None = None
         for t in fitting:
             r = interval_retry(self.trk[t.id], h0, h1)

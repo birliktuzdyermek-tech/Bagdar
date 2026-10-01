@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { api } from "../api/client";
 import { CARGO_LABEL, delayLabel, DISPLAY_LABEL, duration, hhmm, num } from "../lib/format";
 import { classGroup, GROUP_COLOR } from "../lib/palette";
 import { trainShape } from "../lib/geometry";
@@ -9,6 +11,8 @@ export function TrainDetail() {
   const world = useSim((s) => s.world);
   const state = useSim((s) => s.state);
   const selectStation = useSim((s) => s.selectStation);
+  const setError = useSim((s) => s.setError);
+  const [sent, setSent] = useState<string | null>(null);
 
   const tr = id && idx ? idx.trains.get(id) : undefined;
   const ts = id && state ? state.trains.find((t) => t.id === id) : undefined;
@@ -55,6 +59,23 @@ export function TrainDetail() {
           <span className="muted">допуск {Math.round(tol / 60)} мин · вес {cls?.weight ?? "—"}</span>
         </div>
         {ts?.wait_reason && <div className="wait">Ожидает: {ts.wait_reason}</div>}
+        {ts && ts.display !== "terminated" && (
+          <div className="inject" aria-label="Внешнее событие">
+            <span className="muted">Задержать (событие для демо):</span>
+            {[5, 10, 15].map((m) => (
+              <button key={m} className="btn btn-small" onClick={async () => {
+                try {
+                  const r = await api.event({ type: "train_delay", train_id: tr.id, minutes: m });
+                  setSent(`${r.message}: +${m} мин, план пересчитывается`);
+                  setError(null);
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : String(e));
+                }
+              }}>+{m} мин</button>
+            ))}
+            {sent && <div className="muted" style={{ width: "100%", fontSize: 12 }}>{sent}</div>}
+          </div>
+        )}
         <dl className="kv">
           <dt>Где</dt><dd>{where}</dd>
           <dt>Скорость</dt><dd>{ts ? `${Math.round(ts.v_kmh)} км/ч (цель ${Math.round(ts.v_target_kmh)}, макс. ${tr.vmax_kmh})` : "—"}</dd>

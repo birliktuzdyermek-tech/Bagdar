@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { connectStream, disconnectStream } from "./api/stream";
+import { DecisionsPanel } from "./components/DecisionsPanel";
 import { EventFeed } from "./components/EventFeed";
 import { LineScheme, SchemeLegend } from "./components/LineScheme";
 import { StationDetail } from "./components/StationDetail";
@@ -69,6 +70,7 @@ export default function App() {
           <LineScheme />
           <SchemeLegend />
         </section>
+        <DecisionsPanel />
         <TrainDetail />
         <StationDetail />
         <EventFeed />
