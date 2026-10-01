@@ -85,6 +85,11 @@ button, input, select { font: inherit; color: inherit; }
   min-width: 1100px;
 }
 
+/* короткие страницы: лишняя высота уходит вниз, а не растягивает шапку */
+.app:not(.route-dispatcher) {
+  align-content: start;
+}
+
 .topbar {
   display: flex;
   align-items: center;
