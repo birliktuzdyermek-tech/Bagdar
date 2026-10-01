@@ -1,5 +1,46 @@
 {
   "$defs": {
+    "ConflictOut": {
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "resource": {
+          "title": "Resource",
+          "type": "string"
+        },
+        "trains": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trains",
+          "type": "array"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        },
+        "in_s": {
+          "title": "In S",
+          "type": "integer"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "resource",
+        "trains",
+        "t",
+        "in_s",
+        "message"
+      ],
+      "title": "ConflictOut",
+      "type": "object"
+    },
     "Disruption": {
       "properties": {
         "at": {
@@ -299,7 +340,215 @@
       "title": "PlanLegOut",
       "type": "object"
     },
-    "PlanOut": {
+    "PlannerSummaryOut": {
+      "properties": {
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "solver": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Solver"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "feasible",
+                "delayed",
+                "infeasible"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Status"
+        },
+        "compute_ms": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Время последнего пересчёта целиком, мс",
+          "title": "Compute Ms"
+        },
+        "cpsat_ms": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cpsat Ms"
+        },
+        "cp_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cp Status"
+        },
+        "t0": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "T0"
+        },
+        "J": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Целевая функция плана, у.е. (условные)",
+          "title": "J"
+        },
+        "busy": {
+          "title": "Busy",
+          "type": "boolean"
+        },
+        "pending": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Pending",
+          "type": "array"
+        },
+        "conflicts": {
+          "title": "Conflicts",
+          "type": "integer"
+        },
+        "max_deviation_s": {
+          "title": "Max Deviation S",
+          "type": "integer"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "late_trains": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Late Trains",
+          "type": "array"
+        },
+        "held": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Held",
+          "type": "array"
+        },
+        "cards_total": {
+          "title": "Cards Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "version",
+        "solver",
+        "status",
+        "compute_ms",
+        "cpsat_ms",
+        "cp_status",
+        "t0",
+        "J",
+        "busy",
+        "pending",
+        "conflicts",
+        "max_deviation_s",
+        "reason",
+        "late_trains",
+        "held",
+        "cards_total"
+      ],
+      "title": "PlannerSummaryOut",
+      "type": "object"
+    },
+    "ReplayFrame": {
+      "properties": {
+        "t": {
+          "description": "Model seconds at this complete state snapshot",
+          "title": "T",
+          "type": "number"
+        },
+        "state": {
+          "$ref": "#/$defs/ReplayStateOut"
+        },
+        "index": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IndexSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Measured index at this time; null until the index calculator exists"
+        }
+      },
+      "required": [
+        "t",
+        "state",
+        "index"
+      ],
+      "title": "ReplayFrame",
+      "type": "object"
+    },
+    "ReplayPlan": {
+      "properties": {
+        "t": {
+          "description": "Model seconds from which this plan applies",
+          "title": "T",
+          "type": "number"
+        },
+        "plan": {
+          "$ref": "#/$defs/ReplayPlanOut"
+        }
+      },
+      "required": [
+        "t",
+        "plan"
+      ],
+      "title": "ReplayPlan",
+      "type": "object"
+    },
+    "ReplayPlanOut": {
       "properties": {
         "version": {
           "title": "Version",
@@ -340,6 +589,30 @@
           "title": "Cost",
           "type": "object"
         },
+        "horizon_end": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Horizon End"
+        },
+        "hold_all": {
+          "default": false,
+          "title": "Hold All",
+          "type": "boolean"
+        },
+        "held": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Held",
+          "type": "array"
+        },
         "legs": {
           "items": {
             "$ref": "#/$defs/PlanLegOut"
@@ -358,55 +631,122 @@
         "cost",
         "legs"
       ],
-      "title": "PlanOut",
+      "title": "ReplayPlanOut",
       "type": "object"
     },
-    "ReplayFrame": {
+    "ReplayStateOut": {
       "properties": {
+        "type": {
+          "const": "state",
+          "default": "state",
+          "title": "Type",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "world_version": {
+          "title": "World Version",
+          "type": "integer"
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "tick": {
+          "title": "Tick",
+          "type": "integer"
+        },
         "t": {
-          "description": "Model seconds at this complete state snapshot",
           "title": "T",
           "type": "number"
         },
-        "state": {
-          "$ref": "#/$defs/StateOut"
+        "running": {
+          "title": "Running",
+          "type": "boolean"
         },
-        "index": {
+        "speed": {
+          "title": "Speed",
+          "type": "number"
+        },
+        "trains": {
+          "items": {
+            "$ref": "#/$defs/TrainStateOut"
+          },
+          "title": "Trains",
+          "type": "array"
+        },
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/SectionStateOut"
+          },
+          "title": "Sections",
+          "type": "array"
+        },
+        "tracks": {
+          "items": {
+            "$ref": "#/$defs/TrackStateOut"
+          },
+          "title": "Tracks",
+          "type": "array"
+        },
+        "throats": {
+          "items": {
+            "$ref": "#/$defs/ThroatStateOut"
+          },
+          "title": "Throats",
+          "type": "array"
+        },
+        "signals": {
+          "items": {
+            "$ref": "#/$defs/SignalStateOut"
+          },
+          "title": "Signals",
+          "type": "array"
+        },
+        "metrics": {
+          "$ref": "#/$defs/MetricsOut"
+        },
+        "perf": {
+          "$ref": "#/$defs/PerfOut"
+        },
+        "planner": {
           "anyOf": [
             {
-              "$ref": "#/$defs/IndexSnapshot"
+              "$ref": "#/$defs/PlannerSummaryOut"
             },
             {
               "type": "null"
             }
           ],
-          "description": "Measured index at this time; null until the index calculator exists"
-        }
-      },
-      "required": [
-        "t",
-        "state",
-        "index"
-      ],
-      "title": "ReplayFrame",
-      "type": "object"
-    },
-    "ReplayPlan": {
-      "properties": {
-        "t": {
-          "description": "Model seconds from which this plan applies",
-          "title": "T",
-          "type": "number"
+          "default": null
         },
-        "plan": {
-          "$ref": "#/$defs/PlanOut"
+        "conflicts": {
+          "items": {
+            "$ref": "#/$defs/ConflictOut"
+          },
+          "title": "Conflicts",
+          "type": "array"
         }
       },
       "required": [
+        "run_id",
+        "world_version",
+        "seq",
+        "tick",
         "t",
-        "plan"
+        "running",
+        "speed",
+        "trains",
+        "sections",
+        "tracks",
+        "throats",
+        "signals",
+        "metrics",
+        "perf"
       ],
-      "title": "ReplayPlan",
+      "title": "ReplayStateOut",
       "type": "object"
     },
     "Scenario": {
@@ -714,103 +1054,6 @@
         "state"
       ],
       "title": "SignalStateOut",
-      "type": "object"
-    },
-    "StateOut": {
-      "properties": {
-        "type": {
-          "const": "state",
-          "default": "state",
-          "title": "Type",
-          "type": "string"
-        },
-        "run_id": {
-          "title": "Run Id",
-          "type": "string"
-        },
-        "world_version": {
-          "title": "World Version",
-          "type": "integer"
-        },
-        "seq": {
-          "title": "Seq",
-          "type": "integer"
-        },
-        "tick": {
-          "title": "Tick",
-          "type": "integer"
-        },
-        "t": {
-          "title": "T",
-          "type": "number"
-        },
-        "running": {
-          "title": "Running",
-          "type": "boolean"
-        },
-        "speed": {
-          "title": "Speed",
-          "type": "number"
-        },
-        "trains": {
-          "items": {
-            "$ref": "#/$defs/TrainStateOut"
-          },
-          "title": "Trains",
-          "type": "array"
-        },
-        "sections": {
-          "items": {
-            "$ref": "#/$defs/SectionStateOut"
-          },
-          "title": "Sections",
-          "type": "array"
-        },
-        "tracks": {
-          "items": {
-            "$ref": "#/$defs/TrackStateOut"
-          },
-          "title": "Tracks",
-          "type": "array"
-        },
-        "throats": {
-          "items": {
-            "$ref": "#/$defs/ThroatStateOut"
-          },
-          "title": "Throats",
-          "type": "array"
-        },
-        "signals": {
-          "items": {
-            "$ref": "#/$defs/SignalStateOut"
-          },
-          "title": "Signals",
-          "type": "array"
-        },
-        "metrics": {
-          "$ref": "#/$defs/MetricsOut"
-        },
-        "perf": {
-          "$ref": "#/$defs/PerfOut"
-        }
-      },
-      "required": [
-        "run_id",
-        "world_version",
-        "seq",
-        "tick",
-        "t",
-        "running",
-        "speed",
-        "trains",
-        "sections",
-        "tracks",
-        "throats",
-        "signals",
-        "metrics",
-        "perf"
-      ],
-      "title": "StateOut",
       "type": "object"
     },
     "StationOut": {
