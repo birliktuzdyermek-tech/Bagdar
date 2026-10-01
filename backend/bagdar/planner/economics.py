@@ -32,6 +32,7 @@ PTE_PENALTY_PER_MIN = 5000.0   # слой 2 лексикографически �
 PTE_WINDOW_S = 15 * 60         # младший «мешает» старшему, если прошёл перегон не раньше чем за 15 мин
 EXTRA_PENALTY = 1_000_000.0    # слой 1: «внеочередной не первым» — за каждый случай, выше всех остальных штрафов
 STUCK_PENALTY = 50000.0        # поезд застрял в плане (ждёт ресурс, который никогда не освободится) — хуже ПТЭ
+LOCK_PENALTY = 500000.0        # «замок» в плане: дороже любых брошенных поездов, дешевле внеочередного не первым
 STUCK_MARGIN_S = 3600.0        # последний час горизонта: «не доведён» — артефакт конца горизонта, а не тупик
 
 
@@ -88,20 +89,22 @@ class CostBreakdown:
     pte_violations: list[tuple[str, str, str, float]] = field(default_factory=list)
     extra_violations: list[tuple[str, str, str]] = field(default_factory=list)
     stuck: list[str] = field(default_factory=list)
+    locks: list[str] = field(default_factory=list)
     per_train: dict[str, TrainCost] = field(default_factory=dict)
 
     @property
     def lex(self) -> float:
         """J с лексикографическим штрафом за нарушения ПТЭ — для сравнения планов."""
         return (self.total + PTE_PENALTY_PER_MIN * self.pte_excess_s / 60
-                + EXTRA_PENALTY * len(self.extra_violations) + STUCK_PENALTY * len(self.stuck))
+                + EXTRA_PENALTY * len(self.extra_violations) + STUCK_PENALTY * len(self.stuck)
+                + LOCK_PENALTY * len(self.locks))
 
     def as_dict(self) -> dict[str, float]:
         return {"total": round(self.total, 1), "delay": round(self.delay, 1), "stops": round(self.stops, 1),
                 "idle": round(self.idle, 1), "changes": round(self.changes, 1), "n_changes": self.n_changes,
                 "shift_min": round(self.shift_min, 1),
                 "pte_violations": len(self.pte_violations), "pte_excess_min": round(self.pte_excess_s / 60, 1),
-                "stuck": len(self.stuck)}
+                "stuck": len(self.stuck), "locks": len(self.locks)}
 
 
 def plan_cost(inp: "PlanningInput", plan: Plan) -> CostBreakdown:
@@ -164,6 +167,45 @@ def plan_cost(inp: "PlanningInput", plan: Plan) -> CostBreakdown:
         _pte(inp, plan, out)
     _extra(inp, plan, out)
     out.stuck = stuck_trains(inp, plan)
+    out.locks = plan_locks(inp, plan, out.stuck)
+    return out
+
+
+def plan_locks(inp: "PlanningInput", plan: Plan, stuck: list[str]) -> list[str]:
+    """«Замок» в плане: два брошенных планом встречных поезда на соседних станциях, и ни на одной
+    из них нет другого свободного пути нужной длины — X и Y ждут друг друга вечно. Замок, который
+    уже стоит в реальности (оба поезда на месте и новых плеч у них нет), планом не исправить —
+    его не штрафуем, чтобы не отбраковывать все планы подряд."""
+    w = inp.world
+    pos: dict[str, tuple[str, str | None, str, float, bool]] = {}
+    for tid in stuck:
+        ti = inp.trains[tid]
+        legs = [lg for lg in plan.legs.get(tid, []) if lg.k >= ti.first_leg()]
+        if legs:
+            x, trk, nk = legs[-1].to_id, legs[-1].track_id, legs[-1].k + 1
+            planned = any((tid, lg.k) not in inp.entered for lg in legs)
+        elif ti.phase == "station":
+            x, trk, nk, planned = ti.train.route[ti.k], ti.track, ti.first_leg(), False
+        else:
+            continue
+        if nk >= len(ti.legs):
+            continue
+        pos[tid] = (x, trk, ti.legs[nk].to_id, ti.train.length_m, planned)
+    if len(pos) < 2:
+        return []
+    occupied = {p[1] for p in pos.values() if p[1]}
+    bad = set(inp.unavailable_tracks)
+    out = []
+    items = list(pos.items())
+    for i, (a, (xa, ta, ya, la, pa)) in enumerate(items):
+        for b, (xb, tb, yb, lb, pb) in items[i + 1:]:
+            if not (xa == yb and xb == ya) or not (pa or pb):
+                continue
+            free_x = any(t.id not in occupied and t.id not in bad and t.length_m >= lb for t in w.stations[xa].tracks)
+            free_y = any(t.id not in occupied and t.id not in bad and t.length_m >= la for t in w.stations[xb].tracks)
+            if not free_x and not free_y:
+                out.append(f"{inp.trains[a].train.number} на ст. {w.stations[xa].name} ↔ "
+                           f"{inp.trains[b].train.number} на ст. {w.stations[xb].name}")
     return out
 
 

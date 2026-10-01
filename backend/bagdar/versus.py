@@ -71,11 +71,7 @@ class Versus:
             self._remember("right", self.rt.engine)
 
     def _remember(self, side: str, eng) -> None:
-        cache = self._pos[side]
-        for tid, r in eng.rt.items():
-            key = (r.status, r.k)
-            if cache.get(tid, (None,))[0] != key:
-                cache[tid] = (key, eng.t)
+        remember_positions(self._pos[side], eng)
 
     # ------------------------------------------------------------ события
     def apply_event(self, kind: str, params: dict) -> None:
@@ -108,41 +104,7 @@ class Versus:
     # ------------------------------------------------------------ счёт
     def score(self, side: str) -> dict:
         rt = self.shadow if side == "left" else self.rt
-        eng = rt.engine
-        tar = self.rt.cfg.tariffs
-        pax = frt = 0.0
-        late = 0
-        for r in eng.rt.values():
-            if r.status == "pending":
-                continue
-            d = r.rec_delay_s if r.status == "finished" else eng.live_delay(r)
-            d = max(0.0, d)
-            if r.train.pte_rank <= 3:
-                pax += d
-            else:
-                frt += d
-            if d >= 300:
-                late += 1
-        now = eng.t
-        cache = self._pos[side]
-        frozen = [eng.number(tid) for tid, r in eng.rt.items()
-                  if r.status in ("station", "section") and r.k < len(r.train.route) - 1
-                  and tid in cache and now - cache[tid][1] >= FROZEN_S]
-        energy = sum(r.stop_energy_kwh for r in eng.rt.values())
-        idle_h = eng.idle_total_s / 3600
-        money = {"delay_pax": pax / 60 * tar.delay_min_pax, "delay_freight": frt / 60 * tar.delay_min_freight,
-                 "energy": energy * tar.kwh, "idle": idle_h * (tar.loco_hour + tar.crew_hour)}
-        idx = rt.index.current or {}
-        return {
-            "delay_pax_min": round(pax / 60, 1), "delay_freight_min": round(frt / 60, 1),
-            "delay_min": round((pax + frt) / 60, 1), "late_trains": late,
-            "idle_h": round(idle_h, 2), "energy_kwh": round(energy, 1),
-            "unplanned_stops": sum(r.unplanned_stops for r in eng.rt.values()),
-            "frozen": len(frozen), "frozen_numbers": frozen[:8],
-            "passages": len(eng.passages), "finished": sum(1 for r in eng.rt.values() if r.status == "finished"),
-            "money": {k: round(v, 1) for k, v in money.items()}, "money_total": round(sum(money.values()), 1),
-            "index": idx.get("value"), "index_status": idx.get("status_label"),
-        }
+        return score_runtime(rt, self.rt.cfg.tariffs, self._pos[side])
 
     def payload(self, with_state: bool = True) -> dict:
         if not self.active or self.shadow is None:
@@ -161,3 +123,50 @@ class Versus:
                      "passages": right["passages"] - left["passages"]},
             "actions": self.actions[-20:],
         }
+
+
+def remember_positions(cache: dict, eng) -> None:
+    """Запомнить, когда каждый поезд последний раз сдвинулся (сменил станцию или перегон)."""
+    for tid, r in eng.rt.items():
+        key = (r.status, r.k)
+        if cache.get(tid, (None,))[0] != key:
+            cache[tid] = (key, eng.t)
+
+
+def score_runtime(rt, tariffs, cache: dict) -> dict:
+    """Счёт одной модели: одинаковые правила для «с Бағдаром» и «без»."""
+    eng = rt.engine
+    tar = tariffs
+    pax = frt = 0.0
+    late = 0
+    for r in eng.rt.values():
+        if r.status == "pending":
+            continue
+        d = r.rec_delay_s if r.status == "finished" else eng.live_delay(r)
+        d = max(0.0, d)
+        if r.train.pte_rank <= 3:
+            pax += d
+        else:
+            frt += d
+        if d >= 300:
+            late += 1
+    now = eng.t
+    frozen = [eng.number(tid) for tid, r in eng.rt.items()
+              if r.status in ("station", "section") and r.k < len(r.train.route) - 1
+              and tid in cache and now - cache[tid][1] >= FROZEN_S]
+    energy = sum(r.stop_energy_kwh for r in eng.rt.values())
+    idle_h = eng.idle_total_s / 3600
+    money = {"delay_pax": pax / 60 * tar.delay_min_pax, "delay_freight": frt / 60 * tar.delay_min_freight,
+             "energy": energy * tar.kwh, "idle": idle_h * (tar.loco_hour + tar.crew_hour)}
+    idx = rt.index.current or {}
+    return {
+        "delay_pax_min": round(pax / 60, 1), "delay_freight_min": round(frt / 60, 1),
+        "delay_min": round((pax + frt) / 60, 1), "late_trains": late,
+        "idle_h": round(idle_h, 2), "energy_kwh": round(energy, 1),
+        "unplanned_stops": sum(r.unplanned_stops for r in eng.rt.values()),
+        "frozen": len(frozen), "frozen_numbers": frozen[:8],
+        "passages": len(eng.passages), "finished": sum(1 for r in eng.rt.values() if r.status == "finished"),
+        "money": {k: round(v, 1) for k, v in money.items()}, "money_total": round(sum(money.values()), 1),
+        "index": idx.get("value"), "index_status": idx.get("status_label"),
+    }
+

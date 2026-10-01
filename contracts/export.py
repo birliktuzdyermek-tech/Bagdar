@@ -10,12 +10,14 @@ import sys
 from pathlib import Path
 
 import yaml
+from typing import Literal
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from bagdar.api.schemas import ConflictOut, EventOut, PlanOut, StateOut, WorldOut, PlannerSummaryOut  # noqa: E402
+from bagdar.api.schemas import (ConflictOut, DecisionCardOut, EventOut, IncidentOut, PlanOut,  # noqa: E402
+                                PlannerSummaryOut, StateOut, VersusScoreOut, WorldOut)
 from bagdar.config import load_config  # noqa: E402
 from bagdar.dto import plan_dto  # noqa: E402
 from bagdar.runtime import SimulationRuntime  # noqa: E402
@@ -63,6 +65,30 @@ class Replay(BaseModel):
     plans: list[ReplayPlan]
     frames: list[ReplayFrame]
     events: list[EventOut]
+    # Optional fields added after the first export; old files stay valid.
+    variant: Literal["bagdar", "no_plan"] = Field(
+        "bagdar", description="bagdar: planner on; no_plan: same flow without a plan, resources first come first served")
+    pair: str | None = Field(None, description="Id of the paired run of the same flow (with / without Bağdar)")
+    cards: list[DecisionCardOut] = Field(default_factory=list, description="Decision cards with reasons and prices")
+    incidents: list[IncidentOut] = Field(default_factory=list, description="Disruptions with before/after report")
+    summary: VersusScoreOut | None = Field(None, description="Final score of the run, same rules for both variants")
+
+
+# Модели наследуют схемы Ядра со ссылками вперёд (from __future__ import annotations):
+# достраиваем их в пространстве имён bagdar.api.schemas, где определены все типы.
+import bagdar.api.schemas as _core_schemas  # noqa: E402
+
+for _model in (IndexSnapshot, ReplayStateOut, ReplayPlanOut, ReplayFrame, ReplayPlan, Replay):
+    _model.model_rebuild(_types_namespace=vars(_core_schemas))
+
+
+def index_snapshot(current: dict | None) -> dict | None:
+    """Index of the core in the replay frame format (status: normal, warning, critical)."""
+    if not current or current.get("value") is None:
+        return None
+    status = {"norm": "normal"}.get(current["status"], current["status"])
+    return {"value": round(current["value"], 1), "status": status,
+            "factors": {f["key"]: round(f["score"], 3) for f in current["factors"] if f.get("score") is not None}}
 
 
 def write_json(path: Path, payload: object) -> None:

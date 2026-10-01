@@ -345,7 +345,7 @@ function IndexCard({ model, t }: { model: ReplayModel; t: number }) {
     return (
       <div className="panel">
         <h2 className="panel-title">Индекс участка</h2>
-        <p className="muted">Индекс пока не рассчитан Ядром для этой записи. Число появится, когда Ядро начнёт записывать его в кадры.</p>
+        <p className="muted">В этой записи индекса нет: она снята ранней версией Ядра. В новых записях индекс есть в каждом кадре.</p>
       </div>
     );
   }

@@ -1,49 +1,47 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clock, num } from "../lib/format";
 import { reducedMotionNow, useCountUp } from "../lib/motion";
 import { drawGraph } from "../player/graph";
 import { drawScheme } from "../player/scheme";
 import { loadReplay } from "../replay/load";
 import { ReplayModel } from "../replay/model";
-import type { RunInfo, SimEvent } from "../replay/types";
+import type { DecisionCard, IncidentSummary, RunInfo } from "../replay/types";
 import { BgReplay } from "./BgReplay";
 import "./presentation.css";
 
 const TITLES = [
-  "Проблема", "Диспетчер сегодня", "Бағдар", "Живой участок", "Изменение графика", "Приоритеты",
-  "Неочевидное решение", "Индекс участка", "Архитектура", "Масштаб", "Экономика", "Ограничения и развитие",
+  "Проблема", "Что такое Бағдар", "Живой участок", "Сбой — и новый план за секунды", "Почему именно так",
+  "С Бағдаром и без", "Приоритеты", "Индекс участка", "Архитектура", "Масштаб", "Экономика", "Ограничения и развитие",
 ] as const;
+
+// насыщенные слайды: заголовок меньше, колонки прижаты кверху, чтобы всё влезло в 16:9
+const COMPACT = new Set([3, 4, 5, 7, 10]);
 
 const NOTES = [
-  "Это количество возможных пар поездов, а не число конфликтов. Расчёт: n·(n−1)/2. Фон — воспроизведение настоящей записи лёгкого режима.",
-  "На участке диспетчер следит за встречными и попутными поездами, путями, расписанием и задержками. Не утверждайте, что человек физически проверяет все 499 500 пар.",
-  "Бағдар — консультативный прототип. Он предлагает планы и показывает их в симуляции; не управляет сигналами, стрелками и реальными поездами.",
-  "На схеме и графике реальные кадры replay. Пунктир — сохранённый план, сплошная линия — факт. Можно открыть полный проигрыватель.",
-  "В 07:00 в запись внесена внешняя задержка скорого поезда на 15 минут. Это не смоделированный физический отказ. Время расчёта берётся из опубликованного плана в replay.",
-  "Четыре слоя применяются сверху вниз. Правила и веса здесь приведены из спецификации; текущий replay не содержит полного объяснения каждого решения.",
-  "Показываем настоящее действие из журнала replay. Доказательство через два будущих ещё нельзя показать: нет пары связанных прогонов и цены альтернативы.",
-  "Формула и веса взяты из спецификации. Поля index в имеющихся кадрах равны null, поэтому числовой индекс не показываем. Регуляторы демонстрируют только состав весов.",
-  "Это схема проектной архитектуры. Витрина читает готовый replay; планировщик и симулятор работают в Ядре. Отдельная Сеть создаётся другой сессией.",
-  "Тысяча поездов — целевой режим из спецификации, не измеренная производительность. Доступные записи относятся к лёгкому режиму.",
-  "Достык — Мойынты: опубликованная проектная оценка роста пропускной способности со строительством второго пути. Поле тарифа — учебный расчёт 15 минут, не экономия Бағдара.",
-  "Это консультативный прототип с синтетическим движением. QR на интерактивное «Сломайте сами» появится только после появления рабочего публичного адреса функции.",
+  "Это количество возможных пар поездов, а не число конфликтов: n·(n−1)/2. Каждая пара может встретиться на одном пути. Фон — настоящая запись прогона.",
+  "Бағдар как навигатор: видит весь участок, строит план без конфликтов, объясняет каждое решение и советует машинистам скорость. Сигналами и поездами не управляет.",
+  "Это кадры настоящего прогона Ядра. Пунктир на графике — план Бағдара, сплошная — как поезда ехали на самом деле. Индекс — из тех же кадров.",
+  "В 06:30 по сценарию закрыт перегон. Таблица — из отчёта «до / после», который Ядро строит само: план Бағдара, «ничего не менять» и «кто первый пришёл».",
+  "Настоящая карточка из записи: что сделано, почему, какая была альтернатива и на сколько она дороже. Цены — условные единицы.",
+  "Один и тот же поток поездов и одно событие, две записи. Слева — без плана, поезда занимают пути «кто первый пришёл». Справа — Бағдар. Цифры внизу — итог четырёх часов модели по одинаковым правилам.",
+  "Четыре слоя сверху вниз: нижний слой никогда не отменяет верхний. Порядок классов — настраиваемое допущение модели.",
+  "Формула и веса — из конфига Ядра, меняются на лету в симуляторе. Кривая — индекс из кадров записи закрытия перегона: видно, как он проседает и восстанавливается.",
+  "Ядро — FastAPI: симулятор, планировщик CP-SAT с запасной эвристикой, независимый валидатор, индекс, журнал SQLite. Экран диспетчера получает поток по WebSocket. Витрина читает записи прогонов.",
+  "Каждая зона из 20 станций планируется своим диспетчером, зоны — параллельно. Замер — scripts/bench_scale.py, таблица в docs/BENCHMARK_SCALE.md.",
+  "Достык — Мойынты: проектная оценка второго пути — с 12 до 60 пар. Пересчёт по тарифу — разница двух записей «Замка» в нашей модели, не обещание реальной экономии.",
+  "Консультативный прототип с синтетическим движением. QR открывает симулятор: можно самому закрыть перегон и посмотреть, как Бағдар перестроит план.",
 ] as const;
 
-function useReplay(run: RunInfo | null): { model: ReplayModel | null; error: string | null } {
+function useReplay(run: RunInfo | null): ReplayModel | null {
   const [model, setModel] = useState<ReplayModel | null>(null);
-  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!run) return;
     let alive = true;
     setModel(null);
-    setError(null);
-    loadReplay(run.file).then(
-      (r) => { if (alive) setModel(new ReplayModel(r)); },
-      (e: Error) => { if (alive) setError(e.message); },
-    );
+    loadReplay(run.file).then((r) => { if (alive) setModel(new ReplayModel(r)); }, () => {});
     return () => { alive = false; };
   }, [run]);
-  return { model, error };
+  return model;
 }
 
 function PairNumbers() {
@@ -56,29 +54,18 @@ function PairNumbers() {
   const n100 = useCountUp(go ? 4950 : 0, 1400);
   const n1000 = useCountUp(go ? 499500 : 0, 1400);
   return <div className="pres-pairs" aria-label="Количество возможных пар поездов">
-    <div><strong>{num(Math.round(n20))}</strong><span>при 20 поездах</span></div>
-    <div><strong>{num(Math.round(n100))}</strong><span>при 100 поездах</span></div>
-    <div><strong>{num(Math.round(n1000))}</strong><span>при 1 000 поездах</span></div>
+    <div><strong>{num(Math.round(n20))}</strong><span>пар при 20 поездах</span></div>
+    <div><strong>{num(Math.round(n100))}</strong><span>пар при 100 поездах</span></div>
+    <div><strong>{num(Math.round(n1000))}</strong><span>пар при 1 000 поездах</span></div>
   </div>;
 }
 
-/** Компактная схема и график из тех же функций и кадров, что в полном проигрывателе. */
-function ReplayStage({ model, run, nearEvent = false }: { model: ReplayModel | null; run: RunInfo | null; nearEvent?: boolean }) {
-  const schemeRef = useRef<HTMLCanvasElement | null>(null);
-  const graphRef = useRef<HTMLCanvasElement | null>(null);
-  const [t, setT] = useState<number | null>(null);
-
+/** Канвас с подгонкой под размер и devicePixelRatio. */
+function useCanvases(n: number) {
+  const refs = useRef<(HTMLCanvasElement | null)[]>(Array(n).fill(null));
+  const dims = useRef(new Map<HTMLCanvasElement, { w: number; h: number }>());
   useEffect(() => {
-    if (!model) return;
-    const cvs = [schemeRef.current, graphRef.current].filter((x): x is HTMLCanvasElement => !!x);
-    if (cvs.length !== 2) return;
-    const injection = model.r.events.find((e) => e.kind === "train_delay_injected");
-    const beginning = nearEvent && injection ? Math.max(model.start, injection.t - 90) : model.start + 1800;
-    let current = beginning;
-    let last = 0;
-    let lastUi = 0;
-    let raf = 0;
-    const dimensions = new Map<HTMLCanvasElement, { w: number; h: number }>();
+    const cvs = refs.current.filter((x): x is HTMLCanvasElement => !!x);
     const resize = () => {
       for (const cv of cvs) {
         const rect = cv.getBoundingClientRect();
@@ -86,58 +73,216 @@ function ReplayStage({ model, run, nearEvent = false }: { model: ReplayModel | n
         cv.width = Math.round(rect.width * dpr);
         cv.height = Math.round(rect.height * dpr);
         cv.getContext("2d")?.setTransform(dpr, 0, 0, dpr, 0, 0);
-        dimensions.set(cv, { w: rect.width, h: rect.height });
+        dims.current.set(cv, { w: rect.width, h: rect.height });
       }
     };
     const ro = new ResizeObserver(resize);
     cvs.forEach((cv) => ro.observe(cv));
     resize();
+    return () => ro.disconnect();
+  });
+  return { refs, dims };
+}
+
+/** Схема и график из кадров записи; focusT — с какого момента крутить (по кругу). */
+function ReplayStage({ model, run, focusT, speed = 60, graph = true }: {
+  model: ReplayModel | null; run: RunInfo | null; focusT?: number | null; speed?: number; graph?: boolean;
+}) {
+  const { refs, dims } = useCanvases(2);
+  const [t, setT] = useState<number | null>(null);
+  useEffect(() => {
+    if (!model) return;
+    const begin = focusT != null ? Math.max(model.start, focusT - 120) : model.start + 1800;
+    let cur = begin;
+    let last = 0;
+    let lastUi = 0;
+    let raf = 0;
     const render = (now: number) => {
       const reduced = reducedMotionNow();
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
       last = now;
       if (!reduced) {
-        current += dt * 60;
-        if (current >= model.end) current = beginning;
+        cur += dt * speed;
+        if (cur >= model.end) cur = begin;
       }
       const projector = document.documentElement.classList.contains("projector");
-      const frame = model.frameAt(current).frame;
-      const sc = cvs[0].getContext("2d");
-      const sd = dimensions.get(cvs[0]);
-      if (sc && sd?.w) drawScheme(sc, sd.w, sd.h, model, model.trainsAt(current, !reduced), frame, {
-        projector, selected: null, hover: null, flashes: [], now,
-      });
-      const gc = cvs[1].getContext("2d");
-      const gd = dimensions.get(cvs[1]);
-      if (gc && gd?.w) drawGraph(gc, gd.w, gd.h, model, current, {
-        projector, selected: null, before: 1800, after: 1800, morph: null, now, reduced,
-      });
-      if (now - lastUi > 250) { lastUi = now; setT(current); }
+      const frame = model.frameAt(cur).frame;
+      const [sc, gc] = refs.current;
+      const sd = sc && dims.current.get(sc);
+      if (sc && sd?.w) drawScheme(sc.getContext("2d")!, sd.w, sd.h, model, model.trainsAt(cur, !reduced), frame,
+        { projector, selected: null, hover: null, flashes: [], now });
+      const gd = gc && dims.current.get(gc);
+      if (gc && gd?.w) drawGraph(gc.getContext("2d")!, gd.w, gd.h, model, cur,
+        { projector, selected: null, before: 1800, after: 1800, morph: null, now, reduced });
+      if (now - lastUi > 250) { lastUi = now; setT(cur); }
       raf = requestAnimationFrame(render);
     };
-    setT(beginning);
     raf = requestAnimationFrame(render);
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
-  }, [model, nearEvent]);
+    return () => cancelAnimationFrame(raf);
+  }, [model, focusT, speed]);
 
-  if (!run) return <p className="pres-empty">Записей лёгкого режима пока нет.</p>;
+  if (!run) return <p className="pres-empty">Записи пока нет.</p>;
   if (!model) return <p className="pres-empty" role="status">Загружается запись «{run.title}»…</p>;
-  const metrics = model.frameAt(t ?? model.start).frame.state.metrics;
+  const fr = model.frameAt(t ?? model.start).frame;
   const plan = model.planAt(t ?? model.start);
   return <div className="pres-replay">
     <div className="pres-replay-head">
       <span className="badge badge-rec"><span className="rec-dot" aria-hidden /> Запись прогона</span>
       <strong>{run.title}</strong>
-      <span className="pres-time">{clock(t ?? model.start)} · ×60</span>
+      <span className="pres-time">{clock(t ?? model.start)} · ×{speed}</span>
     </div>
-    <canvas ref={schemeRef} className="pres-scheme" role="img" aria-label="Схема участка из кадров записи" />
-    <canvas ref={graphRef} className="pres-graph" role="img" aria-label="График движения из плана и кадров записи" />
+    <canvas ref={(el) => { refs.current[0] = el; }} className="pres-scheme" role="img" aria-label="Схема участка из кадров записи" />
+    {graph && <canvas ref={(el) => { refs.current[1] = el; }} className="pres-graph" role="img" aria-label="График движения из плана и кадров записи" />}
     <div className="pres-replay-foot">
-      <span>Поездов на участке: <b>{metrics.active_trains}</b></span>
-      <span>Ожидают: <b>{metrics.waiting_trains}</b></span>
-      <span>План: <b>{plan ? `v${plan.plan.version}` : "ещё нет"}</b></span>
+      <span>Поездов: <b>{fr.state.metrics.active_trains}</b></span>
+      <span>Ср. задержка: <b>{num(fr.state.metrics.avg_delay_s / 60, 1)} мин</b></span>
+      <span>Индекс: <b>{fr.index ? Math.round(fr.index.value) : "—"}</b></span>
+      <span>План: <b>{plan ? `v${plan.plan.version}` : "—"}</b></span>
     </div>
   </div>;
+}
+
+/** Две записи одного потока рядом, на общих часах: без плана и с Бағдаром. */
+function PairStage({ a, b, runA, runB }: { a: ReplayModel | null; b: ReplayModel | null; runA: RunInfo | null; runB: RunInfo | null }) {
+  const { refs, dims } = useCanvases(2);
+  const [t, setT] = useState<number | null>(null);
+  useEffect(() => {
+    if (!a || !b) return;
+    const begin = Math.max(a.start, b.start);
+    const end = Math.min(a.end, b.end);
+    let cur = begin;
+    let last = 0;
+    let lastUi = 0;
+    let raf = 0;
+    const render = (now: number) => {
+      const reduced = reducedMotionNow();
+      const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+      last = now;
+      if (!reduced) {
+        cur += dt * 150;                       // 4 часа модели — примерно за полторы минуты
+        if (cur >= end) cur = begin;
+      } else cur = end;
+      const projector = document.documentElement.classList.contains("projector");
+      [a, b].forEach((m, i) => {
+        const cv = refs.current[i];
+        const d = cv && dims.current.get(cv);
+        if (cv && d?.w) drawScheme(cv.getContext("2d")!, d.w, d.h, m, m.trainsAt(cur, !reduced), m.frameAt(cur).frame,
+          { projector, selected: null, hover: null, flashes: [], now });
+      });
+      if (now - lastUi > 250) { lastUi = now; setT(cur); }
+      raf = requestAnimationFrame(render);
+    };
+    raf = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(raf);
+  }, [a, b]);
+  if (!runA || !runB) return <p className="pres-empty">Парных записей пока нет.</p>;
+  if (!a || !b) return <p className="pres-empty" role="status">Загружаются две записи…</p>;
+  const side = (m: ReplayModel) => {
+    const fr = m.frameAt(t ?? m.start).frame;
+    return { wait: fr.state.metrics.waiting_trains, delay: fr.state.metrics.avg_delay_s / 60, index: fr.index?.value };
+  };
+  const sa = side(a);
+  const sb = side(b);
+  return <div className="pres-pair">
+    <div className="pres-pair-clock"><span className="badge badge-rec"><span className="rec-dot" aria-hidden /> Две записи одного потока</span>
+      <span className="pres-time">{clock(t ?? a.start, false)} · ×150</span></div>
+    {([[a, sa, "Без Бағдара — «кто первый пришёл»", "pair-bad"], [b, sb, "С Бағдаром", "pair-good"]] as const).map(([, s, label, cls], i) => (
+      <div key={label} className={`pres-pair-side ${cls}`}>
+        <div className="pres-pair-head"><b>{label}</b>
+          <span>ждут: <b>{s.wait}</b> · ср. задержка <b>{num(s.delay, 1)} мин</b> · индекс <b>{s.index != null ? Math.round(s.index) : "—"}</b></span></div>
+        <canvas ref={(el) => { refs.current[i] = el; }} className="pres-scheme pres-scheme-pair" role="img" aria-label={`Схема: ${label}`} />
+      </div>
+    ))}
+  </div>;
+}
+
+function PairTotals({ a, b }: { a: ReplayModel | null; b: ReplayModel | null }) {
+  const A = a?.r.summary;
+  const B = b?.r.summary;
+  if (!A || !B) return null;
+  const rows: [string, number, number, string, "less" | "more"][] = [
+    ["Стоят на месте больше часа", A.frozen, B.frozen, "п.", "less"],
+    ["Задержка поездов", A.delay_min, B.delay_min, "поездо-мин", "less"],
+    ["Простой сверх графика", A.idle_h, B.idle_h, "поездо-ч", "less"],
+    ["Проследований станций", A.passages, B.passages, "", "more"],
+    ["Цена задержек и простоя", A.money_total, B.money_total, "у. е.", "less"],
+  ];
+  return <table className="pres-totals"><thead><tr><th>Итог 4 часов модели</th><th className="pair-bad">Без Бағдара</th><th className="pair-good">С Бағдаром</th></tr></thead>
+    <tbody>{rows.map(([label, x, y, unit, better]) => {
+      const win = x === y ? "" : (better === "less" ? y < x : y > x) ? "b" : "a";
+      return <tr key={label}><th>{label}</th><td className={win === "a" ? "win" : ""}>{num(x, x < 100 && x % 1 ? 1 : 0)} {unit}</td>
+        <td className={win === "b" ? "win" : ""}>{num(y, y < 100 && y % 1 ? 1 : 0)} {unit}</td></tr>;
+    })}</tbody></table>;
+}
+
+function pickCard(models: (ReplayModel | null)[]): DecisionCard | null {
+  for (const m of models) {
+    const c = (m?.r.cards ?? []).filter((x) => x.type !== "incident" && x.type !== "no_plan" && (x.delta_money ?? 0) > 50 && x.reason);
+    if (c.length) return c.sort((p, q) => (q.delta_money ?? 0) - (p.delta_money ?? 0))[0];
+  }
+  return null;
+}
+
+function CardView({ card }: { card: DecisionCard | null }) {
+  if (!card) return <p className="pres-empty">В записях нет карточки с ценой альтернативы.</p>;
+  // первые два предложения: точка, пробел и заглавная буква (не рвём «у.е.» и «ст.»)
+  const reason = card.reason.split(/(?<=\.)\s+(?=[А-ЯЁA-Z«])/).slice(0, 2).join(" ");
+  return <div className="pres-dcard">
+    <div className="pres-dcard-top"><span className="badge badge-rec"><span className="rec-dot" aria-hidden /> Карточка из записи</span>
+      <span className="pres-dcard-lvl">уровень {card.level} · {clock(card.t, false)}</span></div>
+    <div className="pres-dcard-row"><span>Что сделано</span><b>{card.action}</b></div>
+    <div className="pres-dcard-row"><span>Почему</span><p>{reason}</p></div>
+    <div className="pres-dcard-row"><span>Альтернатива</span><p>{card.alternative}</p></div>
+    {card.delta_money != null && <div className="pres-dcard-price">Альтернатива дороже на <b>{num(card.delta_money)} у. е.</b></div>}
+  </div>;
+}
+
+function IncidentView({ model }: { model: ReplayModel | null }) {
+  const inc = model?.r.incidents?.[0];
+  const card = model?.r.cards?.find((c) => c.type === "incident");
+  if (!model) return <p className="pres-empty" role="status">Загружается запись…</p>;
+  if (!inc?.after) return <p className="pres-empty">В записи нет сбоя.</p>;
+  const P = inc.after.plan;
+  const cols: [string, IncidentSummary | null | undefined, string][] = [
+    ["Бағдар", P, "good"], ["Ничего не менять", inc.after.no_change, ""], ["«Кто первый пришёл»", inc.after.fifo, "bad"],
+  ];
+  const ms = model.r.plans.find((p) => p.t >= inc.t)?.plan.compute_ms;
+  return <div className="pres-incident">
+    <dl className="pres-stats">
+      <dt>Что случилось</dt><dd>{clock(inc.t, false)} · {inc.title}</dd>
+      <dt>Новый план</dt><dd>{ms != null ? `${num(ms / 1000, 1)} с` : "—"} на расчёт и проверку</dd>
+      <dt>Задето поездов</dt><dd>{P.affected}</dd>
+      <dt>График восстановится</dt><dd>{P.recovery_at ? clock(P.recovery_at, false) : "за горизонтом 3 ч"}</dd>
+    </dl>
+    <table className="pres-totals pres-totals-sm"><thead><tr><th>План после сбоя</th>{cols.map(([n, , c]) => <th key={n} className={c ? `pair-${c}` : ""}>{n}</th>)}</tr></thead>
+      <tbody>
+        <tr><th>Задето волной</th>{cols.map(([n, s]) => <td key={n}>{s ? `${s.affected} п.` : "—"}</td>)}</tr>
+        <tr><th>Нарушений ПТЭ</th>{cols.map(([n, s]) => <td key={n}>{s ? s.pte : "—"}</td>)}</tr>
+        <tr><th>Цена, у. е.</th>{cols.map(([n, s]) => <td key={n} className={n === "Бағдар" ? "win" : ""}>{s?.J_lex != null ? num(s.J_lex) : "—"}</td>)}</tr>
+      </tbody></table>
+    {card && <p className="pres-small">{card.action}</p>}
+  </div>;
+}
+
+function IndexSpark({ model }: { model: ReplayModel | null }) {
+  const pts = useMemo(() => (model?.r.frames ?? []).filter((f, i) => f.index && i % 3 === 0).map((f) => [f.t, f.index!.value] as const), [model]);
+  if (pts.length < 2) return <p className="pres-empty">Индекс загружается…</p>;
+  const t0 = pts[0][0], t1 = pts[pts.length - 1][0];
+  const W = 640, H = 200;
+  const x = (t: number) => ((t - t0) / (t1 - t0)) * W;
+  const y = (v: number) => H - (v / 100) * H;
+  const d = pts.map(([t, v], i) => `${i ? "L" : "M"}${x(t).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const inc = model?.r.incidents?.[0];
+  return <figure className="pres-spark">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Индекс по кадрам записи">
+      <rect x="0" y={y(100)} width={W} height={y(75) - y(100)} className="band-ok" />
+      <rect x="0" y={y(75)} width={W} height={y(50) - y(75)} className="band-warn" />
+      <rect x="0" y={y(50)} width={W} height={H - y(50)} className="band-crit" />
+      {inc && <line x1={x(inc.t)} x2={x(inc.t)} y1="0" y2={H} className="spark-mark" />}
+      <path d={d} className="spark-line" />
+    </svg>
+    <figcaption>Индекс из кадров записи «{model?.r.scenario.title}» {inc ? `· линия — ${clock(inc.t, false)}, ${inc.title.toLowerCase()}` : ""}</figcaption>
+  </figure>;
 }
 
 const FACTORS = [
@@ -147,29 +292,35 @@ const FACTORS = [
 
 function WeightEditor() {
   const [weights, setWeights] = useState<number[]>(FACTORS.map((f) => f[1]));
-  const sum = weights.reduce((a, b) => a + b, 0);
+  const sum = weights.reduce((a, b) => a + b, 0) || 1;
   return <div className="pres-weight-box">
-    <p className="pres-small">Проба изменения весов в интерфейсе. На запись прогона эти регуляторы не влияют.</p>
     {FACTORS.map(([label], i) => <label className="pres-weight" key={label}>
       <span>{label}</span>
       <input type="range" min="0" max="50" step="1" value={weights[i]}
         onChange={(e) => setWeights((w) => w.map((x, j) => j === i ? Number(e.target.value) : x))} />
-      <strong>{weights[i]} %</strong>
+      <strong>{Math.round((weights[i] / sum) * 100)} %</strong>
     </label>)}
-    <p className={sum === 100 ? "pres-small" : "pres-small pres-warn"}>Сумма весов: {sum} % {sum !== 100 && "· для формулы нужна сумма 100 %"}</p>
+    <p className="pres-small">Веса приводятся к 100 %. В симуляторе меняются на лету: ⚙ Настройки.</p>
   </div>;
 }
 
-function TariffExample({ delayMinutes }: { delayMinutes: number | null }) {
-  const [rate, setRate] = useState("10");
-  const n = Number(rate);
-  const valid = rate !== "" && Number.isFinite(n) && n >= 0 && delayMinutes !== null;
+function TariffEconomy({ a, b }: { a: ReplayModel | null; b: ReplayModel | null }) {
+  const [delay, setDelay] = useState("5");
+  const [hour, setHour] = useState("45");
+  const A = a?.r.summary;
+  const B = b?.r.summary;
+  if (!A || !B) return <p className="pres-empty">Парные записи загружаются…</p>;
+  const dDelay = A.delay_min - B.delay_min;
+  const dIdle = A.idle_h - B.idle_h;
+  const r1 = Number(delay), r2 = Number(hour);
+  const ok = Number.isFinite(r1) && Number.isFinite(r2) && r1 >= 0 && r2 >= 0;
+  const total = ok ? dDelay * r1 + dIdle * r2 : null;
   return <div className="pres-tariff">
-    <label htmlFor="pres-tariff">Ваш тариф за минуту задержки, у. е.</label>
-    <input id="pres-tariff" type="number" min="0" step="0.1" inputMode="decimal" value={rate}
-      onChange={(e) => setRate(e.target.value)} />
-    <strong>{valid ? `${num(n * delayMinutes, 1)} у. е.` : delayMinutes === null ? "Нет записи задержки" : "Введите неотрицательный тариф"}</strong>
-    <span>{delayMinutes === null ? "Когда появится запись внешней задержки, расчёт будет доступен." : `${num(delayMinutes, 1)} мин внешней задержки из записи × ваш тариф.`} Иллюстрация, не измеренная экономия Бағдара.</span>
+    <p className="pres-small">Разница двух записей «Замка» (4 ч модели): задержка {num(dDelay, 0)} поездо-мин, простой {num(dIdle, 1)} поездо-ч.</p>
+    <label>Минута задержки поезда, у. е. <input type="number" min="0" step="0.5" value={delay} onChange={(e) => setDelay(e.target.value)} /></label>
+    <label>Час простоя локомотива и бригады, у. е. <input type="number" min="0" step="1" value={hour} onChange={(e) => setHour(e.target.value)} /></label>
+    <strong>{total != null ? `${total >= 0 ? "Бағдар экономит" : "Бағдар дороже на"} ${num(Math.abs(total))} у. е. за 4 часа` : "Введите неотрицательные тарифы"}</strong>
+    <span>В нашей модели, на одном сценарии. Не обещание реальной экономии.</span>
   </div>;
 }
 
@@ -177,112 +328,116 @@ function recordLink(run: RunInfo | null, label = "Открыть полную з
   return run ? <a className="btn btn-primary pres-link" href={`#/play/${run.id}`}>{label} ↗</a> : null;
 }
 
-function SlideBody({ index, normal, disrupted, normalModel, disruptionModel }: {
-  index: number; normal: RunInfo | null; disrupted: RunInfo | null;
-  normalModel: ReplayModel | null; disruptionModel: ReplayModel | null;
-}) {
-  const injected = disruptionModel?.r.events.find((e) => e.kind === "train_delay_injected");
-  const seconds = injected?.data.seconds;
-  const delayMinutes = typeof seconds === "number" ? seconds / 60 : disrupted?.injected?.[0]?.minutes ?? null;
-  const trainNumber = injected?.train_id ? disruptionModel?.trains.get(injected.train_id)?.number : null;
-  const nextPlan = injected && disruptionModel?.r.plans.find((p) => p.t > injected.t);
-  const decision: SimEvent | undefined = disruptionModel?.r.events.find((e) => e.kind === "decision" && (!injected || e.t >= injected.t));
+interface Models {
+  normal: RunInfo | null; closure: RunInfo | null; lockA: RunInfo | null; lockB: RunInfo | null;
+  mNormal: ReplayModel | null; mClosure: ReplayModel | null; mLockA: ReplayModel | null; mLockB: ReplayModel | null;
+}
+
+function SlideBody({ index, m }: { index: number; m: Models }) {
   switch (index) {
     case 0: return <>
-      <p className="pres-hero">Каждая пара поездов может встретиться на общем ресурсе.</p>
+      <p className="pres-hero">Каждый поезд может помешать каждому — на одном пути двоим не разъехаться.</p>
       <PairNumbers />
-      <p className="pres-small">Математика пар: n·(n−1)/2. Это возможные пары, не обнаруженные конфликты.</p>
+      <p className="pres-plain">Диспетчер держит это в голове и решает за секунды. Чем больше поездов, тем быстрее растёт число пар — человеку физически не успеть пересчитать все последствия.</p>
     </>;
     case 1: return <>
-      <p className="pres-hero">В одну минуту нужно видеть весь участок.</p>
-      <div className="pres-grid pres-grid-four">
-        <div className="pres-card"><b>Поезда</b><span>Где каждый находится и куда идёт</span></div>
-        <div className="pres-card"><b>Ресурсы</b><span>Перегоны, пути, длины составов</span></div>
-        <div className="pres-card"><b>График</b><span>Встречи, обгоны и опоздания</span></div>
-        <div className="pres-card"><b>Последствия</b><span>Как одно ожидание меняет следующий час</span></div>
+      <p className="pres-hero">Навигатор для диспетчера: видит весь участок, предлагает план и объясняет, почему.</p>
+      <div className="pres-steps4">
+        <div><i>👁</i><b>Видит</b><span>Каждый поезд, путь и перегон — в реальном времени</span></div>
+        <div><i>🧭</i><b>Планирует</b><span>План без конфликтов на 3 часа вперёд за 1–2 секунды</span></div>
+        <div><i>💬</i><b>Объясняет</b><span>Что сделано, почему, и сколько стоила бы альтернатива</span></div>
+        <div><i>⚡</i><b>Советует</b><span>Машинисту — скорость, чтобы не стоять зря и экономить энергию</span></div>
       </div>
+      <p className="pres-caveat">Консультативный прототип: решение остаётся за человеком. Сигналами, стрелками и поездами не управляет.</p>
     </>;
-    case 2: return <>
-      <p className="pres-hero">Бағдар предлагает бесконфликтный план и показывает движение по нему.</p>
-      <div className="pres-flow"><span>Состояние участка</span><i>→</i><span>Планирование</span><i>→</i><span>Проверка</span><i>→</i><span>Рекомендация</span></div>
-      <p className="pres-caveat">Консультативный прототип. Не управляет сигналами, стрелками и реальными поездами.</p>
-    </>;
+    case 2: return <div className="pres-two-col">
+      <ReplayStage model={m.mNormal} run={m.normal} />
+      <div className="pres-col-copy"><p className="pres-hero">Утро на участке из 20 станций.</p>
+        <ul className="pres-legend">
+          <li><b>Значок</b> — поезд: синий скорый, зелёный пассажирский, серый грузовой</li>
+          <li><b>Пунктир</b> на графике — план Бағдара, <b>сплошная</b> — как ехали на самом деле</li>
+          <li><b>Индекс</b> 0–100 — насколько хорошо работает участок</li>
+        </ul>
+        {recordLink(m.normal)}</div>
+    </div>;
     case 3: return <div className="pres-two-col">
-      <ReplayStage model={normalModel} run={normal} />
-      <div className="pres-col-copy"><p className="pres-hero">Участок движется по кадрам настоящего прогона.</p>
-        <p>Пунктир на графике — сохранённый план. Сплошная линия — факт из кадров.</p>
-        <p className="pres-small">Синтетические поезда · лёгкий режим · схема не в масштабе.</p>
-        {recordLink(normal)}</div>
+      <ReplayStage model={m.mClosure} run={m.closure} focusT={m.mClosure?.r.incidents?.[0]?.t ?? null} graph={false} speed={45} />
+      <div className="pres-col-copy"><p className="pres-lead">Перегон закрыт — Бағдар сам перестроил план для всех поездов и сравнил с другими вариантами.</p>
+        <IncidentView model={m.mClosure} />
+        {recordLink(m.closure)}</div>
     </div>;
-    case 4: return <div className="pres-two-col">
-      <ReplayStage model={disruptionModel} run={disrupted} nearEvent />
-      <div className="pres-col-copy"><p className="pres-hero">Задержка меняет план.</p>
-        <dl className="pres-stats"><dt>Событие</dt><dd>{injected ? `${clock(injected.t, false)} · ${delayMinutes === null ? "внешняя задержка" : `+${num(delayMinutes, 1)} мин`}${trainNumber ? ` поезду № ${trainNumber}` : ""}` : "загружается из записи"}</dd>
-          <dt>Новый план</dt><dd>{nextPlan ? clock(nextPlan.t) : "загружается из записи"}</dd>
-          <dt>Расчёт</dt><dd>{nextPlan?.plan.compute_ms != null ? `${num(nextPlan.plan.compute_ms, 0)} мс · из replay` : "нет в записи"}</dd></dl>
-        <p className="pres-small">Это внесённая извне задержка с указанной причиной; физический отказ локомотива в модели не воспроизводится.</p>
-        {recordLink(disrupted)}</div>
-    </div>;
+    case 4: return <>
+      <p className="pres-hero">Каждое решение — с причиной и ценой альтернативы.</p>
+      <CardView card={pickCard([m.mClosure, m.mNormal, m.mLockA])} />
+    </>;
     case 5: return <>
-      <p className="pres-hero">Решение принимается сверху вниз.</p>
-      <ol className="pres-layers">
-        <li><b>0 · Безопасность</b><span>Запрет конфликтного маршрута, длина пути, занятость ресурсов</span></li>
-        <li><b>1 · Внеочередные</b><span>Восстановительные, пожарные, снегоочистители</span></li>
-        <li><b>2 · Категория поезда</b><span>Порядок классов настраивается в модели; ПТЭ РК № 544 его не задают</span></li>
-        <li><b>3 · Экономика</b><span>Стоимость задержки внутри допустимых вариантов, у. е.</span></li>
-      </ol><p className="pres-small">Так задано в спецификации. Replay пока не раскрывает полную причину выбора для каждой карточки.</p>
+      <PairStage a={m.mLockB} b={m.mLockA} runA={m.lockB} runB={m.lockA} />
+      <PairTotals a={m.mLockB} b={m.mLockA} />
     </>;
     case 6: return <>
-      <p className="pres-hero">Действие видно. Доказательство альтернативой пока недоступно.</p>
-      <div className="pres-quote"><span className="badge badge-rec"><span className="rec-dot" aria-hidden /> Запись прогона</span>
-        <blockquote>{decision?.message ?? "В этой записи пока нет карточки решения после события."}</blockquote>
-        {decision && <small>{clock(decision.t)} · событие decision из replay</small>}</div>
-      <div className="pres-grid pres-grid-two"><div className="pres-card"><b>Есть в replay</b><span>Действие, время, место и уровень решения</span></div>
-        <div className="pres-card"><b>Не хватает для «Докажи»</b><span>Причины, цены альтернативы и второго связанного прогона</span></div></div>
-      {recordLink(disrupted, "Изучить решение в записи")}
+      <p className="pres-hero">Решение принимается сверху вниз — нижний слой не отменяет верхний.</p>
+      <ol className="pres-layers">
+        <li><b>0 · Безопасность</b><span>Никогда два поезда на одном пути навстречу; длинный не ставится на короткий путь</span></li>
+        <li><b>1 · Внеочередные</b><span>Восстановительные и пожарные поезда идут первыми</span></li>
+        <li><b>2 · Класс поезда</b><span>Старший не опаздывает сверх допуска ради младшего (строгий режим ПТЭ)</span></li>
+        <li><b>3 · Экономика</b><span>Среди допустимых — самый дешёвый: задержки, остановки, простой, у. е.</span></li>
+      </ol>
     </>;
     case 7: return <div className="pres-two-col pres-two-col-index">
       <div className="pres-col-copy"><p className="pres-hero">Индекс = 100 × Σ (вес × оценка)</p>
-        <p>Оценка каждого фактора от 0 до 1. Пороги по спецификации: 75+ норма, 50–74 внимание, ниже 50 критично.</p>
-        <p className="pres-caveat">В текущих записях <code>frames[].index = null</code>. Фактический индекс и его изменение показать нельзя.</p></div>
+        <p className="pres-plain">Пять показателей, каждый от 0 до 1. 75 и выше — норма, 50–74 — внимание, ниже — критично. Нет данных — фактор помечается, веса перераспределяются.</p>
+        <IndexSpark model={m.mClosure} /></div>
       <WeightEditor />
     </div>;
     case 8: return <>
-      <p className="pres-hero">От состояния участка к проверенному плану и записи.</p>
-      <div className="pres-architecture" role="img" aria-label="Схема модулей: мир и события переходят в симулятор, планировщик и проверку, затем API и запись прогона поступают в витрину">
-        <div>Мир и события</div><i>→</i><div>Симулятор</div><i>↔</i><div>Планировщик</div><i>→</i><div>Проверка</div><i>→</i><div>Replay / API</div><i>→</i><div>Витрина</div>
-      </div><p className="pres-small">Витрина читает replay v1. Она не считает планы и не меняет записанные кадры.</p>
+      <p className="pres-hero">Всё считает сервер — экран только показывает и управляет.</p>
+      <div className="pres-arch">
+        <div className="arch-box"><b>Симулятор</b><span>поезда, пути, СЦБ, шаг 1 с</span></div>
+        <i>→</i>
+        <div className="arch-box arch-main"><b>Планировщик</b><span>CP-SAT + эвристика, 1–2 с</span></div>
+        <i>→</i>
+        <div className="arch-box"><b>Валидатор</b><span>независимая проверка: 0 конфликтов</span></div>
+        <i>→</i>
+        <div className="arch-box"><b>API + поток</b><span>FastAPI, WebSocket, журнал SQLite</span></div>
+        <i>→</i>
+        <div className="arch-box"><b>Экран и витрина</b><span>React, график, Гант, индекс</span></div>
+      </div>
+      <p className="pres-small">Индекс, советчик скорости, разбор «до / после», отчёт PDF/CSV, перемотка — модули того же Ядра.</p>
     </>;
     case 9: return <>
-      <p className="pres-hero">Проектная иерархия решений: от поезда до сети.</p>
-      <div className="pres-hierarchy"><div className="pres-card"><b>L3 · Сетевой уровень</b><span>Потоки и коридоры</span></div>
-        <div className="pres-card"><b>L2 · Супердиспетчер</b><span>Границы зон и слоты передачи</span></div>
-        <div className="pres-card"><b>L1 · Диспетчер зоны</b><span>Порядок поездов, пути, скрещения</span></div>
-        <div className="pres-card"><b>L0 · Советчик машинисту</b><span>Рекомендация скорости и выбега</span></div></div>
-      <p className="pres-caveat">1 000 поездов — целевой стресс-режим из проекта. Записи и проверенных замеров времени для него сейчас нет.</p>
+      <p className="pres-hero">Каждая зона — свой диспетчер, зоны считаются параллельно.</p>
+      <div className="pres-hierarchy"><div className="pres-card"><b>Сеть</b><span>Зоны как цветные области с индексом</span></div>
+        <div className="pres-card"><b>Зона · 20 станций</b><span>Свой планировщик, свой поток</span></div>
+        <div className="pres-card"><b>Участок</b><span>Каждый поезд, пути, сигналы</span></div>
+        <div className="pres-card"><b>Поезд</b><span>Совет машинисту по скорости</span></div></div>
+      <table className="pres-totals pres-totals-sm"><thead><tr><th>Замер пересчёта</th><th>Зон</th><th>Пар поездов</th><th>Пересчёт</th></tr></thead>
+        <tbody>
+          <tr><th>≈ 20 поездов</th><td>1</td><td>105</td><td>1,3 с · CP-SAT</td></tr>
+          <tr><th>≈ 100 поездов</th><td>6</td><td>3 828</td><td>2,4 с · CP-SAT, 3 процесса</td></tr>
+          <tr><th>≈ 1 000 поездов</th><td>55</td><td>387 640</td><td>2,0 с · эвристика, 80 мс на зону</td></tr>
+        </tbody></table>
+      <p className="pres-small">Замер <code>scripts/bench_scale.py</code>, таблица — <code>docs/BENCHMARK_SCALE.md</code>. Все планы прошли валидатор. Зоны в замере независимы; ультра — стресс-тест с нагрузкой выше реальной.</p>
     </>;
     case 10: return <div className="pres-two-col pres-two-col-economy">
-      <div className="pres-col-copy"><p className="pres-hero">Достык — Мойынты: экономика пропускной способности.</p>
-        <p>Для второго пути публиковалась проектная оценка роста с 12 до 60 пар поездов в сутки.</p>
-        <p className="pres-small">Источник: <a href="https://www.gov.kz/memleket/entities/karaganda/press/news/details/461738?lang=ru" target="_blank" rel="noreferrer">gov.kz</a>. Это характеристика инфраструктурного проекта, не результат Бағдара.</p>
-        <p className="pres-caveat">Парного эксперимента «с Бағдаром / без» в replay нет. Экономию и прирост пропускной способности алгоритма не заявляем.</p></div>
-      <TariffExample delayMinutes={delayMinutes} />
+      <div className="pres-col-copy"><p className="pres-hero">Пропускная способность без новых рельсов.</p>
+        <p>Достык — Мойынты: второй путь по проекту поднимает способность с 12 до 60 пар поездов в сутки — это стройка.</p>
+        <p className="pres-plain">Умный план выжимает больше из того, что уже есть: в «Замке» без Бағдара поезда встают, с ним — едут.</p>
+        <p className="pres-small">Источник по линии: <a href="https://www.gov.kz/memleket/entities/karaganda/press/news/details/461738?lang=ru" target="_blank" rel="noreferrer">gov.kz</a>.</p></div>
+      <TariffEconomy a={m.mLockB} b={m.mLockA} />
     </div>;
     default: return <>
-      <p className="pres-hero">Прототип советует. Решение за диспетчером.</p>
-      <div className="pres-final"><img src="./qr-simulator.svg" alt="QR-код: открыть действующий симулятор Бағдар" className="pres-qr" />
-        <div><p>Открыть действующий <a href="https://bagdar-demo.onrender.com" target="_blank" rel="noreferrer">симулятор Бағдар</a> на телефоне.</p>
-          <p className="pres-small">Функция «Сломайте сами» там пока не проверена, поэтому QR ведёт на обычный симулятор.</p>
-          {recordLink(disrupted, "Открыть запись задержки")}</div></div>
-      <div className="pres-grid pres-grid-three"><div className="pres-card"><b>Сегодня</b><span>Записи лёгкого режима</span></div>
-        <div className="pres-card"><b>Нужно дальше</b><span>Индекс, причины, парные прогоны</span></div>
-        <div className="pres-card"><b>Испытания</b><span>Публичный симулятор</span></div></div>
-      <p className="pres-small">Консультативный прототип · синтетические данные · не система управления движением.</p>
+      <p className="pres-hero">Прототип советует. Решение — за диспетчером.</p>
+      <div className="pres-final"><img src="./qr-simulator.svg" alt="QR-код: открыть симулятор Бағдар" className="pres-qr" />
+        <div><p className="pres-plain">Откройте симулятор, закройте перегон сами и посмотрите, как Бағдар перестроит план. Во вкладке «Человек против Бағдара» тот же поток идёт без умного плана.</p></div></div>
+      <div className="pres-grid pres-grid-three"><div className="pres-card"><b>Работает сегодня</b><span>Лёгкий режим: план, сбои, индекс, советы, перемотка, отчёты</span></div>
+        <div className="pres-card"><b>Следующий шаг</b><span>Средний режим с координатором зон и слотами</span></div>
+        <div className="pres-card"><b>Пилот</b><span>Настоящие данные участка в режиме подсказок</span></div></div>
+      <p className="pres-small">Консультативный прототип · синтетические данные · условные цены · не система управления движением.</p>
     </>;
   }
 }
 
-/** Статическая презентация с живыми фрагментами только из настоящего replay. */
+/** Режим показа: 12 слайдов, живые фрагменты — только из настоящих записей прогонов Ядра. */
 export function Presentation({ runs }: { runs: RunInfo[] }) {
   const ref = useRef<HTMLElement | null>(null);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
@@ -290,17 +445,21 @@ export function Presentation({ runs }: { runs: RunInfo[] }) {
   const [notes, setNotes] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [fsError, setFsError] = useState<string | null>(null);
-  const normal = runs.find((r) => r.id === "normal-42") ?? runs.find((r) => r.mode === "light" && !(r.injected ?? []).length) ?? null;
-  const disrupted = runs.find((r) => r.id === "butterfly-42") ?? runs.find((r) => (r.injected ?? []).length > 0) ?? null;
-  const { model: normalModel, error: normalError } = useReplay(normal);
-  const { model: disruptionModel, error: disruptionError } = useReplay(disrupted);
+  const find = (id: string) => runs.find((r) => r.id === id) ?? null;
+  const normal = find("normal-42") ?? runs.find((r) => r.mode === "light") ?? null;
+  const closure = find("closure-42");
+  const lockA = find("lock-bagdar");
+  const lockB = find("lock-fifo");
+  const m: Models = {
+    normal, closure, lockA, lockB,
+    mNormal: useReplay(normal), mClosure: useReplay(closure), mLockA: useReplay(lockA), mLockB: useReplay(lockB),
+  };
   const go = useCallback((delta: number) => setIndex((i) => Math.max(0, Math.min(TITLES.length - 1, i + delta))), []);
 
   useEffect(() => {
     if (document.fullscreenElement === ref.current) ref.current?.scrollTo(0, 0);
     else window.scrollTo(0, 0);
   }, [index]);
-
   useEffect(() => {
     const sync = () => setFullscreen(document.fullscreenElement === ref.current);
     document.addEventListener("fullscreenchange", sync);
@@ -310,7 +469,7 @@ export function Presentation({ runs }: { runs: RunInfo[] }) {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest("input, textarea, select, [contenteditable='true']")) return;
-      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); go(1); }
+      if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); go(1); }
       else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(-1); }
       else if (e.key.toLowerCase() === "n") { e.preventDefault(); setNotes((v) => !v); }
       else if (e.key.toLowerCase() === "f") { e.preventDefault(); void toggleFullscreen(); }
@@ -343,16 +502,14 @@ export function Presentation({ runs }: { runs: RunInfo[] }) {
 
   return <section ref={ref} className="presentation" aria-label="Презентация Бағдара"
     onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-    <BgReplay run={index === 4 ? disrupted : normal} />
+    <BgReplay run={index === 3 ? closure : normal} />
     <div className="pres-stage">
-      <header className="pres-top"><span className="pres-kicker">БАҒДАР · РЕЖИМ ПОКАЗА</span>
+      <header className="pres-top"><span className="pres-kicker">БАҒДАР · АВТОДИСПЕТЧЕР</span>
         <span className="pres-counter" aria-live="polite">{index + 1} / {TITLES.length}</span></header>
-      <article key={index} className="pres-slide" aria-labelledby="pres-title">
+      <article key={index} className={`pres-slide ${COMPACT.has(index) ? "pres-compact" : ""}`} aria-labelledby="pres-title">
         <div className="pres-heading"><span className="pres-step">СЛАЙД {String(index + 1).padStart(2, "0")}</span><h1 id="pres-title">{TITLES[index]}</h1></div>
-        <div className="pres-content"><SlideBody index={index} normal={normal} disrupted={disrupted}
-          normalModel={normalModel} disruptionModel={disruptionModel} /></div>
+        <div className="pres-content"><SlideBody index={index} m={m} /></div>
       </article>
-      {(normalError || disruptionError) && <p className="pres-error" role="alert">⚠ Не удалось открыть запись: {normalError ?? disruptionError}</p>}
       {notes && <aside className="pres-notes" aria-label="Заметки выступающего"><b>Заметки выступающего · N</b><p>{NOTES[index]}</p></aside>}
       {fsError && <p className="pres-error" role="alert">{fsError}</p>}
       <footer className="pres-controls">
@@ -365,7 +522,7 @@ export function Presentation({ runs }: { runs: RunInfo[] }) {
         <button type="button" className="btn" onClick={() => void toggleFullscreen()} aria-pressed={fullscreen} title="Полный экран (F)">{fullscreen ? "Выйти из экрана" : "Во весь экран"}</button>
         <button type="button" className="btn btn-primary" onClick={() => go(1)} disabled={index === TITLES.length - 1} aria-label="Следующий слайд">Дальше →</button>
       </footer>
-      <p className="pres-key-hint">← → листать · свайп · F полный экран · N заметки</p>
+      <p className="pres-key-hint">← → или пробел — листать · свайп · F — полный экран · N — заметки</p>
     </div>
   </section>;
 }

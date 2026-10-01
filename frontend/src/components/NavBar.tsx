@@ -8,7 +8,7 @@ const TABS: { r: Route; label: string; hint: string }[] = [
 ];
 
 /** Общая шапка трёх сайтов проекта и разделы симулятора. */
-export function NavBar({ route, onSettings }: { route: Route; onSettings: () => void }) {
+export function NavBar({ route, onSettings, onTour }: { route: Route; onSettings: () => void; onTour: () => void }) {
   return (
     <nav className="navbar" aria-label="Разделы">
       <div className="nav-sites" aria-label="Сайты проекта">
@@ -25,6 +25,9 @@ export function NavBar({ route, onSettings }: { route: Route; onSettings: () => 
         ))}
       </div>
       <span className="spacer" />
+      <button className="btn btn-small btn-tour" onClick={onTour} title="Пошаговое объяснение экрана простыми словами (2 минуты)">
+        🎓 Показ для новичков
+      </button>
       <a className="nav-link" href="/showcase/index.html#/how" title="Приоритеты, индекс, архитектура — простыми словами">Как это работает ↗</a>
       <button className="btn btn-small" onClick={onSettings} title="Веса и пороги индекса, строгий ПТЭ, тарифы">⚙ Настройки</button>
     </nav>

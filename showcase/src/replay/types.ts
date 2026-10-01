@@ -59,10 +59,37 @@ export interface SimEvent {
   train_id: string | null; station_id: string | null; section_id: string | null; data: Record<string, unknown>;
 }
 
+/** Карточка решения Ядра: что сделано, почему, альтернатива и её цена (у. е.). */
+export interface DecisionCard {
+  id: string; t: number; type: string; level: string; action: string; reason: string; alternative: string;
+  cost_plan: number | null; cost_alt: number | null; delta_money: number | null; alt_feasible?: boolean;
+  trains: string[]; station_id: string | null; section_id: string | null; status?: string;
+  report?: IncidentReport | null; incident_id?: string | null;
+}
+export interface IncidentSummary {
+  J: number | null; J_lex?: number | null; affected: number; delay_add_min?: number | null; late_trains?: number | null;
+  recovery_at: number | null; beyond: number; forecast: number | null; pte: number; stuck?: number;
+  compute_ms?: number | null; solver?: string | null; valid?: boolean | null; deadlock?: boolean | null;
+}
+export interface IncidentReport { before?: Record<string, unknown> | null; plan: IncidentSummary; no_change?: IncidentSummary | null; fifo?: IncidentSummary | null }
+export interface Incident {
+  id: string; t: number; kind: string; level: string; title: string; until: number | null; status: string;
+  after?: IncidentReport | null; section_id?: string | null; station_id?: string | null;
+}
+/** Итоговый счёт прогона: одинаковые правила для «с Бағдаром» и «без». */
+export interface RunSummary {
+  delay_min: number; delay_pax_min?: number; delay_freight_min?: number; late_trains: number; idle_h: number;
+  energy_kwh: number; frozen: number; frozen_numbers?: string[]; passages: number; money_total: number;
+  index: number | null; index_status?: string | null;
+}
+
 export interface Replay {
   schema_version: number; world: World; scenario: Scenario; run_id: string;
   started_at: number; ended_at: number; frame_interval_s: number;
   plans: PlanEntry[]; frames: Frame[]; events: SimEvent[];
+  // необязательные поля контракта v1 (появились позже, старые записи их не содержат)
+  variant?: "bagdar" | "no_plan"; pair?: string | null; cards?: DecisionCard[]; incidents?: Incident[];
+  summary?: RunSummary | null;
 }
 
 /** Строка из public/runs/index.json — список записей, которые знает витрина. */
@@ -71,4 +98,5 @@ export interface RunInfo {
   seed: number; mode: string; from: string; to: string;
   injected?: { at: string; train_id: string; minutes: number; reason: string }[];
   note?: string;
+  variant?: "bagdar" | "no_plan"; pair?: string | null; summary?: Partial<RunSummary>; incidents?: string[];
 }

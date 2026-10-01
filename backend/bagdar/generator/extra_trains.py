@@ -23,11 +23,20 @@ def _line(world: World) -> list[str]:
     return [s.id for s in sorted(world.stations.values(), key=lambda s: s.km)]
 
 
+def _unique(prefix: str, n: int, used: set[str]) -> str:
+    """Свободный номер ресурса: сдвиг вместо повторного розыгрыша, последовательность rng не меняется."""
+    while f"{prefix}{n}" in used:
+        n = n + 1 if n < 9999 else 1000
+    used.add(f"{prefix}{n}")
+    return f"{prefix}{n}"
+
+
 def make_trains(world: World, rules: TimingRules, existing: list[Train], items: list[dict],
                 seed: int) -> list[Train]:
     """items: [{cls, direction, dep, length_m?, mass_t?, cargo?, from_idx?, to_idx?}]."""
     rng = random.Random(seed)
     used = {int(t.number) for t in existing if t.number.isdigit()}
+    used_res = {t.crew_id for t in existing} | {t.loco_id for t in existing}   # бригады и локомотивы заняты
     base = _Numbers().next
     line = _line(world)
 
@@ -56,8 +65,9 @@ def make_trains(world: World, rules: TimingRules, existing: list[Train], items: 
             dwell={}, length_m=length, mass_t=mass,
             passengers=int(it.get("passengers", 0 if freight or cls == "extraordinary" else 400)),
             cargo=list(it.get("cargo", [])), traction="electric" if cls != "extraordinary" else "diesel",
-            loco_id=f"{'TE33A' if cls == 'extraordinary' else 'KZ8A'}-{rng.randint(1000, 9999)}",
-            crew_id=f"Б-{rng.randint(1000, 9999)}", crew_hours=float(it.get("crew_hours", 8.0)), fixed_time=True)
+            loco_id=_unique(f"{'TE33A' if cls == 'extraordinary' else 'KZ8A'}-", rng.randint(1000, 9999), used_res),
+            crew_id=_unique("Б-", rng.randint(1000, 9999), used_res), crew_hours=float(it.get("crew_hours", 8.0)),
+            fixed_time=True)
         builder = TimetableBuilder(world, rules)       # пустая таблица: нитка без учёта других
         att = builder.insert(spec)
         if att is None:

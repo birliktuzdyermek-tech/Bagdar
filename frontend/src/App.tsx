@@ -16,6 +16,8 @@ import { useRoute } from "./lib/route";
 import { ScenariosPage } from "./pages/ScenariosPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { VersusPage } from "./pages/VersusPage";
+import { GuidedTour } from "./components/GuidedTour";
+import { go } from "./lib/route";
 import { RewindBar } from "./components/RewindBar";
 import { usePlanSync } from "./store/plans";
 import { useSim } from "./store/sim";
@@ -46,6 +48,7 @@ export default function App() {
   const setError = useSim((s) => s.setError);
   const route = useRoute();
   const [settings, setSettings] = useState(false);
+  const [tour, setTour] = useState(false);
 
   usePlanSync();
   useEffect(() => {
@@ -64,7 +67,7 @@ export default function App() {
   return (
     <div className={`app route-${route}`}>
       <TopBar />
-      <NavBar route={route} onSettings={() => setSettings(true)} />
+      <NavBar route={route} onSettings={() => setSettings(true)} onTour={() => { go("dispatcher"); setTour(true); }} />
       {route === "dispatcher" && <Toolbar theme={theme} onTheme={() => setTheme(theme === "dark" ? "light" : "dark")} />}
       {route === "dispatcher" && <RewindBar />}
       {route === "scenarios" && <ScenariosPage />}
@@ -102,6 +105,7 @@ export default function App() {
         </aside>
       </main>}
       {settings && <SettingsDialog onClose={() => setSettings(false)} />}
+      {tour && route === "dispatcher" && <GuidedTour onClose={() => setTour(false)} />}
       {error && (
         <div className="error-toast" role="alert">
           Ошибка: {error}{" "}

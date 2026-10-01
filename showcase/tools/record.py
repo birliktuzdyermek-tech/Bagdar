@@ -28,7 +28,8 @@ from bagdar.config import load_config, parse_hhmm  # noqa: E402
 from bagdar.dto import plan_dto  # noqa: E402
 from bagdar.runtime import SimulationRuntime  # noqa: E402
 from bagdar.scenarios import load_scenarios  # noqa: E402
-from export import Replay  # noqa: E402  контрактная модель из пакета contracts/
+from bagdar.versus import empty_plan, remember_positions, score_runtime  # noqa: E402
+from export import Replay, index_snapshot  # noqa: E402  контрактная модель из пакета contracts/
 
 RUNS = ROOT / "showcase" / "public" / "runs"
 
@@ -39,9 +40,15 @@ def hhmm(t: float) -> str:
 
 
 def record(args: argparse.Namespace) -> dict:
-    rt = SimulationRuntime(load_config(), load_scenarios(), planner_sync=True)
+    cfg = load_config()
+    if args.no_plan:
+        cfg.planner.enabled = False            # тот же поток без Бағдара: «кто первый пришёл»
+    rt = SimulationRuntime(cfg, load_scenarios(), planner_sync=True)
     rt.load(args.scenario, args.seed)
     eng = rt.engine
+    if args.no_plan:
+        eng.apply_plan(empty_plan(eng.t))
+    cache: dict = {}
     assert eng is not None and rt.scenario is not None and rt.plan is not None
     assert rt.generation["validated"], "исходный график не прошёл валидатор Ядра"
 
@@ -50,7 +57,7 @@ def record(args: argparse.Namespace) -> dict:
         if tid not in eng.trains:
             raise SystemExit(f"Нет поезда {tid} в мире seed {args.seed}")
 
-    frames = [{"t": eng.t, "state": rt.state_payload(), "index": None}]
+    frames = [{"t": eng.t, "state": rt.state_payload(), "index": index_snapshot(rt.index.current)}]
     plans = [{"t": eng.t, "plan": plan_dto(rt.planner.current or rt.plan)}]
     events = rt.events_since(0)
     plan_version = plans[0]["plan"]["version"]
@@ -70,7 +77,8 @@ def record(args: argparse.Namespace) -> dict:
         if cur is not None and cur.version != plan_version:
             plan_version = cur.version
             plans.append({"t": eng.t, "plan": plan_dto(cur)})
-        frames.append({"t": eng.t, "state": rt.state_payload(), "index": None})
+        frames.append({"t": eng.t, "state": rt.state_payload(), "index": index_snapshot(rt.index.current)})
+        remember_positions(cache, eng)
         events.extend(rt.events_since(events[-1]["seq"] if events else 0))
     replay = {
         "schema_version": 1,
@@ -83,6 +91,11 @@ def record(args: argparse.Namespace) -> dict:
         "plans": plans,
         "frames": frames,
         "events": events,
+        "variant": "no_plan" if args.no_plan else "bagdar",
+        "pair": args.pair,
+        "cards": [c for c in rt.planner.cards],
+        "incidents": rt.incidents.payload(),
+        "summary": score_runtime(rt, rt.cfg.tariffs, cache),
     }
     Replay.model_validate(replay)
     print(f"  {len(frames)} кадров, {len(plans)} планов, {len(events)} событий, "
@@ -100,6 +113,8 @@ def main() -> None:
     ap.add_argument("--delay", nargs=4, action="append", default=[], metavar=("ЧЧ:ММ", "TRAIN", "MIN", "REASON"))
     ap.add_argument("--title", default=None, help="подпись в витрине")
     ap.add_argument("--situation", type=int, default=None, help="номер ситуации 1–17 из BAGDAR_PLAN.md")
+    ap.add_argument("--no-plan", action="store_true", help="тот же поток без Бағдара (пустой план, «кто первый пришёл»)")
+    ap.add_argument("--pair", default=None, help="id парной записи того же потока (с Бағдаром / без)")
     args = ap.parse_args()
 
     print(f"Запись {args.id}: сценарий {args.scenario}, seed {args.seed}, {args.hours:g} ч")
@@ -125,6 +140,12 @@ def main() -> None:
         "from": hhmm(replay["started_at"]),
         "to": hhmm(replay["ended_at"]),
         "injected": [{"at": d[0], "train_id": d[1], "minutes": float(d[2]), "reason": d[3]} for d in args.delay],
+        "variant": replay["variant"],
+        "pair": args.pair,
+        "summary": {k: replay["summary"][k] for k in ("money_total", "delay_min", "frozen", "passages", "index",
+                                                      "energy_kwh", "idle_h", "late_trains")},
+        "cards": len(replay["cards"]),
+        "incidents": [i["title"] for i in replay["incidents"]],
         "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)",
     })
     index_path.write_text(json.dumps(runs, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")

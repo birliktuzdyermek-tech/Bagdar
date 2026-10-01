@@ -1,5 +1,48 @@
 [
   {
+    "id": "seed5",
+    "file": "seed5.replay.json.gz",
+    "title": "Seed 5: без перепланирования здесь вставал участок",
+    "situation": 1,
+    "scenario_id": "normal",
+    "seed": 5,
+    "mode": "light",
+    "from": "06:00",
+    "to": "11:00",
+    "injected": [],
+    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)",
+    "note": "Без планировщика (этап 1) на этом seed движение замирало в 09:46 (issue #7). В записи — тот же поток с планировщиком Ядра."
+  },
+  {
+    "id": "lock-fifo",
+    "file": "lock-fifo.replay.json.gz",
+    "title": "Замок: без Бағдара (кто первый пришёл)",
+    "situation": 1,
+    "scenario_id": "lock",
+    "seed": 42,
+    "mode": "light",
+    "from": "06:00",
+    "to": "10:00",
+    "injected": [],
+    "variant": "no_plan",
+    "pair": "lock-bagdar",
+    "summary": {
+      "money_total": 4973.1,
+      "delay_min": 825.6,
+      "frozen": 6,
+      "passages": 226,
+      "index": 56.9,
+      "energy_kwh": 7182.3,
+      "idle_h": 15.0,
+      "late_trains": 10
+    },
+    "cards": 0,
+    "incidents": [
+      "Рост потока: +4 п. (2013, 2025, 2006, 2026)"
+    ],
+    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)"
+  },
+  {
     "id": "normal-42",
     "file": "normal-42.replay.json.gz",
     "title": "Штатное движение, утро",
@@ -10,6 +53,20 @@
     "from": "06:00",
     "to": "10:00",
     "injected": [],
+    "variant": "bagdar",
+    "pair": null,
+    "summary": {
+      "money_total": 1141.6,
+      "delay_min": 233.7,
+      "frozen": 0,
+      "passages": 290,
+      "index": 86.1,
+      "energy_kwh": 4324.4,
+      "idle_h": 4.73,
+      "late_trains": 12
+    },
+    "cards": 89,
+    "incidents": [],
     "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)"
   },
   {
@@ -30,20 +87,80 @@
         "reason": "неисправность локомотива"
       }
     ],
+    "variant": "bagdar",
+    "pair": null,
+    "summary": {
+      "money_total": 1526.9,
+      "delay_min": 281.4,
+      "frozen": 0,
+      "passages": 288,
+      "index": 85.6,
+      "energy_kwh": 5947.1,
+      "idle_h": 4.44,
+      "late_trains": 19
+    },
+    "cards": 67,
+    "incidents": [
+      "Опоздание поезда 2 на 15 мин"
+    ],
     "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)"
   },
   {
-    "id": "seed5",
-    "file": "seed5.replay.json.gz",
-    "title": "Seed 5: без перепланирования здесь вставал участок",
+    "id": "lock-bagdar",
+    "file": "lock-bagdar.replay.json.gz",
+    "title": "Замок: с Бағдаром",
     "situation": 1,
-    "scenario_id": "normal",
-    "seed": 5,
+    "scenario_id": "lock",
+    "seed": 42,
     "mode": "light",
     "from": "06:00",
-    "to": "11:00",
+    "to": "10:00",
     "injected": [],
-    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)",
-    "note": "Без планировщика (этап 1) на этом seed движение замирало в 09:46 (issue #7). В записи — тот же поток с планировщиком Ядра."
+    "variant": "bagdar",
+    "pair": "lock-fifo",
+    "summary": {
+      "money_total": 2438.3,
+      "delay_min": 483.1,
+      "frozen": 0,
+      "passages": 246,
+      "index": 74.9,
+      "energy_kwh": 6999.4,
+      "idle_h": 4.86,
+      "late_trains": 16
+    },
+    "cards": 122,
+    "incidents": [
+      "Рост потока: +4 п. (2013, 2025, 2006, 2026)"
+    ],
+    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)"
+  },
+  {
+    "id": "closure-42",
+    "file": "closure-42.replay.json.gz",
+    "title": "Закрытие перегона на 45 минут",
+    "situation": null,
+    "scenario_id": "closure",
+    "seed": 42,
+    "mode": "light",
+    "from": "06:00",
+    "to": "09:00",
+    "injected": [],
+    "variant": "bagdar",
+    "pair": null,
+    "summary": {
+      "money_total": 1382.9,
+      "delay_min": 335.9,
+      "frozen": 0,
+      "passages": 212,
+      "index": 80.3,
+      "energy_kwh": 5017.0,
+      "idle_h": 5.37,
+      "late_trains": 13
+    },
+    "cards": 64,
+    "incidents": [
+      "Закрыт перегон Үшбел — Разъезд 12 на 45 мин"
+    ],
+    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)"
   }
 ]

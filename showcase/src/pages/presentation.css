@@ -213,3 +213,86 @@ html.projector .pres-content { font-size: clamp(26px, 2.2vw, 34px); }
   .pres-slide { animation: none; }
   .pres-dots button.current { transform: none; }
 }
+
+/* ---------- слайды на настоящих данных Ядра ---------- */
+.pres-plain { font-size: 1.12em; line-height: 1.5; color: var(--text-primary); max-width: 70ch; margin: 0; }
+.pres-steps4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.pres-steps4 > div {
+  display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+}
+.pres-steps4 i { font-style: normal; font-size: 2.2em; line-height: 1; }
+.pres-steps4 b { font-size: 1.25em; color: var(--accent); }
+.pres-steps4 span { color: var(--text-secondary); line-height: 1.45; }
+.pres-legend { margin: 0; padding-left: 1.1em; display: grid; gap: 10px; line-height: 1.45; }
+.pres-legend b { color: var(--accent); }
+
+.pres-pair { display: grid; gap: 10px; }
+.pres-pair-clock { display: flex; gap: 12px; align-items: center; }
+.pres-pair-side { border: 1px solid var(--border-strong); border-radius: 12px; overflow: hidden; background: var(--surface-1); }
+.pres-pair-side.pair-bad { box-shadow: inset 4px 0 0 var(--serious); }
+.pres-pair-side.pair-good { box-shadow: inset 4px 0 0 var(--good); }
+.pres-pair-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 14px; border-bottom: 1px solid var(--border); }
+.pres-pair-head span { color: var(--text-secondary); }
+.pres-pair-head span b { color: var(--text-primary); }
+.pres-scheme-pair { height: 130px; }
+.pair-bad { color: var(--serious); }
+.pair-good { color: var(--good); }
+
+.pres-totals { width: 100%; border-collapse: collapse; font-size: 1.05em; }
+.pres-totals th, .pres-totals td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: right; }
+.pres-totals th:first-child { text-align: left; font-weight: 500; color: var(--text-secondary); }
+.pres-totals td.win { color: var(--good); font-weight: 800; }
+.pres-totals-sm { font-size: 0.92em; }
+
+.pres-dcard {
+  max-width: 980px; padding: 22px 26px; border-radius: 16px; display: grid; gap: 14px;
+  background: var(--surface-2); border: 1px solid var(--border-strong); box-shadow: inset 5px 0 0 var(--accent);
+}
+.pres-dcard-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pres-dcard-lvl { color: var(--text-secondary); }
+.pres-dcard-row { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; }
+.pres-dcard-row > span { color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.06em; }
+.pres-dcard-row p { margin: 0; line-height: 1.5; }
+.pres-dcard-row b { font-size: 1.15em; line-height: 1.4; }
+.pres-dcard-price { font-size: 1.25em; padding-top: 10px; border-top: 1px solid var(--border); }
+.pres-dcard-price b { color: var(--good); }
+
+.pres-incident { display: grid; gap: 14px; width: 100%; }
+.pres-spark { margin: 0; width: 100%; }
+.pres-spark svg { width: 100%; height: auto; display: block; border-radius: 10px; overflow: hidden; }
+.pres-spark .band-ok { fill: color-mix(in srgb, var(--good) 14%, transparent); }
+.pres-spark .band-warn { fill: color-mix(in srgb, var(--warning) 14%, transparent); }
+.pres-spark .band-crit { fill: color-mix(in srgb, var(--critical) 14%, transparent); }
+.pres-spark .spark-line { fill: none; stroke: var(--accent); stroke-width: 3; }
+.pres-spark .spark-mark { stroke: var(--serious); stroke-width: 2; stroke-dasharray: 6 4; }
+.pres-spark figcaption { margin-top: 6px; color: var(--text-secondary); font-size: 0.85em; }
+
+.pres-arch { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+.pres-arch > i { align-self: center; font-style: normal; font-size: 1.6em; color: var(--accent); }
+.arch-box {
+  flex: 1 1 160px; display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+}
+.arch-box b { font-size: 1.1em; }
+.arch-box span { color: var(--text-secondary); line-height: 1.4; }
+.arch-box.arch-main { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.pres-tariff label { display: grid; gap: 4px; }
+
+@media (max-width: 900px) {
+  .pres-steps4 { grid-template-columns: 1fr 1fr; }
+  .pres-dcard-row { grid-template-columns: 1fr; gap: 4px; }
+}
+.pres-lead { font-size: 1.2em; line-height: 1.4; font-weight: 600; margin: 0; max-width: 46ch; }
+.pres-compact { justify-content: flex-start; gap: clamp(12px, 2vh, 22px); padding-top: clamp(12px, 2vh, 24px); }
+.pres-compact .pres-heading h1 { font-size: clamp(1.9rem, 3.3vw, 3.4rem); max-width: none; }
+.pres-compact .pres-hero { font-size: clamp(1.25rem, 1.9vw, 2rem); }
+.pres-compact .pres-two-col { align-items: start; }
+.pres-compact .pres-content { gap: 14px; }
+.pres-dcard-row { grid-template-columns: 200px 1fr; }
+.pres-incident { font-size: 0.78em; }
+.pres-incident .pres-stats { grid-template-columns: auto 1fr; gap: 6px 18px; }
+.pres-incident .pres-stats dt { color: var(--text-secondary); }
+.pres-incident .pres-stats dd { text-align: left; margin: 0; font-weight: 700; }
+.pres-compact .pres-lead { font-size: 1.05em; }
+.pres-compact .pres-col-copy { gap: 12px; }

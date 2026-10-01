@@ -148,7 +148,7 @@ function IndexExplainer() {
     <div className="hiw-index-top">
       <div><p className="hiw-formula">Индекс = 100 × Σ (вес<sub>k</sub> × s<sub>k</sub>)</p>
         <p>Каждая оценка s<sub>k</sub> лежит от 0 до 1; сумма весов равна 1.</p></div>
-      <div className="hiw-no-index"><span>—</span><strong>Индекс пока не рассчитан</strong><small>В опубликованных записях frames[].index = null</small></div>
+      <div className="hiw-no-index"><span>✓</span><strong>Индекс считается Ядром в каждом кадре</strong><small>Число, статус и оценки факторов — в записях прогонов (откройте любую запись в проигрывателе) и в симуляторе в реальном времени</small></div>
     </div>
     <div className="hiw-factor-grid">
       <div className="hiw-factor-list" role="group" aria-label="Факторы индекса">

@@ -100,6 +100,17 @@ def generate_traffic(world: World, seed: int, p: TrafficParams | None = None) ->
         return out
 
     loco_seq = {"electric": 100, "diesel": 300}
+    used_crews: set[int] = set()
+
+    def crew_id() -> str:
+        # номер бригады случаен, но уникален: при ~100 поездах на 9 000 номеров совпадения иначе
+        # бывают в половине миров, и одна бригада попадает на два поезда сразу. Сдвиг вместо
+        # повторного розыгрыша — чтобы последовательность rng (а значит и мир по seed) не менялась.
+        c = rng.randint(1000, 9999)
+        while c in used_crews:
+            c = c + 1 if c < 9999 else 1000
+        used_crews.add(c)
+        return f"Б-{c}"
 
     def make(cls_key: str, num_key: str, direction: int, route: list[str], dep: float,
              dwell: dict[int, float], **kw) -> None:
@@ -111,7 +122,7 @@ def generate_traffic(world: World, seed: int, p: TrafficParams | None = None) ->
         crew_hours = kw.pop("crew_hours", rng.uniform(6.0, 11.0))
         specs.append(TrainSpec(
             id=f"t{number}", number=str(number), cls=cls_key, direction=direction, route=route,
-            desired_dep=dep, dwell=dwell, loco_id=loco, crew_id=f"Б-{rng.randint(1000, 9999)}",
+            desired_dep=dep, dwell=dwell, loco_id=loco, crew_id=crew_id(),
             crew_hours=crew_hours, traction=traction, **kw))
 
     def stops_at(route: list[str], which: set[str], dwell_range: tuple[float, float]) -> dict[int, float]:
