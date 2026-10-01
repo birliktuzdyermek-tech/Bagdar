@@ -1,0 +1,61 @@
+# Конфиг Бағдара. Все числа — значения по умолчанию для симулятора,
+# не тарифы и не данные перевозчика. Меняется без пересборки.
+
+mode: mainline            # mainline | lrt
+pte_strict: true
+
+index:
+  weights:
+    throughput: 0.30
+    punctuality: 0.25
+    track_load: 0.20
+    resource_idle: 0.15
+    conflicts: 0.10
+  thresholds:
+    normal: 75
+    warning: 50
+  punctuality_max_delay_min: 30
+  conflicts_max: 10
+
+priority:
+  extraordinary:        {weight: 1000, tolerance_min: 0}
+  high_speed_passenger: {weight: 100, tolerance_min: 2}
+  fast_passenger:       {weight: 70,  tolerance_min: 3}
+  passenger:            {weight: 50,  tolerance_min: 5}
+  express_freight:      {weight: 30,  tolerance_min: 15}
+  freight:              {weight: 10,  tolerance_min: 30}
+  local_freight:        {weight: 5,   tolerance_min: 60}
+  light_engine:         {weight: 3,   tolerance_min: 60}
+
+cost:
+  c_stop: 0.5      # у.е. за кВт·ч потерянной кинетической энергии
+  c_energy: 0.1
+  c_idle: 2        # у.е. за минуту простоя локомотива
+  c_change: 15     # у.е. за каждое изменение плана
+
+solver:
+  horizon_min: 180
+  freeze_min: 5
+  time_limit_s: 2
+  fallback: greedy
+
+# Параметры симулятора и правил занятия ресурсов (слой 0 — безопасность).
+sim:
+  dt_s: 1.0                  # фиксированный шаг модели, не зависит от FPS
+  start_time: "06:00"
+  tau_cross_s: 90            # станционный интервал скрещения
+  headway_s: 300             # межпоездной интервал попутных (вход на перегон, АБ)
+  headway_arr_s: 180         # интервал попутного прибытия
+  throat_s: 90               # занятие горловины маршрутом отправления
+  approach_s: 90             # за сколько до прибытия задаётся маршрут приёма
+  clear_s: 60                # освобождение пути после отправления
+  prep_s: 600                # поезд стоит на станции формирования до отправления
+  terminate_s: 600           # поезд стоит на конечной до ухода с участка
+  min_stop_s: 30             # минимальная неплановая стоянка
+  recovery_margin: 0.07      # запас времени хода в графике
+  max_wait_s: 3600           # максимум ожидания на станции при построении графика
+  dwell_jitter_prob: 0.25    # вероятность случайно затянуть стоянку
+  dwell_jitter_max_s: 90
+  origin_delay_prob: 0.12    # вероятность опоздать с отправлением со станции формирования
+  origin_delay_max_s: 300
+  broadcast_hz: 10           # частота отправки состояния клиентам
