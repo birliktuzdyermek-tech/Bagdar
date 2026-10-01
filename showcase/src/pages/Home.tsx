@@ -62,8 +62,10 @@ function HeroVideo({ fallback }: { fallback: RunInfo | null }) {
   if (failed) return <BgReplay run={fallback} />;
   return (
     <div className="hero-video" aria-hidden>
-      <video src="./intro.mp4" poster="./intro-poster.jpg" muted loop playsInline autoPlay={!reduce} preload="metadata"
-        onError={() => setFailed(true)} />
+      <video poster="./intro-poster.jpg" muted loop playsInline autoPlay={!reduce} preload="metadata">
+        <source src="./intro.webm" type="video/webm" />
+        <source src="./intro.mp4" type="video/mp4" onError={() => setFailed(true)} />
+      </video>
       <span className="bg-caption">видео — художественная иллюстрация, не реальный диспетчерский зал</span>
     </div>
   );
