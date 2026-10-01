@@ -285,6 +285,16 @@ def put_settings(body: S.SettingsIn, request: Request) -> dict:
         raise HTTPException(422, str(e)) from e
 
 
+@router.post("/meet", response_model=S.MeetOut, response_model_by_alias=True, tags=["planner"],
+             summary="«Кто первым?»: пассажирский и грузовой навстречу на однопутном перегоне — цена обоих порядков")
+def post_meet(body: S.MeetIn, request: Request) -> dict:
+    from bagdar import meet
+    p = meet.MeetIn(section_km=body.section_km, speed_limit_kmh=body.speed_limit_kmh, gap_min=body.gap_min,
+                    pax=meet.PaxIn(**body.pax.model_dump()), freight=meet.FreightIn(**body.freight.model_dump()),
+                    pte_strict=body.pte_strict)
+    return meet.compare(p, rt(request).cfg)
+
+
 @router.get("/config", response_model=BagdarConfig, tags=["config"], summary="Веса, пороги, параметры")
 def get_config(request: Request) -> BagdarConfig:
     return rt(request).cfg

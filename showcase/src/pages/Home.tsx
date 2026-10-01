@@ -64,8 +64,11 @@ export function Home({ runs }: { runs: RunInfo[] }) {
             проверяет все и показывает, почему выбрал именно так.
           </p>
           <div className="hero-actions">
-            <a className="btn btn-primary btn-big" href={main ? `#/play/${main.id}` : "#/runs"}>
-              ▶ Запустить
+            <a className="btn btn-primary btn-big" href="#/meet">
+              ▶ Кто поедет первым?
+            </a>
+            <a className="btn btn-big" href={main ? `#/play/${main.id}` : "#/runs"}>
+              Живой участок
             </a>
             <a className="btn btn-big" href="#/gallery">
               Ситуации

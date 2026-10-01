@@ -296,3 +296,17 @@ html.projector .pres-content { font-size: clamp(26px, 2.2vw, 34px); }
 .pres-incident .pres-stats dd { text-align: left; margin: 0; font-weight: 700; }
 .pres-compact .pres-lead { font-size: 1.05em; }
 .pres-compact .pres-col-copy { gap: 12px; }
+
+/* слайд «Кто поедет первым?» */
+.pres-meet { display: flex; flex-direction: column; gap: 10px; }
+.pres-meet .meet-lane-head { padding: 5px 10px; }
+.pres-meet-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.pres-meet-row > div { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; }
+.pres-meet-row b { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; }
+.pres-meet-row b.pax { color: #5aa9ff; }
+.pres-meet-row b.fr { color: #f2c14e; }
+.pres-meet-row span { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pres-meet-row .win { border-color: var(--good); }
+.pres-meet-row .win span { color: #7fd18a; }
+.pres-meet-row .lose span { color: #ff8a7a; }
+@media (max-width: 900px) { .pres-meet-row { grid-template-columns: 1fr 1fr; } }

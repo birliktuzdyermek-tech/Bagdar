@@ -885,3 +885,101 @@ class VersusOut(BaseModel):
     diff: dict[str, float] | None = Field(None, description="Разница в пользу Бағдара (слева минус справа)")
     actions: list[dict] = Field(default_factory=list, description="Решения человека-диспетчера слева")
 
+
+
+# ------------------------------------------------------------------ «Кто первым?»
+class MeetPaxIn(BaseModel):
+    cls: Literal["high_speed_passenger", "fast_passenger", "passenger"] = "fast_passenger"
+    passengers: int = Field(600, ge=0, le=1500)
+    delay_min: float = Field(0, ge=0, le=180, description="Уже опаздывает, мин")
+    slack_min: float = Field(3, ge=0, le=60, description="Запас по графику до конечной, мин")
+    dwell_min: float = Field(0, ge=0, le=20, description="Плановая стоянка на станции А, 0 — без остановки")
+    transfer: bool = False
+    trip_left_h: float = Field(3, ge=0.5, le=24)
+
+
+class MeetFreightIn(BaseModel):
+    cls: Literal["express_freight", "freight", "local_freight"] = "freight"
+    mass_t: float = Field(5000, ge=500, le=9000)
+    cargo: list[Literal["urgent", "perishable", "deadline", "dangerous"]] = Field(default_factory=list)
+    delay_min: float = Field(0, ge=0, le=600)
+    slack_min: float = Field(20, ge=0, le=180)
+    uphill: bool = Field(False, description="Станция Б для грузового на подъёме")
+    crew_left_h: float = Field(6, ge=0.5, le=12)
+    trip_left_h: float = Field(4, ge=0.5, le=48)
+
+
+class MeetIn(BaseModel):
+    section_km: float = Field(12, ge=4, le=40)
+    speed_limit_kmh: float = Field(100, ge=40, le=160)
+    gap_min: float = Field(0, ge=-20, le=20, description="> 0 — пассажирский подходит к А позже, чем грузовой к Б")
+    pax: MeetPaxIn = MeetPaxIn()
+    freight: MeetFreightIn = MeetFreightIn()
+    pte_strict: bool | None = Field(None, description="Строгий ПТЭ; не задан — как в настройках сервера")
+
+
+class MeetSegOut(BaseModel):
+    t0: float
+    t1: float
+    x0: float
+    x1: float
+    v0: float
+    v1: float
+
+
+class MeetSideOut(BaseModel):
+    stopped: bool
+    planned_stop: bool
+    arr: float
+    dep: float
+    wait_s: float
+    extra_s: float = Field(description="Насколько позже приходит на дальнюю станцию, чем без встречи")
+    late_s: float = Field(description="Добавленное опоздание на конечной сверх запаса")
+    arr_far: float
+
+
+class MeetOptionOut(BaseModel):
+    id: Literal["pax_first", "freight_first"]
+    yield_: Literal["pax", "freight"] = Field(alias="yield")
+    motion: dict[str, list[MeetSegOut]]
+    pax: MeetSideOut
+    freight: MeetSideOut
+    kwh: dict[str, float]
+    cost: dict[str, float]
+    econ: float = Field(description="Цена без штрафа ПТЭ, у.е.")
+    total: float = Field(description="Цена со штрафом ПТЭ — по ней Бағдар выбирает")
+    pte_excess_min: float
+    pax_person_min: float
+    freight_ton_h: float
+    end_t: float
+
+    model_config = {"populate_by_name": True}
+
+
+class MeetTrainOut(BaseModel):
+    cls: str
+    label: str
+    length_m: float
+    mass_t: float
+    v_kmh: float
+    passengers: int | None = None
+    pte_rank: int
+    weight: float = Field(description="Вес минуты задержки, у.е./мин")
+    factors: list[tuple[str, float]]
+    base_weight: float
+    tolerance_min: float
+    stop_kwh: float
+    brake_s: float
+    accel_s: float
+
+
+class MeetOut(BaseModel):
+    params: MeetIn
+    geometry: dict[str, float]
+    trains: dict[str, MeetTrainOut]
+    options: list[MeetOptionOut]
+    winner: Literal["pax_first", "freight_first"]
+    econ_winner: Literal["pax_first", "freight_first"]
+    saving: float
+    econ_saving: float
+    constants: dict[str, float | bool]

@@ -25,6 +25,9 @@ export function NavBar({ route, onSettings, onTour }: { route: Route; onSettings
         ))}
       </div>
       <span className="spacer" />
+      <a className="btn btn-small btn-meet" href="/showcase/index.html#/meet" title="Пассажирский или грузовой: кого пропустить первым и почему — анимация с расчётом цены">
+        🚆 Кто первым? ↗
+      </a>
       <button className="btn btn-small btn-tour" onClick={onTour} title="Пошаговое объяснение экрана простыми словами (2 минуты)">
         🎓 Показ для новичков
       </button>

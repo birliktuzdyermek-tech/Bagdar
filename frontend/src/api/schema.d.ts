@@ -499,6 +499,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/meet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** «Кто первым?»: пассажирский и грузовой навстречу на однопутном перегоне — цена обоих порядков */
+        post: operations["post_meet_api_meet_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/config": {
         parameters: {
             query?: never;
@@ -1635,6 +1652,293 @@ export interface components {
             trains_total: number;
             /** Load Ms */
             load_ms: number;
+        };
+        /** MeetFreightIn */
+        MeetFreightIn: {
+            /**
+             * Cls
+             * @default freight
+             * @enum {string}
+             */
+            cls: "express_freight" | "freight" | "local_freight";
+            /**
+             * Mass T
+             * @default 5000
+             */
+            mass_t: number;
+            /** Cargo */
+            cargo?: ("urgent" | "perishable" | "deadline" | "dangerous")[];
+            /**
+             * Delay Min
+             * @default 0
+             */
+            delay_min: number;
+            /**
+             * Slack Min
+             * @default 20
+             */
+            slack_min: number;
+            /**
+             * Uphill
+             * @description Станция Б для грузового на подъёме
+             * @default false
+             */
+            uphill: boolean;
+            /**
+             * Crew Left H
+             * @default 6
+             */
+            crew_left_h: number;
+            /**
+             * Trip Left H
+             * @default 4
+             */
+            trip_left_h: number;
+        };
+        /** MeetIn */
+        MeetIn: {
+            /**
+             * Section Km
+             * @default 12
+             */
+            section_km: number;
+            /**
+             * Speed Limit Kmh
+             * @default 100
+             */
+            speed_limit_kmh: number;
+            /**
+             * Gap Min
+             * @description > 0 — пассажирский подходит к А позже, чем грузовой к Б
+             * @default 0
+             */
+            gap_min: number;
+            /**
+             * @default {
+             *       "cls": "fast_passenger",
+             *       "passengers": 600,
+             *       "delay_min": 0,
+             *       "slack_min": 3,
+             *       "dwell_min": 0,
+             *       "transfer": false,
+             *       "trip_left_h": 3
+             *     }
+             */
+            pax: components["schemas"]["MeetPaxIn"];
+            /**
+             * @default {
+             *       "cls": "freight",
+             *       "mass_t": 5000,
+             *       "cargo": [],
+             *       "delay_min": 0,
+             *       "slack_min": 20,
+             *       "uphill": false,
+             *       "crew_left_h": 6,
+             *       "trip_left_h": 4
+             *     }
+             */
+            freight: components["schemas"]["MeetFreightIn"];
+            /**
+             * Pte Strict
+             * @description Строгий ПТЭ; не задан — как в настройках сервера
+             */
+            pte_strict?: boolean | null;
+        };
+        /** MeetOptionOut */
+        MeetOptionOut: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "pax_first" | "freight_first";
+            /**
+             * Yield
+             * @enum {string}
+             */
+            yield: "pax" | "freight";
+            /** Motion */
+            motion: {
+                [key: string]: components["schemas"]["MeetSegOut"][];
+            };
+            pax: components["schemas"]["MeetSideOut"];
+            freight: components["schemas"]["MeetSideOut"];
+            /** Kwh */
+            kwh: {
+                [key: string]: number;
+            };
+            /** Cost */
+            cost: {
+                [key: string]: number;
+            };
+            /**
+             * Econ
+             * @description Цена без штрафа ПТЭ, у.е.
+             */
+            econ: number;
+            /**
+             * Total
+             * @description Цена со штрафом ПТЭ — по ней Бағдар выбирает
+             */
+            total: number;
+            /** Pte Excess Min */
+            pte_excess_min: number;
+            /** Pax Person Min */
+            pax_person_min: number;
+            /** Freight Ton H */
+            freight_ton_h: number;
+            /** End T */
+            end_t: number;
+        };
+        /** MeetOut */
+        MeetOut: {
+            params: components["schemas"]["MeetIn"];
+            /** Geometry */
+            geometry: {
+                [key: string]: number;
+            };
+            /** Trains */
+            trains: {
+                [key: string]: components["schemas"]["MeetTrainOut"];
+            };
+            /** Options */
+            options: components["schemas"]["MeetOptionOut"][];
+            /**
+             * Winner
+             * @enum {string}
+             */
+            winner: "pax_first" | "freight_first";
+            /**
+             * Econ Winner
+             * @enum {string}
+             */
+            econ_winner: "pax_first" | "freight_first";
+            /** Saving */
+            saving: number;
+            /** Econ Saving */
+            econ_saving: number;
+            /** Constants */
+            constants: {
+                [key: string]: number | boolean;
+            };
+        };
+        /** MeetPaxIn */
+        MeetPaxIn: {
+            /**
+             * Cls
+             * @default fast_passenger
+             * @enum {string}
+             */
+            cls: "high_speed_passenger" | "fast_passenger" | "passenger";
+            /**
+             * Passengers
+             * @default 600
+             */
+            passengers: number;
+            /**
+             * Delay Min
+             * @description Уже опаздывает, мин
+             * @default 0
+             */
+            delay_min: number;
+            /**
+             * Slack Min
+             * @description Запас по графику до конечной, мин
+             * @default 3
+             */
+            slack_min: number;
+            /**
+             * Dwell Min
+             * @description Плановая стоянка на станции А, 0 — без остановки
+             * @default 0
+             */
+            dwell_min: number;
+            /**
+             * Transfer
+             * @default false
+             */
+            transfer: boolean;
+            /**
+             * Trip Left H
+             * @default 3
+             */
+            trip_left_h: number;
+        };
+        /** MeetSegOut */
+        MeetSegOut: {
+            /** T0 */
+            t0: number;
+            /** T1 */
+            t1: number;
+            /** X0 */
+            x0: number;
+            /** X1 */
+            x1: number;
+            /** V0 */
+            v0: number;
+            /** V1 */
+            v1: number;
+        };
+        /** MeetSideOut */
+        MeetSideOut: {
+            /** Stopped */
+            stopped: boolean;
+            /** Planned Stop */
+            planned_stop: boolean;
+            /** Arr */
+            arr: number;
+            /** Dep */
+            dep: number;
+            /** Wait S */
+            wait_s: number;
+            /**
+             * Extra S
+             * @description Насколько позже приходит на дальнюю станцию, чем без встречи
+             */
+            extra_s: number;
+            /**
+             * Late S
+             * @description Добавленное опоздание на конечной сверх запаса
+             */
+            late_s: number;
+            /** Arr Far */
+            arr_far: number;
+        };
+        /** MeetTrainOut */
+        MeetTrainOut: {
+            /** Cls */
+            cls: string;
+            /** Label */
+            label: string;
+            /** Length M */
+            length_m: number;
+            /** Mass T */
+            mass_t: number;
+            /** V Kmh */
+            v_kmh: number;
+            /** Passengers */
+            passengers?: number | null;
+            /** Pte Rank */
+            pte_rank: number;
+            /**
+             * Weight
+             * @description Вес минуты задержки, у.е./мин
+             */
+            weight: number;
+            /** Factors */
+            factors: [
+                string,
+                number
+            ][];
+            /** Base Weight */
+            base_weight: number;
+            /** Tolerance Min */
+            tolerance_min: number;
+            /** Stop Kwh */
+            stop_kwh: number;
+            /** Brake S */
+            brake_s: number;
+            /** Accel S */
+            accel_s: number;
         };
         /** MeterOptionOut */
         MeterOptionOut: {
@@ -3706,6 +4010,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_meet_api_meet_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MeetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeetOut"];
                 };
             };
             /** @description Validation Error */

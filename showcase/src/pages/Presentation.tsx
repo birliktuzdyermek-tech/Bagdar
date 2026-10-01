@@ -6,20 +6,24 @@ import { drawScheme } from "../player/scheme";
 import { loadReplay } from "../replay/load";
 import { ReplayModel } from "../replay/model";
 import type { DecisionCard, IncidentSummary, RunInfo } from "../replay/types";
+import { MeetScene } from "../meet/MeetScene";
+import { withDefaults } from "../meet/model";
+import { useMeet } from "../meet/useMeet";
 import { BgReplay } from "./BgReplay";
 import "./presentation.css";
 
 const TITLES = [
-  "Проблема", "Что такое Бағдар", "Живой участок", "Сбой — и новый план за секунды", "Почему именно так",
+  "Проблема", "Что такое Бағдар", "Кто поедет первым?", "Живой участок", "Сбой — и новый план за секунды", "Почему именно так",
   "С Бағдаром и без", "Приоритеты", "Индекс участка", "Архитектура", "Масштаб", "Экономика", "Ограничения и развитие",
 ] as const;
 
 // насыщенные слайды: заголовок меньше, колонки прижаты кверху, чтобы всё влезло в 16:9
-const COMPACT = new Set([3, 4, 5, 7, 10]);
+const COMPACT = new Set([2, 4, 5, 6, 8, 11]);
 
 const NOTES = [
   "Это количество возможных пар поездов, а не число конфликтов: n·(n−1)/2. Каждая пара может встретиться на одном пути. Фон — настоящая запись прогона.",
   "Бағдар как навигатор: видит весь участок, строит план без конфликтов, объясняет каждое решение и советует машинистам скорость. Сигналами и поездами не управляет.",
+  "Основа всего проекта в одной сцене. Путь один, навстречу пассажирский и грузовой. Сверху — пропускаем пассажирский, снизу — грузовой. Счётчики показывают, во что обходится каждая минута ожидания: время людей, энергия на остановку тяжёлого состава, простой бригады. Бағдар выбирает дешёвый вариант, но сначала проверяет ПТЭ. На странице «Кто первым?» можно поменять условия и угадать самому.",
   "Это кадры настоящего прогона Ядра. Пунктир на графике — план Бағдара, сплошная — как поезда ехали на самом деле. Индекс — из тех же кадров.",
   "В 06:30 по сценарию закрыт перегон. Таблица — из отчёта «до / после», который Ядро строит само: план Бағдара, «ничего не менять» и «кто первый пришёл».",
   "Настоящая карточка из записи: что сделано, почему, какая была альтернатива и на сколько она дороже. Цены — условные единицы.",
@@ -333,7 +337,29 @@ interface Models {
   mNormal: ReplayModel | null; mClosure: ReplayModel | null; mLockA: ReplayModel | null; mLockB: ReplayModel | null;
 }
 
-function SlideBody({ index, m }: { index: number; m: Models }) {
+const MEET_PARAMS = withDefaults({});
+
+function MeetSlide() {
+  const { res } = useMeet(MEET_PARAMS, true);
+  const a = res.options.find((o) => o.id === "pax_first")!;
+  const b = res.options.find((o) => o.id === "freight_first")!;
+  const money = (x: number) => `${num(Math.round(x))} у.е.`;
+  return <div className="pres-meet">
+    <MeetScene res={res} runKey="pres" compact autoplay loop />
+    <div className="pres-meet-row">
+      <div><b className="pax">Минута 600 пассажиров</b><span>{num(res.trains.pax.weight)} у.е.</span></div>
+      <div><b className="fr">Минута грузового</b><span>{num(res.trains.freight.weight)} у.е.</span></div>
+      <div><b>Остановить 5 000 т</b><span>{num(res.trains.freight.stop_kwh)} кВт·ч</span></div>
+      <div className="win"><b>1. Первым пассажирский</b><span>{money(a.econ)}</span></div>
+      <div className="lose"><b>2. Первым грузовой</b><span>{money(b.econ)} + ПТЭ ✕</span></div>
+    </div>
+    <p className="pres-plain">Бағдар считает цену каждого порядка — время людей, энергию, простой, правила ПТЭ — и выбирает дешёвый допустимый. На участке таких решений сотни в час. <a href="#/meet">Покрутить самому →</a></p>
+  </div>;
+}
+
+function SlideBody({ index: raw, m }: { index: number; m: Models }) {
+  if (raw === 2) return <MeetSlide />;
+  const index = raw > 2 ? raw - 1 : raw;
   switch (index) {
     case 0: return <>
       <p className="pres-hero">Каждый поезд может помешать каждому — на одном пути двоим не разъехаться.</p>
@@ -502,7 +528,7 @@ export function Presentation({ runs }: { runs: RunInfo[] }) {
 
   return <section ref={ref} className="presentation" aria-label="Презентация Бағдара"
     onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-    <BgReplay run={index === 3 ? closure : normal} />
+    <BgReplay run={index === 4 ? closure : normal} />
     <div className="pres-stage">
       <header className="pres-top"><span className="pres-kicker">БАҒДАР · АВТОДИСПЕТЧЕР</span>
         <span className="pres-counter" aria-live="polite">{index + 1} / {TITLES.length}</span></header>

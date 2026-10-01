@@ -579,6 +579,7 @@ a.nav-site:hover, .nav-link:hover { color: var(--text-primary); background: var(
 
 /* ---------- показ для новичков ---------- */
 .btn-tour { border-color: var(--accent); color: var(--text-primary); }
+.btn-meet { text-decoration: none; background: linear-gradient(135deg, #2f6fd6, #b8433a); border-color: transparent; color: #fff; font-weight: 700; }
 .tour { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
 .tour-dim { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); }
 .tour-spot {

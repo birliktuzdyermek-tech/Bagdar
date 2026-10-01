@@ -6,6 +6,7 @@ import type { RunInfo } from "./replay/types";
 import { Gallery } from "./pages/Gallery";
 import { Home } from "./pages/Home";
 import { HowItWorks } from "./pages/HowItWorks";
+import { Meet } from "./pages/Meet";
 import { Presentation } from "./pages/Presentation";
 import { Header } from "./ui/Header";
 import { ShowcaseTour } from "./ui/ShowcaseTour";
@@ -58,9 +59,14 @@ export function App() {
     loadRunList().then(setRuns, (e: Error) => setError(e.message));
   }, []);
 
-  const playId = /^#\/play\/([\w-]+)/.exec(route)?.[1] ?? null;
+  const isMeet = route.startsWith("#/meet");
+  const playId = isMeet ? null : /^#\/play\/([\w-]+)/.exec(route)?.[1] ?? null;
   useEffect(() => {
     if (playId) return;
+    if (route.startsWith("#/meet")) {
+      window.scrollTo(0, 0);
+      return;
+    }
     document.title = route.startsWith("#/presentation") ? "Режим показа — Бағдар" : route.startsWith("#/how") ? "Как это работает — Бағдар" : route.startsWith("#/gallery") ? "Ситуации — Бағдар" : route.startsWith("#/runs") ? "Записи — Бағдар" : "Бағдар — Витрина";
     window.scrollTo(0, 0);
   }, [route, playId]);
@@ -69,14 +75,15 @@ export function App() {
     <div className="app">
       <Header projector={projector} onProjector={toggleProjector} route={route} />
       <main className="main" id="main">
-        {error && <p className="error">⚠ {error}</p>}
-        {!runs && !error && <p className="muted">Загружаю список записей…</p>}
+        {isMeet && <Meet />}
+        {!isMeet && error && <p className="error">⚠ {error}</p>}
+        {!isMeet && !runs && !error && <p className="muted">Загружаю список записей…</p>}
         {runs && playId && <PlayRoute key={playId} runs={runs} id={playId} projector={projector} />}
         {runs && !playId && route.startsWith("#/runs") && <RunList runs={runs} />}
         {runs && !playId && route.startsWith("#/gallery") && <Gallery runs={runs} />}
         {runs && !playId && route.startsWith("#/presentation") && <Presentation runs={runs} />}
         {runs && !playId && route.startsWith("#/how") && <HowItWorks />}
-        {runs && !playId && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && !route.startsWith("#/presentation") && !route.startsWith("#/how") && <Home runs={runs} />}
+        {runs && !playId && !isMeet && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && !route.startsWith("#/presentation") && !route.startsWith("#/how") && <Home runs={runs} />}
       </main>
       <footer className="footer">
         <span>Консультативный прототип — не система управления движением.</span>
