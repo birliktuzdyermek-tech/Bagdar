@@ -1,5 +1,210 @@
 {
   "$defs": {
+    "ActionOut": {
+      "properties": {
+        "card_id": {
+          "title": "Card Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "cancel",
+            "choose"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "left_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Сколько реальных секунд осталось; null — ждёт выбора без таймера",
+          "title": "Left S"
+        }
+      },
+      "required": [
+        "card_id",
+        "kind",
+        "left_s"
+      ],
+      "title": "ActionOut",
+      "type": "object"
+    },
+    "AdviceSummaryOut": {
+      "properties": {
+        "trains": {
+          "title": "Trains",
+          "type": "integer"
+        },
+        "slowed": {
+          "description": "Скольким поездам советуется ехать медленнее лимита",
+          "title": "Slowed",
+          "type": "integer"
+        },
+        "stops_avoided": {
+          "title": "Stops Avoided",
+          "type": "integer"
+        },
+        "saving_kwh": {
+          "title": "Saving Kwh",
+          "type": "number"
+        }
+      },
+      "required": [
+        "trains",
+        "slowed",
+        "stops_avoided",
+        "saving_kwh"
+      ],
+      "title": "AdviceSummaryOut",
+      "type": "object"
+    },
+    "CardEffectOut": {
+      "properties": {
+        "train_id": {
+          "title": "Train Id",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "string"
+        },
+        "delay_plan_min": {
+          "title": "Delay Plan Min",
+          "type": "number"
+        },
+        "delay_alt_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Delay Alt Min"
+        },
+        "stops_plan": {
+          "title": "Stops Plan",
+          "type": "integer"
+        },
+        "stops_alt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stops Alt"
+        },
+        "weight": {
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "train_id",
+        "number",
+        "delay_plan_min",
+        "delay_alt_min",
+        "stops_plan",
+        "stops_alt",
+        "weight"
+      ],
+      "title": "CardEffectOut",
+      "type": "object"
+    },
+    "CardImpactOut": {
+      "description": "Влияние решения: «план» — с решением, «alt» — с альтернативой (прогноз на час, у.е. условные).",
+      "properties": {
+        "delay_min_plan": {
+          "title": "Delay Min Plan",
+          "type": "number"
+        },
+        "delay_min_alt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Delay Min Alt"
+        },
+        "energy_kwh_plan": {
+          "title": "Energy Kwh Plan",
+          "type": "number"
+        },
+        "energy_kwh_alt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Energy Kwh Alt"
+        },
+        "track_load_pct_plan": {
+          "title": "Track Load Pct Plan",
+          "type": "number"
+        },
+        "track_load_pct_alt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Track Load Pct Alt"
+        },
+        "idle_pct_plan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Idle Pct Plan"
+        },
+        "idle_pct_alt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Idle Pct Alt"
+        }
+      },
+      "required": [
+        "delay_min_plan",
+        "delay_min_alt",
+        "energy_kwh_plan",
+        "energy_kwh_alt",
+        "track_load_pct_plan",
+        "track_load_pct_alt",
+        "idle_pct_plan",
+        "idle_pct_alt"
+      ],
+      "title": "CardImpactOut",
+      "type": "object"
+    },
     "ConflictOut": {
       "properties": {
         "kind": {
@@ -39,6 +244,383 @@
         "message"
       ],
       "title": "ConflictOut",
+      "type": "object"
+    },
+    "DecisionCardOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "seq": {
+          "default": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "plan_version": {
+          "title": "Plan Version",
+          "type": "integer"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        },
+        "type": {
+          "enum": [
+            "crossing",
+            "overtake",
+            "track",
+            "hold",
+            "no_plan",
+            "incident"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "level": {
+          "description": "A — авто, B — авто с уведомлением, C — нужен выбор",
+          "enum": [
+            "A",
+            "B",
+            "C"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "station_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Station Id"
+        },
+        "station": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Station"
+        },
+        "section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Section Id"
+        },
+        "trains": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trains",
+          "type": "array"
+        },
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "alternative": {
+          "title": "Alternative",
+          "type": "string"
+        },
+        "cost_plan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Plan"
+        },
+        "cost_alt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Alt"
+        },
+        "delta_cost": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "На сколько альтернатива хуже с учётом слоя ПТЭ (для ранжирования)",
+          "title": "Delta Cost"
+        },
+        "delta_money": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "На сколько альтернатива дороже, у.е. (условные)",
+          "title": "Delta Money"
+        },
+        "alt_pte_violations": {
+          "default": 0,
+          "title": "Alt Pte Violations",
+          "type": "integer"
+        },
+        "alt_feasible": {
+          "title": "Alt Feasible",
+          "type": "boolean"
+        },
+        "alt_reliable": {
+          "default": true,
+          "description": "false — быстрая модель не воспроизводит план, цена альтернативы не оценена",
+          "title": "Alt Reliable",
+          "type": "boolean"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "wait_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Wait Min"
+        },
+        "effects": {
+          "items": {
+            "$ref": "#/$defs/CardEffectOut"
+          },
+          "title": "Effects",
+          "type": "array"
+        },
+        "index_before": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Прогноз индекса на час с альтернативой",
+          "title": "Index Before"
+        },
+        "index_after": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Прогноз индекса на час с решением",
+          "title": "Index After"
+        },
+        "status": {
+          "enum": [
+            "applied",
+            "pending",
+            "proposed",
+            "cancelled",
+            "chosen",
+            "expired",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "full_auto": {
+          "default": true,
+          "title": "Full Auto",
+          "type": "boolean"
+        },
+        "impact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CardImpactOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "variants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VariantOut"
+          },
+          "title": "Variants",
+          "type": "array"
+        },
+        "chosen_variant": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chosen Variant"
+        },
+        "choice_card": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Карточка, где делается выбор за весь пересчёт",
+          "title": "Choice Card"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome"
+        },
+        "can_cancel": {
+          "default": false,
+          "title": "Can Cancel",
+          "type": "boolean"
+        },
+        "can_choose": {
+          "default": false,
+          "title": "Can Choose",
+          "type": "boolean"
+        },
+        "incident_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Карточка-разбор инцидента «до / после»",
+          "title": "Incident Id"
+        },
+        "report": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Разбор инцидента: before, plan, no_change, fifo, tree",
+          "title": "Report"
+        }
+      },
+      "required": [
+        "id",
+        "plan_version",
+        "t",
+        "type",
+        "level",
+        "station_id",
+        "station",
+        "section_id",
+        "trains",
+        "action",
+        "reason",
+        "alternative",
+        "cost_plan",
+        "cost_alt",
+        "delta_cost",
+        "alt_feasible",
+        "wait_min",
+        "effects",
+        "index_before",
+        "index_after",
+        "status"
+      ],
+      "title": "DecisionCardOut",
+      "type": "object"
+    },
+    "DelayTreeOut": {
+      "properties": {
+        "root": {
+          "title": "Root",
+          "type": "string"
+        },
+        "affected": {
+          "title": "Affected",
+          "type": "integer"
+        },
+        "total_wait_min": {
+          "title": "Total Wait Min",
+          "type": "number"
+        },
+        "tree": {
+          "additionalProperties": true,
+          "description": "{train_id, number, wait_s, station, children[]}",
+          "title": "Tree",
+          "type": "object"
+        }
+      },
+      "required": [
+        "root",
+        "affected",
+        "total_wait_min",
+        "tree"
+      ],
+      "title": "DelayTreeOut",
       "type": "object"
     },
     "Disruption": {
@@ -145,6 +727,36 @@
       "title": "EventOut",
       "type": "object"
     },
+    "ForecastOut": {
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "status_label": {
+          "title": "Status Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "status",
+        "status_label"
+      ],
+      "title": "ForecastOut",
+      "type": "object"
+    },
     "GenerationOut": {
       "properties": {
         "trains_total": {
@@ -174,6 +786,706 @@
         "validated"
       ],
       "title": "GenerationOut",
+      "type": "object"
+    },
+    "IncidentActiveOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "train_delay",
+            "section_closed",
+            "signal_fault",
+            "track_unavailable",
+            "switch_fault",
+            "speed_restriction",
+            "add_trains",
+            "extra_train",
+            "hold_at_origin"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "level": {
+          "enum": [
+            "A",
+            "B",
+            "C"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "resource": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Resource"
+        },
+        "section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Section Id"
+        },
+        "station_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Station Id"
+        },
+        "until": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Until"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        },
+        "restorable": {
+          "title": "Restorable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "level",
+        "title",
+        "resource",
+        "section_id",
+        "station_id",
+        "until",
+        "t",
+        "restorable"
+      ],
+      "title": "IncidentActiveOut",
+      "type": "object"
+    },
+    "IncidentAfterOut": {
+      "properties": {
+        "plan": {
+          "$ref": "#/$defs/IncidentSummaryOut"
+        },
+        "no_change": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IncidentSummaryOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Если не менять порядок поездов (прежний план)"
+        },
+        "fifo": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IncidentSummaryOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "«Кто первый пришёл, тот первый едет»"
+        },
+        "tree": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DelayTreeOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Дерево распространения задержки (для опозданий)"
+        }
+      },
+      "required": [
+        "plan",
+        "no_change",
+        "fifo",
+        "tree"
+      ],
+      "title": "IncidentAfterOut",
+      "type": "object"
+    },
+    "IncidentOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        },
+        "kind": {
+          "enum": [
+            "train_delay",
+            "section_closed",
+            "signal_fault",
+            "track_unavailable",
+            "switch_fault",
+            "speed_restriction",
+            "add_trains",
+            "extra_train",
+            "hold_at_origin"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "level": {
+          "enum": [
+            "A",
+            "B",
+            "C"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        },
+        "source": {
+          "enum": [
+            "dispatcher",
+            "scenario"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "resource": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Resource"
+        },
+        "station_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Station Id"
+        },
+        "section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Section Id"
+        },
+        "train_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Train Ids",
+          "type": "array"
+        },
+        "until": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Until"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "resolved",
+            "done"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "resolved_at": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Resolved At"
+        },
+        "before": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Состояние в момент сбоя: индекс, прогноз, задето, конфликты плана",
+          "title": "Before"
+        },
+        "after": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IncidentAfterOut"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "card_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Card Id"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "kind",
+        "level",
+        "title",
+        "params",
+        "source",
+        "resource",
+        "station_id",
+        "section_id",
+        "train_ids",
+        "until",
+        "status",
+        "resolved_at",
+        "before",
+        "after",
+        "card_id"
+      ],
+      "title": "IncidentOut",
+      "type": "object"
+    },
+    "IncidentSummaryOut": {
+      "properties": {
+        "J": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "J"
+        },
+        "J_lex": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "J Lex"
+        },
+        "delay_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Delay Min"
+        },
+        "affected": {
+          "description": "Задето волной: прибытие позже, чем в плане до события, на 2 мин и больше",
+          "title": "Affected",
+          "type": "integer"
+        },
+        "delay_add_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Сколько поездо-минут добавила волна",
+          "title": "Delay Add Min"
+        },
+        "late_trains": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Поездов сверх допуска по опозданию",
+          "title": "Late Trains"
+        },
+        "recovery_at": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Recovery At"
+        },
+        "beyond": {
+          "title": "Beyond",
+          "type": "integer"
+        },
+        "forecast": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Forecast"
+        },
+        "pte": {
+          "default": 0,
+          "title": "Pte",
+          "type": "integer"
+        },
+        "plan_version": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Version"
+        },
+        "solver": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Solver"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        },
+        "compute_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Compute Ms"
+        },
+        "stuck": {
+          "default": 0,
+          "description": "Поездов, которых план бросил посреди горизонта (одно правило для всех планов)",
+          "title": "Stuck",
+          "type": "integer"
+        },
+        "valid": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid"
+        },
+        "why": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Why"
+        },
+        "deadlock": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadlock"
+        },
+        "same": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "fifo: опубликован порядок «кто первый пришёл» (с защитой от замка)",
+          "title": "Same"
+        },
+        "tree": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tree"
+        }
+      },
+      "required": [
+        "J",
+        "delay_min",
+        "affected",
+        "recovery_at",
+        "beyond",
+        "forecast"
+      ],
+      "title": "IncidentSummaryOut",
+      "type": "object"
+    },
+    "IndexFactorOut": {
+      "properties": {
+        "key": {
+          "enum": [
+            "throughput",
+            "punctuality",
+            "track_load",
+            "resource_idle",
+            "conflicts"
+          ],
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "weight": {
+          "description": "Вес из конфига",
+          "title": "Weight",
+          "type": "number"
+        },
+        "weight_eff": {
+          "description": "Вес после перенормировки по факторам с данными",
+          "title": "Weight Eff",
+          "type": "number"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "s_k от 0 до 1; null — нет данных",
+          "title": "Score"
+        },
+        "available": {
+          "title": "Available",
+          "type": "boolean"
+        },
+        "value_text": {
+          "title": "Value Text",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        },
+        "lost": {
+          "description": "Сколько пунктов индекса теряется на этом факторе",
+          "title": "Lost",
+          "type": "number"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "weight",
+        "weight_eff",
+        "score",
+        "available",
+        "value_text",
+        "note",
+        "lost"
+      ],
+      "title": "IndexFactorOut",
+      "type": "object"
+    },
+    "IndexOut": {
+      "properties": {
+        "t": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "T"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "0–100; null — нет данных ни по одному фактору",
+          "title": "Value"
+        },
+        "status": {
+          "enum": [
+            "norm",
+            "warning",
+            "critical",
+            "no_data"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_label": {
+          "title": "Status Label",
+          "type": "string"
+        },
+        "factors": {
+          "items": {
+            "$ref": "#/$defs/IndexFactorOut"
+          },
+          "title": "Factors",
+          "type": "array"
+        },
+        "reasons": {
+          "description": "Что сильнее всего тянет индекс вниз",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "missing": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing",
+          "type": "array"
+        }
+      },
+      "required": [
+        "t",
+        "value",
+        "status",
+        "status_label",
+        "factors",
+        "reasons",
+        "missing"
+      ],
+      "title": "IndexOut",
       "type": "object"
     },
     "IndexSnapshot": {
@@ -346,6 +1658,11 @@
           "title": "Version",
           "type": "integer"
         },
+        "applied_version": {
+          "description": "Версия плана, который сейчас исполняется",
+          "title": "Applied Version",
+          "type": "integer"
+        },
         "solver": {
           "anyOf": [
             {
@@ -477,10 +1794,54 @@
         "cards_total": {
           "title": "Cards Total",
           "type": "integer"
+        },
+        "full_auto": {
+          "title": "Full Auto",
+          "type": "boolean"
+        },
+        "awaiting_choice": {
+          "description": "План ждёт выбора диспетчера по карточке C",
+          "title": "Awaiting Choice",
+          "type": "boolean"
+        },
+        "actions": {
+          "description": "Открытые окна: отмена B, выбор C",
+          "items": {
+            "$ref": "#/$defs/ActionOut"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "overrides": {
+          "description": "Действующих решений диспетчера, которые план обязан соблюдать",
+          "title": "Overrides",
+          "type": "integer"
+        },
+        "recovery": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecoveryOut"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "forecast": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ForecastOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Прогноз индекса по действующему плану на час вперёд"
         }
       },
       "required": [
         "version",
+        "applied_version",
         "solver",
         "status",
         "compute_ms",
@@ -495,9 +1856,152 @@
         "reason",
         "late_trains",
         "held",
-        "cards_total"
+        "cards_total",
+        "full_auto",
+        "awaiting_choice",
+        "actions",
+        "overrides",
+        "recovery",
+        "forecast"
       ],
       "title": "PlannerSummaryOut",
+      "type": "object"
+    },
+    "RadarOut": {
+      "properties": {
+        "status": {
+          "enum": [
+            "no_data",
+            "ok",
+            "warning",
+            "critical"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "eta_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Через сколько секунд модели участок перестанет справляться",
+          "title": "Eta S"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "delay_slope_min_h": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Delay Slope Min H"
+        },
+        "load_slope_pct_h": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Load Slope Pct H"
+        },
+        "queue": {
+          "title": "Queue",
+          "type": "integer"
+        },
+        "delay_now_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delay Now Min"
+        },
+        "load_now_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Load Now Pct"
+        }
+      },
+      "required": [
+        "status",
+        "eta_s",
+        "text",
+        "delay_slope_min_h",
+        "load_slope_pct_h",
+        "queue"
+      ],
+      "title": "RadarOut",
+      "type": "object"
+    },
+    "RecoveryOut": {
+      "properties": {
+        "affected": {
+          "description": "Поездов, которые по плану выйдут за допуск по опозданию",
+          "title": "Affected",
+          "type": "integer"
+        },
+        "affected_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected Ids",
+          "type": "array"
+        },
+        "late_now": {
+          "description": "Поездов вне допуска прямо сейчас",
+          "title": "Late Now",
+          "type": "integer"
+        },
+        "recovery_at": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Когда восстановятся поезда, восстанавливающиеся на горизонте",
+          "title": "Recovery At"
+        },
+        "beyond_horizon": {
+          "description": "Задетых поездов, не восстанавливающихся на горизонте плана",
+          "title": "Beyond Horizon",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "affected",
+        "affected_ids",
+        "late_now",
+        "recovery_at",
+        "beyond_horizon"
+      ],
+      "title": "RecoveryOut",
       "type": "object"
     },
     "ReplayFrame": {
@@ -677,6 +2181,18 @@
           "title": "Trains",
           "type": "array"
         },
+        "advice": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AdviceSummaryOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Советы скорости по всем поездам на перегонах"
+        },
         "sections": {
           "items": {
             "$ref": "#/$defs/SectionStateOut"
@@ -728,6 +2244,49 @@
           },
           "title": "Conflicts",
           "type": "array"
+        },
+        "index": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IndexOut"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "incidents": {
+          "description": "Действующие сбои",
+          "items": {
+            "$ref": "#/$defs/IncidentActiveOut"
+          },
+          "title": "Incidents",
+          "type": "array"
+        },
+        "radar": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RadarOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Радар насыщения: тренд и прогноз, когда участок перестанет справляться"
+        },
+        "scenario_next": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Ближайшее событие сценария {t, kind}",
+          "title": "Scenario Next"
         }
       },
       "required": [
@@ -744,7 +2303,10 @@
         "throats",
         "signals",
         "metrics",
-        "perf"
+        "perf",
+        "index",
+        "incidents",
+        "scenario_next"
       ],
       "title": "ReplayStateOut",
       "type": "object"
@@ -788,6 +2350,23 @@
           "default": 0,
           "title": "Wave",
           "type": "integer"
+        },
+        "situation": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Situation"
+        },
+        "plain": {
+          "default": "",
+          "title": "Plain",
+          "type": "string"
         },
         "world": {
           "additionalProperties": true,
@@ -1054,6 +2633,71 @@
         "state"
       ],
       "title": "SignalStateOut",
+      "type": "object"
+    },
+    "SpeedAdviceOut": {
+      "description": "Совет машинисту на ближайшем перегоне. Модель относительная, не тяговый расчёт.",
+      "properties": {
+        "v_rec_kmh": {
+          "description": "Рекомендуемая скорость, не выше лимита",
+          "title": "V Rec Kmh",
+          "type": "integer"
+        },
+        "v_full_kmh": {
+          "description": "Полный ход — лимит перегона с учётом ограничений",
+          "title": "V Full Kmh",
+          "type": "integer"
+        },
+        "v_limit_kmh": {
+          "title": "V Limit Kmh",
+          "type": "integer"
+        },
+        "e_full_kwh": {
+          "description": "Условный расход на полном ходу: ход + остановка у входного, кВт·ч",
+          "title": "E Full Kwh",
+          "type": "number"
+        },
+        "e_rec_kwh": {
+          "description": "Условный расход по совету, кВт·ч",
+          "title": "E Rec Kwh",
+          "type": "number"
+        },
+        "saving_kwh": {
+          "title": "Saving Kwh",
+          "type": "number"
+        },
+        "saving_pct": {
+          "title": "Saving Pct",
+          "type": "number"
+        },
+        "stop_avoided": {
+          "description": "Совет избавляет от остановки у входного светофора",
+          "title": "Stop Avoided",
+          "type": "boolean"
+        },
+        "wait_full_s": {
+          "description": "Сколько поезд простоял бы, придя на полном ходу",
+          "title": "Wait Full S",
+          "type": "integer"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "v_rec_kmh",
+        "v_full_kmh",
+        "v_limit_kmh",
+        "e_full_kwh",
+        "e_rec_kwh",
+        "saving_kwh",
+        "saving_pct",
+        "stop_avoided",
+        "wait_full_s",
+        "text"
+      ],
+      "title": "SpeedAdviceOut",
       "type": "object"
     },
     "StationOut": {
@@ -1418,6 +3062,18 @@
         "stop_energy_kwh": {
           "title": "Stop Energy Kwh",
           "type": "number"
+        },
+        "advice": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SpeedAdviceOut"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Совет машинисту (только на перегоне)"
         }
       },
       "required": [
@@ -1574,6 +3230,183 @@
         "schedule"
       ],
       "title": "TrainStaticOut",
+      "type": "object"
+    },
+    "VariantOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "solver": {
+          "title": "Solver",
+          "type": "string"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        },
+        "J": {
+          "title": "J",
+          "type": "number"
+        },
+        "J_lex": {
+          "title": "J Lex",
+          "type": "number"
+        },
+        "delta_money": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Дороже рекомендации на, у.е.",
+          "title": "Delta Money"
+        },
+        "pte_violations": {
+          "title": "Pte Violations",
+          "type": "integer"
+        },
+        "late_pax": {
+          "description": "Пассажирских сверх допуска в этом варианте",
+          "title": "Late Pax",
+          "type": "integer"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "solver",
+        "valid",
+        "J",
+        "J_lex",
+        "delta_money",
+        "pte_violations",
+        "late_pax",
+        "note"
+      ],
+      "title": "VariantOut",
+      "type": "object"
+    },
+    "VersusScoreOut": {
+      "properties": {
+        "delay_pax_min": {
+          "title": "Delay Pax Min",
+          "type": "number"
+        },
+        "delay_freight_min": {
+          "title": "Delay Freight Min",
+          "type": "number"
+        },
+        "delay_min": {
+          "description": "Накопленная задержка, поездо-минуты",
+          "title": "Delay Min",
+          "type": "number"
+        },
+        "late_trains": {
+          "description": "Поездов с опозданием 5 мин и больше",
+          "title": "Late Trains",
+          "type": "integer"
+        },
+        "idle_h": {
+          "description": "Простой сверх графика, поездо-часы",
+          "title": "Idle H",
+          "type": "number"
+        },
+        "energy_kwh": {
+          "description": "Энергия неплановых остановок, кВт·ч (условно)",
+          "title": "Energy Kwh",
+          "type": "number"
+        },
+        "unplanned_stops": {
+          "title": "Unplanned Stops",
+          "type": "integer"
+        },
+        "frozen": {
+          "description": "Поездов, которые стоят на месте час и дольше",
+          "title": "Frozen",
+          "type": "integer"
+        },
+        "frozen_numbers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Frozen Numbers",
+          "type": "array"
+        },
+        "passages": {
+          "description": "Проследований станций с начала прогона",
+          "title": "Passages",
+          "type": "integer"
+        },
+        "finished": {
+          "title": "Finished",
+          "type": "integer"
+        },
+        "money": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Условные деньги по статьям, у.е.",
+          "title": "Money",
+          "type": "object"
+        },
+        "money_total": {
+          "title": "Money Total",
+          "type": "number"
+        },
+        "index": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Index"
+        },
+        "index_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Index Status"
+        }
+      },
+      "required": [
+        "delay_pax_min",
+        "delay_freight_min",
+        "delay_min",
+        "late_trains",
+        "idle_h",
+        "energy_kwh",
+        "unplanned_stops",
+        "frozen",
+        "frozen_numbers",
+        "passages",
+        "finished",
+        "money",
+        "money_total",
+        "index",
+        "index_status"
+      ],
+      "title": "VersusScoreOut",
       "type": "object"
     },
     "WorldOut": {
@@ -1765,6 +3598,57 @@
       },
       "title": "Events",
       "type": "array"
+    },
+    "variant": {
+      "default": "bagdar",
+      "description": "bagdar: planner on; no_plan: same flow without a plan, resources first come first served",
+      "enum": [
+        "bagdar",
+        "no_plan"
+      ],
+      "title": "Variant",
+      "type": "string"
+    },
+    "pair": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Id of the paired run of the same flow (with / without Bağdar)",
+      "title": "Pair"
+    },
+    "cards": {
+      "description": "Decision cards with reasons and prices",
+      "items": {
+        "$ref": "#/$defs/DecisionCardOut"
+      },
+      "title": "Cards",
+      "type": "array"
+    },
+    "incidents": {
+      "description": "Disruptions with before/after report",
+      "items": {
+        "$ref": "#/$defs/IncidentOut"
+      },
+      "title": "Incidents",
+      "type": "array"
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VersusScoreOut"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Final score of the run, same rules for both variants"
     }
   },
   "required": [

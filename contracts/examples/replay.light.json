@@ -11893,7 +11893,7 @@
         "traction": "electric",
         "vmax_kmh": 90,
         "loco_id": "KZ8A-0242",
-        "crew_id": "Б-3386",
+        "crew_id": "Б-3388",
         "crew_shift_end": 77367.4,
         "route": [
           "st01",
@@ -20932,7 +20932,7 @@
         "2041",
         "2043"
       ],
-      "build_ms": 537.2,
+      "build_ms": 606.9,
       "validated": true
     }
   },
@@ -20945,11 +20945,13 @@
     "start_time": "06:00",
     "difficulty": 1,
     "wave": 0,
+    "situation": null,
+    "plain": "Обычное утро на участке: поезда едут по графику, Бағдар сам решает мелкие скрещения и объясняет каждое решение.",
     "world": {},
     "traffic": {},
     "disruptions": []
   },
-  "run_id": "e2cabb5fe73d",
+  "run_id": "fb672f2f31de",
   "started_at": 21600.0,
   "ended_at": 21720.0,
   "frame_interval_s": 10,
@@ -20961,7 +20963,7 @@
         "created_at": 0.0,
         "solver": "timetable",
         "status": "feasible",
-        "compute_ms": 537.2,
+        "compute_ms": 606.9,
         "notes": [
           "Исходный график: 94 поездов",
           "Не вошли в график: 2012, 2016, 2025, 2029, 2028, 2034, 2036, 2038, 2041, 2043"
@@ -40396,9 +40398,9 @@
       "t": 21600.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 1,
+        "seq": 2,
         "tick": 0,
         "t": 21600.0,
         "running": false,
@@ -40423,7 +40425,19 @@
             "crew_left_s": 10163,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 39.6,
+              "e_rec_kwh": 39.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -40444,7 +40458,19 @@
             "crew_left_s": 23859,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 259.0,
+              "e_rec_kwh": 259.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -40465,7 +40491,8 @@
             "crew_left_s": 23425,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -40486,7 +40513,19 @@
             "crew_left_s": 4299,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 158.2,
+              "e_rec_kwh": 158.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -40507,7 +40546,19 @@
             "crew_left_s": 16239,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 67.7,
+              "e_rec_kwh": 67.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -40528,7 +40579,19 @@
             "crew_left_s": 23440,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 124.9,
+              "e_rec_kwh": 124.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -40549,7 +40612,8 @@
             "crew_left_s": 23866,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -40570,7 +40634,19 @@
             "crew_left_s": 16404,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 103.3,
+              "e_rec_kwh": 103.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -40591,7 +40667,19 @@
             "crew_left_s": 11103,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 46,
+              "e_full_kwh": 329.5,
+              "e_rec_kwh": 195.3,
+              "saving_kwh": 134.2,
+              "saving_pct": 40.7,
+              "stop_avoided": false,
+              "wait_full_s": 67,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 46 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -40612,7 +40700,8 @@
             "crew_left_s": 22683,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2010",
@@ -40633,7 +40722,19 @@
             "crew_left_s": 29971,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 58,
+              "e_full_kwh": 906.9,
+              "e_rec_kwh": 588.9,
+              "saving_kwh": 318.0,
+              "saving_pct": 35.1,
+              "stop_avoided": false,
+              "wait_full_s": 189,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 58 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -40654,7 +40755,8 @@
             "crew_left_s": 11676,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -40675,7 +40777,8 @@
             "crew_left_s": 31202,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -40696,7 +40799,19 @@
             "crew_left_s": 19180,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 634.2,
+              "e_rec_kwh": 192.5,
+              "saving_kwh": 441.7,
+              "saving_pct": 69.6,
+              "stop_avoided": true,
+              "wait_full_s": 111,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -40717,7 +40832,19 @@
             "crew_left_s": 26645,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 26.2,
+              "e_rec_kwh": 26.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -40738,9 +40865,27 @@
             "crew_left_s": 28196,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 217.8,
+              "e_rec_kwh": 217.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 11,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 893.9
+        },
         "sections": [
           {
             "id": "s01",
@@ -41309,10 +41454,11 @@
           "step_us": 0.0,
           "tick_ms": 0.0,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -41329,9 +41475,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -41339,9 +41579,9 @@
       "t": 21610.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 1,
+        "seq": 2,
         "tick": 10,
         "t": 21610.0,
         "running": false,
@@ -41366,7 +41606,19 @@
             "crew_left_s": 10153,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 35.2,
+              "e_rec_kwh": 35.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -41387,7 +41639,19 @@
             "crew_left_s": 23849,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 252.4,
+              "e_rec_kwh": 252.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -41408,7 +41672,8 @@
             "crew_left_s": 23415,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -41429,7 +41694,19 @@
             "crew_left_s": 4289,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 152.6,
+              "e_rec_kwh": 152.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -41450,7 +41727,19 @@
             "crew_left_s": 16229,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 61.5,
+              "e_rec_kwh": 61.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -41471,7 +41760,19 @@
             "crew_left_s": 23430,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 117.0,
+              "e_rec_kwh": 117.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -41492,7 +41793,8 @@
             "crew_left_s": 23856,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -41513,7 +41815,19 @@
             "crew_left_s": 16394,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 95.8,
+              "e_rec_kwh": 95.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -41534,7 +41848,19 @@
             "crew_left_s": 11093,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 46,
+              "e_full_kwh": 325.3,
+              "e_rec_kwh": 191.1,
+              "saving_kwh": 134.2,
+              "saving_pct": 41.2,
+              "stop_avoided": false,
+              "wait_full_s": 65,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 46 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -41555,7 +41881,8 @@
             "crew_left_s": 22673,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2010",
@@ -41576,7 +41903,19 @@
             "crew_left_s": 29961,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 58,
+              "e_full_kwh": 899.4,
+              "e_rec_kwh": 582.6,
+              "saving_kwh": 316.8,
+              "saving_pct": 35.2,
+              "stop_avoided": false,
+              "wait_full_s": 187,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 58 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -41597,7 +41936,8 @@
             "crew_left_s": 11666,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -41618,7 +41958,8 @@
             "crew_left_s": 31192,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -41639,7 +41980,19 @@
             "crew_left_s": 19170,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 627.8,
+              "e_rec_kwh": 187.7,
+              "saving_kwh": 440.0,
+              "saving_pct": 70.1,
+              "stop_avoided": true,
+              "wait_full_s": 109,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -41660,7 +42013,19 @@
             "crew_left_s": 26635,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 24.4,
+              "e_rec_kwh": 24.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -41681,9 +42046,27 @@
             "crew_left_s": 28186,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 214.5,
+              "e_rec_kwh": 214.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 11,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 891.0
+        },
         "sections": [
           {
             "id": "s01",
@@ -42282,13 +42665,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 64.6,
-          "tick_ms": 0.65,
+          "step_us": 320.2,
+          "tick_ms": 3.2,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -42305,9 +42689,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -42315,9 +42793,9 @@
       "t": 21620.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 20,
         "t": 21620.0,
         "running": false,
@@ -42342,7 +42820,19 @@
             "crew_left_s": 10143,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 30.8,
+              "e_rec_kwh": 30.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -42363,7 +42853,19 @@
             "crew_left_s": 23839,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 245.9,
+              "e_rec_kwh": 245.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -42384,7 +42886,8 @@
             "crew_left_s": 23405,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -42405,7 +42908,19 @@
             "crew_left_s": 4279,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 147.1,
+              "e_rec_kwh": 147.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -42426,7 +42941,19 @@
             "crew_left_s": 16219,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 55.3,
+              "e_rec_kwh": 55.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -42447,7 +42974,19 @@
             "crew_left_s": 23420,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 109.1,
+              "e_rec_kwh": 109.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -42468,7 +43007,8 @@
             "crew_left_s": 23846,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -42489,7 +43029,19 @@
             "crew_left_s": 16384,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 88.4,
+              "e_rec_kwh": 88.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -42510,7 +43062,19 @@
             "crew_left_s": 11083,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 46,
+              "e_full_kwh": 321.0,
+              "e_rec_kwh": 186.1,
+              "saving_kwh": 134.9,
+              "saving_pct": 42.0,
+              "stop_avoided": false,
+              "wait_full_s": 63,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 46 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -42531,7 +43095,19 @@
             "crew_left_s": 22663,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 178.4,
+              "e_rec_kwh": 178.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -42552,7 +43128,19 @@
             "crew_left_s": 29951,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 58,
+              "e_full_kwh": 891.7,
+              "e_rec_kwh": 575.5,
+              "saving_kwh": 316.2,
+              "saving_pct": 35.5,
+              "stop_avoided": false,
+              "wait_full_s": 185,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 58 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -42573,7 +43161,8 @@
             "crew_left_s": 11656,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -42594,7 +43183,8 @@
             "crew_left_s": 31182,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -42615,7 +43205,19 @@
             "crew_left_s": 19160,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 621.3,
+              "e_rec_kwh": 183.0,
+              "saving_kwh": 438.4,
+              "saving_pct": 70.6,
+              "stop_avoided": true,
+              "wait_full_s": 106,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -42636,7 +43238,19 @@
             "crew_left_s": 26625,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 22.6,
+              "e_rec_kwh": 22.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -42657,9 +43271,27 @@
             "crew_left_s": 28176,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 211.1,
+              "e_rec_kwh": 211.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 12,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 889.5
+        },
         "sections": [
           {
             "id": "s01",
@@ -43246,13 +43878,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 54.8,
-          "tick_ms": 0.55,
+          "step_us": 280.5,
+          "tick_ms": 2.81,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -43269,9 +43902,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -43279,9 +44006,9 @@
       "t": 21630.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 30,
         "t": 21630.0,
         "running": false,
@@ -43306,7 +44033,19 @@
             "crew_left_s": 10133,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 26.4,
+              "e_rec_kwh": 26.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -43327,7 +44066,19 @@
             "crew_left_s": 23829,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 239.3,
+              "e_rec_kwh": 239.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -43348,7 +44099,8 @@
             "crew_left_s": 23395,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -43369,7 +44121,19 @@
             "crew_left_s": 4269,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 141.5,
+              "e_rec_kwh": 141.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -43390,7 +44154,19 @@
             "crew_left_s": 16209,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 49.1,
+              "e_rec_kwh": 49.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -43411,7 +44187,19 @@
             "crew_left_s": 23410,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 101.2,
+              "e_rec_kwh": 101.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -43432,7 +44220,8 @@
             "crew_left_s": 23836,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -43453,7 +44242,19 @@
             "crew_left_s": 16374,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 81.0,
+              "e_rec_kwh": 81.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -43474,7 +44275,19 @@
             "crew_left_s": 11073,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 45,
+              "e_full_kwh": 316.7,
+              "e_rec_kwh": 180.9,
+              "saving_kwh": 135.8,
+              "saving_pct": 42.9,
+              "stop_avoided": false,
+              "wait_full_s": 61,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 45 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -43495,7 +44308,19 @@
             "crew_left_s": 22653,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 173.9,
+              "e_rec_kwh": 173.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -43516,7 +44341,19 @@
             "crew_left_s": 29941,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 58,
+              "e_full_kwh": 883.8,
+              "e_rec_kwh": 568.1,
+              "saving_kwh": 315.7,
+              "saving_pct": 35.7,
+              "stop_avoided": false,
+              "wait_full_s": 184,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 58 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -43537,7 +44374,8 @@
             "crew_left_s": 11646,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -43558,7 +44396,8 @@
             "crew_left_s": 31172,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -43579,7 +44418,19 @@
             "crew_left_s": 19150,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 614.9,
+              "e_rec_kwh": 178.2,
+              "saving_kwh": 436.7,
+              "saving_pct": 71.0,
+              "stop_avoided": true,
+              "wait_full_s": 104,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -43600,7 +44451,19 @@
             "crew_left_s": 26615,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 20.8,
+              "e_rec_kwh": 20.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -43621,9 +44484,27 @@
             "crew_left_s": 28166,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 207.7,
+              "e_rec_kwh": 207.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 12,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 888.2
+        },
         "sections": [
           {
             "id": "s01",
@@ -44214,13 +45095,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 49.3,
-          "tick_ms": 0.49,
+          "step_us": 257.0,
+          "tick_ms": 2.57,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -44237,9 +45119,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -44247,9 +45223,9 @@
       "t": 21640.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 40,
         "t": 21640.0,
         "running": false,
@@ -44274,7 +45250,19 @@
             "crew_left_s": 10123,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 22.1,
+              "e_rec_kwh": 22.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -44295,7 +45283,19 @@
             "crew_left_s": 23819,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 232.8,
+              "e_rec_kwh": 232.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -44316,7 +45316,8 @@
             "crew_left_s": 23385,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -44337,7 +45338,19 @@
             "crew_left_s": 4259,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 136.0,
+              "e_rec_kwh": 136.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -44358,7 +45371,19 @@
             "crew_left_s": 16199,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 42.9,
+              "e_rec_kwh": 42.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -44379,7 +45404,19 @@
             "crew_left_s": 23400,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 93.4,
+              "e_rec_kwh": 93.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -44400,7 +45437,8 @@
             "crew_left_s": 23826,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -44421,7 +45459,19 @@
             "crew_left_s": 16364,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 73.6,
+              "e_rec_kwh": 73.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -44442,7 +45492,19 @@
             "crew_left_s": 11063,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 45,
+              "e_full_kwh": 312.3,
+              "e_rec_kwh": 175.6,
+              "saving_kwh": 136.7,
+              "saving_pct": 43.8,
+              "stop_avoided": false,
+              "wait_full_s": 59,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 45 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -44463,7 +45525,19 @@
             "crew_left_s": 22643,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 169.1,
+              "e_rec_kwh": 169.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -44484,7 +45558,19 @@
             "crew_left_s": 29931,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 58,
+              "e_full_kwh": 875.9,
+              "e_rec_kwh": 560.8,
+              "saving_kwh": 315.1,
+              "saving_pct": 36.0,
+              "stop_avoided": false,
+              "wait_full_s": 182,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 58 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -44505,7 +45591,8 @@
             "crew_left_s": 11636,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -44526,7 +45613,8 @@
             "crew_left_s": 31162,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -44547,7 +45635,19 @@
             "crew_left_s": 19140,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 608.5,
+              "e_rec_kwh": 173.5,
+              "saving_kwh": 435.0,
+              "saving_pct": 71.5,
+              "stop_avoided": true,
+              "wait_full_s": 101,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -44568,7 +45668,19 @@
             "crew_left_s": 26605,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 19.0,
+              "e_rec_kwh": 19.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -44589,9 +45701,27 @@
             "crew_left_s": 28156,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 204.3,
+              "e_rec_kwh": 204.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 12,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 886.8
+        },
         "sections": [
           {
             "id": "s01",
@@ -45178,13 +46308,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 47.7,
-          "tick_ms": 0.48,
+          "step_us": 281.9,
+          "tick_ms": 2.82,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -45201,9 +46332,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -45211,9 +46436,9 @@
       "t": 21650.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 50,
         "t": 21650.0,
         "running": false,
@@ -45238,7 +46463,19 @@
             "crew_left_s": 10113,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 17.8,
+              "e_rec_kwh": 17.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -45259,7 +46496,19 @@
             "crew_left_s": 23809,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 226.2,
+              "e_rec_kwh": 226.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -45280,7 +46529,8 @@
             "crew_left_s": 23375,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -45301,7 +46551,19 @@
             "crew_left_s": 4249,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 130.5,
+              "e_rec_kwh": 130.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -45322,7 +46584,19 @@
             "crew_left_s": 16189,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 36.8,
+              "e_rec_kwh": 36.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -45343,7 +46617,19 @@
             "crew_left_s": 23390,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 85.6,
+              "e_rec_kwh": 85.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -45364,7 +46650,8 @@
             "crew_left_s": 23816,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -45385,7 +46672,19 @@
             "crew_left_s": 16354,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 66.2,
+              "e_rec_kwh": 66.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -45406,7 +46705,19 @@
             "crew_left_s": 11053,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 45,
+              "e_full_kwh": 308.1,
+              "e_rec_kwh": 170.4,
+              "saving_kwh": 137.7,
+              "saving_pct": 44.7,
+              "stop_avoided": false,
+              "wait_full_s": 58,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 45 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -45427,7 +46738,19 @@
             "crew_left_s": 22633,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 164.3,
+              "e_rec_kwh": 164.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -45448,7 +46771,19 @@
             "crew_left_s": 29921,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 868.1,
+              "e_rec_kwh": 553.5,
+              "saving_kwh": 314.6,
+              "saving_pct": 36.2,
+              "stop_avoided": false,
+              "wait_full_s": 181,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -45469,7 +46804,8 @@
             "crew_left_s": 11626,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -45490,7 +46826,8 @@
             "crew_left_s": 31152,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -45511,7 +46848,19 @@
             "crew_left_s": 19130,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 602.1,
+              "e_rec_kwh": 168.7,
+              "saving_kwh": 433.4,
+              "saving_pct": 72.0,
+              "stop_avoided": true,
+              "wait_full_s": 99,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -45532,7 +46881,19 @@
             "crew_left_s": 26595,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 17.2,
+              "e_rec_kwh": 17.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -45553,9 +46914,27 @@
             "crew_left_s": 28146,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 200.9,
+              "e_rec_kwh": 200.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 12,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 885.7
+        },
         "sections": [
           {
             "id": "s01",
@@ -46142,13 +47521,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 50.4,
-          "tick_ms": 0.5,
+          "step_us": 285.1,
+          "tick_ms": 2.85,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -46165,9 +47545,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -46175,9 +47649,9 @@
       "t": 21660.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 60,
         "t": 21660.0,
         "running": false,
@@ -46202,7 +47676,19 @@
             "crew_left_s": 10103,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 13.5,
+              "e_rec_kwh": 13.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -46223,7 +47709,19 @@
             "crew_left_s": 23799,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 219.7,
+              "e_rec_kwh": 219.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -46244,7 +47742,8 @@
             "crew_left_s": 23365,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -46265,7 +47764,19 @@
             "crew_left_s": 4239,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 125.0,
+              "e_rec_kwh": 125.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -46286,7 +47797,19 @@
             "crew_left_s": 16179,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 30.7,
+              "e_rec_kwh": 30.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -46307,7 +47830,19 @@
             "crew_left_s": 23380,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 77.7,
+              "e_rec_kwh": 77.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -46328,7 +47863,8 @@
             "crew_left_s": 23806,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -46349,7 +47885,19 @@
             "crew_left_s": 16344,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 58.9,
+              "e_rec_kwh": 58.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -46370,7 +47918,19 @@
             "crew_left_s": 11043,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 44,
+              "e_full_kwh": 303.8,
+              "e_rec_kwh": 165.1,
+              "saving_kwh": 138.7,
+              "saving_pct": 45.7,
+              "stop_avoided": false,
+              "wait_full_s": 56,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 44 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -46391,7 +47951,19 @@
             "crew_left_s": 22623,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 159.5,
+              "e_rec_kwh": 159.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -46412,7 +47984,19 @@
             "crew_left_s": 29911,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 860.3,
+              "e_rec_kwh": 546.3,
+              "saving_kwh": 314.0,
+              "saving_pct": 36.5,
+              "stop_avoided": false,
+              "wait_full_s": 179,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -46433,7 +48017,8 @@
             "crew_left_s": 11616,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -46454,7 +48039,8 @@
             "crew_left_s": 31142,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -46475,7 +48061,19 @@
             "crew_left_s": 19120,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 595.7,
+              "e_rec_kwh": 164.0,
+              "saving_kwh": 431.7,
+              "saving_pct": 72.5,
+              "stop_avoided": true,
+              "wait_full_s": 97,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -46496,7 +48094,19 @@
             "crew_left_s": 26585,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 15.4,
+              "e_rec_kwh": 15.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -46517,9 +48127,27 @@
             "crew_left_s": 28136,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 197.6,
+              "e_rec_kwh": 197.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 12,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 884.4
+        },
         "sections": [
           {
             "id": "s01",
@@ -47124,13 +48752,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 54.9,
-          "tick_ms": 0.55,
+          "step_us": 309.1,
+          "tick_ms": 3.09,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -47147,9 +48776,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -47157,9 +48880,9 @@
       "t": 21670.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 70,
         "t": 21670.0,
         "running": false,
@@ -47184,7 +48907,19 @@
             "crew_left_s": 10093,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 87,
+              "v_full_kmh": 87,
+              "v_rec_kmh": 87,
+              "e_full_kwh": 9.3,
+              "e_rec_kwh": 9.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 87 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -47205,7 +48940,19 @@
             "crew_left_s": 23789,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 213.1,
+              "e_rec_kwh": 213.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -47226,7 +48973,8 @@
             "crew_left_s": 23355,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -47247,7 +48995,19 @@
             "crew_left_s": 4229,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 119.5,
+              "e_rec_kwh": 119.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -47268,7 +49028,19 @@
             "crew_left_s": 16169,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 24.6,
+              "e_rec_kwh": 24.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -47289,7 +49061,19 @@
             "crew_left_s": 23370,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 69.9,
+              "e_rec_kwh": 69.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -47310,7 +49094,8 @@
             "crew_left_s": 23796,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -47331,7 +49116,19 @@
             "crew_left_s": 16334,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 51.6,
+              "e_rec_kwh": 51.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -47352,7 +49149,19 @@
             "crew_left_s": 11033,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 44,
+              "e_full_kwh": 299.6,
+              "e_rec_kwh": 159.8,
+              "saving_kwh": 139.8,
+              "saving_pct": 46.7,
+              "stop_avoided": false,
+              "wait_full_s": 54,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 44 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -47373,7 +49182,19 @@
             "crew_left_s": 22613,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 154.7,
+              "e_rec_kwh": 154.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -47394,7 +49215,19 @@
             "crew_left_s": 29901,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 852.5,
+              "e_rec_kwh": 539.0,
+              "saving_kwh": 313.5,
+              "saving_pct": 36.8,
+              "stop_avoided": false,
+              "wait_full_s": 177,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -47415,7 +49248,8 @@
             "crew_left_s": 11606,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -47436,7 +49270,8 @@
             "crew_left_s": 31132,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -47457,7 +49292,19 @@
             "crew_left_s": 19110,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 589.3,
+              "e_rec_kwh": 159.3,
+              "saving_kwh": 430.0,
+              "saving_pct": 73.0,
+              "stop_avoided": true,
+              "wait_full_s": 94,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -47478,7 +49325,19 @@
             "crew_left_s": 26575,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 13.6,
+              "e_rec_kwh": 13.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -47499,9 +49358,27 @@
             "crew_left_s": 28126,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 194.3,
+              "e_rec_kwh": 194.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 12,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 883.3
+        },
         "sections": [
           {
             "id": "s01",
@@ -48106,13 +49983,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 53.2,
-          "tick_ms": 0.53,
+          "step_us": 296.5,
+          "tick_ms": 2.96,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -48129,9 +50007,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -48139,9 +50111,9 @@
       "t": 21680.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 80,
         "t": 21680.0,
         "running": false,
@@ -48166,7 +50138,8 @@
             "crew_left_s": 10083,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t1004",
@@ -48187,7 +50160,19 @@
             "crew_left_s": 23779,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 206.6,
+              "e_rec_kwh": 206.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -48208,7 +50193,8 @@
             "crew_left_s": 23345,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -48229,7 +50215,19 @@
             "crew_left_s": 4219,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 114.0,
+              "e_rec_kwh": 114.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -48250,7 +50248,19 @@
             "crew_left_s": 16159,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 18.6,
+              "e_rec_kwh": 18.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -48271,7 +50281,19 @@
             "crew_left_s": 23360,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 62.2,
+              "e_rec_kwh": 62.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -48292,7 +50314,8 @@
             "crew_left_s": 23786,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -48313,7 +50336,19 @@
             "crew_left_s": 16324,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 44.3,
+              "e_rec_kwh": 44.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -48334,7 +50369,19 @@
             "crew_left_s": 11023,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 44,
+              "e_full_kwh": 295.4,
+              "e_rec_kwh": 154.4,
+              "saving_kwh": 141.0,
+              "saving_pct": 47.7,
+              "stop_avoided": false,
+              "wait_full_s": 52,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 44 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -48355,7 +50402,19 @@
             "crew_left_s": 22603,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 150.0,
+              "e_rec_kwh": 150.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -48376,7 +50435,19 @@
             "crew_left_s": 29891,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 844.7,
+              "e_rec_kwh": 531.8,
+              "saving_kwh": 313.0,
+              "saving_pct": 37.0,
+              "stop_avoided": false,
+              "wait_full_s": 176,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -48397,7 +50468,8 @@
             "crew_left_s": 11596,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -48418,7 +50490,8 @@
             "crew_left_s": 31122,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -48439,7 +50512,19 @@
             "crew_left_s": 19100,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 582.9,
+              "e_rec_kwh": 154.6,
+              "saving_kwh": 428.3,
+              "saving_pct": 73.5,
+              "stop_avoided": true,
+              "wait_full_s": 92,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 2 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -48460,7 +50545,19 @@
             "crew_left_s": 26565,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 11.9,
+              "e_rec_kwh": 11.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -48481,9 +50578,27 @@
             "crew_left_s": 28116,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 191.0,
+              "e_rec_kwh": 191.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 11,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 882.3
+        },
         "sections": [
           {
             "id": "s01",
@@ -49102,13 +51217,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 52.6,
-          "tick_ms": 0.53,
+          "step_us": 293.2,
+          "tick_ms": 2.93,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -49125,9 +51241,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -49135,9 +51345,9 @@
       "t": 21690.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 3,
+        "seq": 4,
         "tick": 90,
         "t": 21690.0,
         "running": false,
@@ -49162,7 +51372,8 @@
             "crew_left_s": 10073,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t1004",
@@ -49183,7 +51394,19 @@
             "crew_left_s": 23769,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 200.1,
+              "e_rec_kwh": 200.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -49204,7 +51427,8 @@
             "crew_left_s": 23335,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -49225,7 +51449,19 @@
             "crew_left_s": 4209,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 108.5,
+              "e_rec_kwh": 108.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -49246,7 +51482,19 @@
             "crew_left_s": 16149,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 13.3,
+              "e_rec_kwh": 13.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2005",
@@ -49267,7 +51515,19 @@
             "crew_left_s": 23350,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 54.4,
+              "e_rec_kwh": 54.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -49288,7 +51548,8 @@
             "crew_left_s": 23776,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -49309,7 +51570,19 @@
             "crew_left_s": 16314,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 37.1,
+              "e_rec_kwh": 37.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -49330,7 +51603,19 @@
             "crew_left_s": 11013,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 43,
+              "e_full_kwh": 291.3,
+              "e_rec_kwh": 149.0,
+              "saving_kwh": 142.2,
+              "saving_pct": 48.8,
+              "stop_avoided": false,
+              "wait_full_s": 49,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 43 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -49351,7 +51636,19 @@
             "crew_left_s": 22593,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 145.2,
+              "e_rec_kwh": 145.2,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -49372,7 +51669,19 @@
             "crew_left_s": 29881,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 837.0,
+              "e_rec_kwh": 524.6,
+              "saving_kwh": 312.4,
+              "saving_pct": 37.3,
+              "stop_avoided": false,
+              "wait_full_s": 174,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -49393,7 +51702,8 @@
             "crew_left_s": 11586,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -49414,7 +51724,8 @@
             "crew_left_s": 31112,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -49435,7 +51746,19 @@
             "crew_left_s": 19090,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 576.5,
+              "e_rec_kwh": 149.9,
+              "saving_kwh": 426.6,
+              "saving_pct": 74.0,
+              "stop_avoided": true,
+              "wait_full_s": 89,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 1 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -49456,7 +51779,19 @@
             "crew_left_s": 26555,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 10.1,
+              "e_rec_kwh": 10.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -49477,9 +51812,27 @@
             "crew_left_s": 28106,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 187.8,
+              "e_rec_kwh": 187.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 11,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 881.2
+        },
         "sections": [
           {
             "id": "s01",
@@ -50098,13 +52451,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 52.8,
-          "tick_ms": 0.53,
+          "step_us": 305.2,
+          "tick_ms": 3.05,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -50121,9 +52475,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -50131,9 +52579,9 @@
       "t": 21700.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 4,
+        "seq": 5,
         "tick": 100,
         "t": 21700.0,
         "running": false,
@@ -50158,7 +52606,19 @@
             "crew_left_s": 10063,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 144.3,
+              "e_rec_kwh": 144.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -50179,7 +52639,19 @@
             "crew_left_s": 23759,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 193.6,
+              "e_rec_kwh": 193.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -50200,7 +52672,8 @@
             "crew_left_s": 23325,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -50221,7 +52694,19 @@
             "crew_left_s": 4199,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 103.0,
+              "e_rec_kwh": 103.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -50242,7 +52727,8 @@
             "crew_left_s": 16139,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2005",
@@ -50263,7 +52749,19 @@
             "crew_left_s": 23340,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 46.7,
+              "e_rec_kwh": 46.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -50284,7 +52782,8 @@
             "crew_left_s": 23766,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -50305,7 +52804,19 @@
             "crew_left_s": 16304,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 29.9,
+              "e_rec_kwh": 29.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -50326,7 +52837,19 @@
             "crew_left_s": 11003,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 43,
+              "e_full_kwh": 287.2,
+              "e_rec_kwh": 143.6,
+              "saving_kwh": 143.5,
+              "saving_pct": 50.0,
+              "stop_avoided": false,
+              "wait_full_s": 47,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 43 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -50347,7 +52870,19 @@
             "crew_left_s": 22583,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 140.4,
+              "e_rec_kwh": 140.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -50368,7 +52903,19 @@
             "crew_left_s": 29871,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 829.3,
+              "e_rec_kwh": 517.4,
+              "saving_kwh": 311.9,
+              "saving_pct": 37.6,
+              "stop_avoided": false,
+              "wait_full_s": 173,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -50389,7 +52936,8 @@
             "crew_left_s": 11576,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -50410,7 +52958,8 @@
             "crew_left_s": 31102,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -50431,7 +52980,19 @@
             "crew_left_s": 19080,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 570.1,
+              "e_rec_kwh": 145.2,
+              "saving_kwh": 425.0,
+              "saving_pct": 74.5,
+              "stop_avoided": true,
+              "wait_full_s": 87,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 1 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -50452,7 +53013,19 @@
             "crew_left_s": 26545,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 8.4,
+              "e_rec_kwh": 8.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -50473,9 +53046,27 @@
             "crew_left_s": 28096,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 184.6,
+              "e_rec_kwh": 184.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 11,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 880.4
+        },
         "sections": [
           {
             "id": "s01",
@@ -51089,13 +53680,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 54.4,
-          "tick_ms": 0.54,
+          "step_us": 303.7,
+          "tick_ms": 3.04,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -51112,9 +53704,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -51122,9 +53808,9 @@
       "t": 21710.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 4,
+        "seq": 5,
         "tick": 110,
         "t": 21710.0,
         "running": false,
@@ -51149,7 +53835,19 @@
             "crew_left_s": 10053,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 140.7,
+              "e_rec_kwh": 140.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -51170,7 +53868,19 @@
             "crew_left_s": 23749,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 187.0,
+              "e_rec_kwh": 187.0,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -51191,7 +53901,8 @@
             "crew_left_s": 23315,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -51212,7 +53923,19 @@
             "crew_left_s": 4189,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 97.5,
+              "e_rec_kwh": 97.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -51233,7 +53956,8 @@
             "crew_left_s": 16129,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2005",
@@ -51254,7 +53978,19 @@
             "crew_left_s": 23330,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 39.1,
+              "e_rec_kwh": 39.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -51275,7 +54011,8 @@
             "crew_left_s": 23756,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -51296,7 +54033,19 @@
             "crew_left_s": 16294,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 22.7,
+              "e_rec_kwh": 22.7,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t2008",
@@ -51317,7 +54066,19 @@
             "crew_left_s": 10993,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 42,
+              "e_full_kwh": 283.1,
+              "e_rec_kwh": 138.1,
+              "saving_kwh": 145.0,
+              "saving_pct": 51.2,
+              "stop_avoided": false,
+              "wait_full_s": 45,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 42 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -51338,7 +54099,19 @@
             "crew_left_s": 22573,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 135.6,
+              "e_rec_kwh": 135.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -51359,7 +54132,19 @@
             "crew_left_s": 29861,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 821.5,
+              "e_rec_kwh": 510.2,
+              "saving_kwh": 311.3,
+              "saving_pct": 37.9,
+              "stop_avoided": false,
+              "wait_full_s": 171,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -51380,7 +54165,8 @@
             "crew_left_s": 11566,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -51401,7 +54187,8 @@
             "crew_left_s": 31092,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -51422,7 +54209,19 @@
             "crew_left_s": 19070,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 563.7,
+              "e_rec_kwh": 140.5,
+              "saving_kwh": 423.3,
+              "saving_pct": 75.1,
+              "stop_avoided": true,
+              "wait_full_s": 85,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 1 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -51443,7 +54242,19 @@
             "crew_left_s": 26535,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 6.6,
+              "e_rec_kwh": 6.6,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -51464,9 +54275,27 @@
             "crew_left_s": 28086,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 181.4,
+              "e_rec_kwh": 181.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 11,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 879.6
+        },
         "sections": [
           {
             "id": "s01",
@@ -52086,13 +54915,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 51.6,
-          "tick_ms": 0.52,
+          "step_us": 294.9,
+          "tick_ms": 2.95,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -52109,9 +54939,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     },
@@ -52119,9 +55043,9 @@
       "t": 21720.0,
       "state": {
         "type": "state",
-        "run_id": "e2cabb5fe73d",
+        "run_id": "fb672f2f31de",
         "world_version": 1,
-        "seq": 4,
+        "seq": 5,
         "tick": 120,
         "t": 21720.0,
         "running": false,
@@ -52146,7 +55070,19 @@
             "crew_left_s": 10043,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 80,
+              "e_full_kwh": 137.1,
+              "e_rec_kwh": 137.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 80 км/ч"
+            }
           },
           {
             "id": "t1004",
@@ -52167,7 +55103,19 @@
             "crew_left_s": 23739,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 86,
+              "v_full_kmh": 86,
+              "v_rec_kmh": 86,
+              "e_full_kwh": 180.5,
+              "e_rec_kwh": 180.5,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 86 км/ч"
+            }
           },
           {
             "id": "t2",
@@ -52188,7 +55136,8 @@
             "crew_left_s": 23305,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2002",
@@ -52209,7 +55158,19 @@
             "crew_left_s": 4179,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 72,
+              "v_full_kmh": 72,
+              "v_rec_kmh": 72,
+              "e_full_kwh": 92.1,
+              "e_rec_kwh": 92.1,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 72 км/ч"
+            }
           },
           {
             "id": "t2004",
@@ -52230,7 +55191,8 @@
             "crew_left_s": 16119,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2005",
@@ -52251,7 +55213,19 @@
             "crew_left_s": 23320,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 78,
+              "e_full_kwh": 31.4,
+              "e_rec_kwh": 31.4,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 78 км/ч"
+            }
           },
           {
             "id": "t2006",
@@ -52272,7 +55246,8 @@
             "crew_left_s": 23746,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2007",
@@ -52293,7 +55268,8 @@
             "crew_left_s": 16284,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2008",
@@ -52314,7 +55290,19 @@
             "crew_left_s": 10983,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 64,
+              "v_full_kmh": 64,
+              "v_rec_kmh": 42,
+              "e_full_kwh": 279.1,
+              "e_rec_kwh": 132.6,
+              "saving_kwh": 146.5,
+              "saving_pct": 52.5,
+              "stop_avoided": false,
+              "wait_full_s": 42,
+              "text": "По плану стоянка на ст. Бестерек, путь приёма будет готов к 06:04: хватит 42 км/ч. На полном ходу поезд ждал бы 1 мин"
+            }
           },
           {
             "id": "t2009",
@@ -52335,7 +55323,19 @@
             "crew_left_s": 22563,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 74,
+              "v_full_kmh": 74,
+              "v_rec_kmh": 74,
+              "e_full_kwh": 130.8,
+              "e_rec_kwh": 130.8,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 74 км/ч"
+            }
           },
           {
             "id": "t2010",
@@ -52356,7 +55356,19 @@
             "crew_left_s": 29851,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 78,
+              "v_full_kmh": 78,
+              "v_rec_kmh": 57,
+              "e_full_kwh": 813.8,
+              "e_rec_kwh": 503.0,
+              "saving_kwh": 310.8,
+              "saving_pct": 38.2,
+              "stop_avoided": false,
+              "wait_full_s": 169,
+              "text": "По плану стоянка на ст. Разъезд 19, путь приёма будет готов к 06:12: хватит 57 км/ч. На полном ходу поезд ждал бы 3 мин"
+            }
           },
           {
             "id": "t2011",
@@ -52377,7 +55389,8 @@
             "crew_left_s": 11556,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2013",
@@ -52398,7 +55411,8 @@
             "crew_left_s": 31082,
             "stops": 1,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": null
           },
           {
             "id": "t2015",
@@ -52419,7 +55433,19 @@
             "crew_left_s": 19060,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 80,
+              "v_full_kmh": 80,
+              "v_rec_kmh": 59,
+              "e_full_kwh": 557.4,
+              "e_rec_kwh": 135.8,
+              "saving_kwh": 421.6,
+              "saving_pct": 75.6,
+              "stop_avoided": true,
+              "wait_full_s": 82,
+              "text": "Перегон впереди освободится в 06:07: при 59 км/ч поезд подойдёт к ст. Разъезд 4 без остановки. На полном ходу 80 км/ч — 1 мин у входного"
+            }
           },
           {
             "id": "t301",
@@ -52440,7 +55466,19 @@
             "crew_left_s": 26525,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 90,
+              "v_full_kmh": 90,
+              "v_rec_kmh": 90,
+              "e_full_kwh": 4.9,
+              "e_rec_kwh": 4.9,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 90 км/ч"
+            }
           },
           {
             "id": "t3402",
@@ -52461,9 +55499,27 @@
             "crew_left_s": 28076,
             "stops": 0,
             "unplanned_stops": 0,
-            "stop_energy_kwh": 0.0
+            "stop_energy_kwh": 0.0,
+            "advice": {
+              "v_limit_kmh": 70,
+              "v_full_kmh": 70,
+              "v_rec_kmh": 70,
+              "e_full_kwh": 178.3,
+              "e_rec_kwh": 178.3,
+              "saving_kwh": 0.0,
+              "saving_pct": 0.0,
+              "stop_avoided": false,
+              "wait_full_s": 0,
+              "text": "Путь свободен: ход по лимиту 70 км/ч"
+            }
           }
         ],
+        "advice": {
+          "trains": 10,
+          "slowed": 3,
+          "stops_avoided": 1,
+          "saving_kwh": 878.9
+        },
         "sections": [
           {
             "id": "s01",
@@ -53083,13 +56139,14 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 50.2,
-          "tick_ms": 0.5,
+          "step_us": 283.2,
+          "tick_ms": 2.83,
           "steps_per_s": 0.0,
-          "load_ms": 547.8
+          "load_ms": 620.1
         },
         "planner": {
           "version": 0,
+          "applied_version": 0,
           "solver": "timetable",
           "status": "feasible",
           "compute_ms": null,
@@ -53106,9 +56163,103 @@
           "reason": null,
           "late_trains": [],
           "held": [],
-          "cards_total": 0
+          "cards_total": 0,
+          "full_auto": true,
+          "awaiting_choice": false,
+          "actions": [],
+          "overrides": 0,
+          "recovery": {
+            "affected": 0,
+            "affected_ids": [],
+            "late_now": 0,
+            "recovery_at": null,
+            "beyond_horizon": 0
+          },
+          "forecast": {
+            "value": 97.4,
+            "status": "norm",
+            "status_label": "Норма"
+          }
         },
-        "conflicts": []
+        "conflicts": [],
+        "index": {
+          "t": 21600.0,
+          "value": 100.0,
+          "status": "norm",
+          "status_label": "Норма",
+          "factors": [
+            {
+              "key": "throughput",
+              "label": "Пропускная способность",
+              "weight": 0.3,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "мало данных: с начала прогона меньше 10 мин",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "punctuality",
+              "label": "Отклонение от графика",
+              "weight": 0.25,
+              "score": 1.0,
+              "available": true,
+              "value_text": "средняя задержка 0 мин",
+              "note": "средняя задержка 0 мин",
+              "weight_eff": 0.4545,
+              "lost": 0.0
+            },
+            {
+              "key": "track_load",
+              "label": "Загрузка путей",
+              "weight": 0.2,
+              "score": 1.0,
+              "available": true,
+              "value_text": "занято 16 % путей",
+              "note": "занято 16 % путей",
+              "weight_eff": 0.3636,
+              "lost": 0.0
+            },
+            {
+              "key": "resource_idle",
+              "label": "Простой локомотивов и бригад",
+              "weight": 0.15,
+              "score": null,
+              "available": false,
+              "value_text": "нет данных",
+              "note": "за окно на участке не было поездов",
+              "weight_eff": 0.0,
+              "lost": 0.0
+            },
+            {
+              "key": "conflicts",
+              "label": "Конфликты маршрутов",
+              "weight": 0.1,
+              "score": 1.0,
+              "available": true,
+              "value_text": "0 конфл.",
+              "note": "0 конфл.",
+              "weight_eff": 0.1818,
+              "lost": 0.0
+            }
+          ],
+          "reasons": [],
+          "missing": [
+            "Пропускная способность",
+            "Простой локомотивов и бригад"
+          ]
+        },
+        "incidents": [],
+        "radar": {
+          "status": "no_data",
+          "eta_s": null,
+          "text": "Тренд копится: нужно 20 мин данных",
+          "delay_slope_min_h": null,
+          "load_slope_pct_h": null,
+          "queue": 0
+        },
+        "scenario_next": null
       },
       "index": null
     }
@@ -53127,6 +56278,28 @@
     },
     {
       "seq": 2,
+      "t": 21600.0,
+      "kind": "index_snapshot",
+      "severity": "debug",
+      "message": "Индекс 100 (Норма)",
+      "train_id": null,
+      "station_id": null,
+      "section_id": null,
+      "data": {
+        "t": 21600.0,
+        "value": 100.0,
+        "status": "norm",
+        "f": {
+          "throughput": null,
+          "punctuality": 1.0,
+          "track_load": 1.0,
+          "resource_idle": null,
+          "conflicts": 1.0
+        }
+      }
+    },
+    {
+      "seq": 3,
       "t": 21616.0,
       "kind": "train_arrived",
       "severity": "debug",
@@ -53137,7 +56310,7 @@
       "data": {}
     },
     {
-      "seq": 3,
+      "seq": 4,
       "t": 21619.0,
       "kind": "train_passed",
       "severity": "debug",
@@ -53148,7 +56321,7 @@
       "data": {}
     },
     {
-      "seq": 4,
+      "seq": 5,
       "t": 21692.0,
       "kind": "train_passed",
       "severity": "debug",

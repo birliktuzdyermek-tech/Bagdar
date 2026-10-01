@@ -17,7 +17,7 @@ jobs:
   backend:
     name: Backend (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45          # сценарии гоняются часами модели, планировщик решает по-настоящему
     strategy:
       fail-fast: false
       matrix:

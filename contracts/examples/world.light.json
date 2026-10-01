@@ -11891,7 +11891,7 @@
       "traction": "electric",
       "vmax_kmh": 90,
       "loco_id": "KZ8A-0242",
-      "crew_id": "Б-3386",
+      "crew_id": "Б-3388",
       "crew_shift_end": 77367.4,
       "route": [
         "st01",
@@ -20930,7 +20930,7 @@
       "2041",
       "2043"
     ],
-    "build_ms": 537.2,
+    "build_ms": 606.9,
     "validated": true
   }
 }

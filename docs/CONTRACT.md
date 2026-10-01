@@ -35,7 +35,7 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | POST | `/api/autonomy` | `{full_auto: bool}` — переключатель «полный авто» |
 | GET | `/api/index?since=` | Индекс: текущий, прогноз по плану на час, история (`IndexHistoryOut`) |
 | GET | `/api/traces?since=` | Факт движения для графика: точки `[t, км]` по поездам (`TracesOut`) |
-| GET | `/api/occupancy?which=current\|previous&t_from=&t_to=` | Занятость путей и перегонов для Ганта: факт до текущего момента, дальше план; `changed` — отличается в другом плане (`OccupancyOut`) |
+| GET | `/api/occupancy?which=current\|previous&t_from=&t_to=&at=` | Занятость путей и перегонов для Ганта: факт до текущего момента, дальше план; `changed` — отличается в другом плане; `at` — на момент перемотки (`OccupancyOut`) |
 | GET | `/api/planner` | Статус планировщика и история пересчётов: время, решатель, кандидаты, J |
 | POST | `/api/plan/replan` | Пересчитать план сейчас |
 | POST | `/api/events` | Внешнее событие или сбой (`EventIn`): `{type, ...}` — `train_delay`, `section_closed`, `signal_fault`, `track_unavailable`, `switch_fault`, `speed_restriction`, `add_trains`, `extra_train`, `hold_at_origin`; параметры — в [`INCIDENTS.md`](INCIDENTS.md). 422 — событие нельзя применить (нет перегона, путь уже выключен) |
@@ -49,6 +49,17 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | GET | `/api/config` | Веса, пороги, параметры симулятора |
 | GET | `/api/stream/schema` | Пример всех сообщений потока на живых данных |
 | WS | `/api/stream` | Поток реального времени |
+| GET | `/api/history` | Что записано в журнал прогона и какой интервал доступен для перемотки (`HistoryOut`) |
+| GET | `/api/history/at?t=` | Перемотка: состояние, план, лента, карточки и индекс на момент `t` (`HistoryAtOut`); 404 — момент вне журнала |
+| GET | `/api/export/events.csv?t_from=&t_to=&last_min=` | CSV событий (UTF-8 с BOM, разделитель `;`) |
+| GET | `/api/export/plan.csv` | CSV действующего плана по поездам |
+| GET | `/api/export/report.pdf?t_from=&t_to=&last_min=` | PDF-отчёт: период, показатели, график индекса, инциденты, изменения плана, вывод |
+| GET | `/api/settings` | Веса и пороги индекса, строгий ПТЭ, тарифы (`SettingsOut`) |
+| PUT | `/api/settings` | Изменить их на лету, без перезапуска (`SettingsIn`); 422 — недопустимые значения |
+| GET | `/api/versus?state=` | «Человек против Бағдара»: счёт обеих сторон и состояние левой стороны (`VersusOut`) |
+| POST | `/api/versus/start` | `{scenario_id?, seed?}` — запустить сценарий дважды: слева без плана («кто первый пришёл»), справа Бағдар |
+| POST | `/api/versus/stop` | Остановить соревнование |
+| POST | `/api/versus/hold` | `{train_id, minutes}` — решение человека слева: придержать поезд на станции; 409 — нельзя |
 
 Команды идут через REST, обновления — через поток. После команды состояние приходит
 в поток сразу, даже на паузе.
@@ -99,13 +110,17 @@ WorldOut      id, mode, seed, version, scenario_id, start_time,
 StateOut      run_id, world_version, seq, tick, t, running, speed,
               trains[{id,status,display,k,station_id,track_id,section_id,progress,
                       v_kmh,v_target_kmh,delay_s,wait_reason,dest_track,through,
-                      next_station_id,crew_left_s,stops,unplanned_stops,stop_energy_kwh}],
+                      next_station_id,crew_left_s,stops,unplanned_stops,stop_energy_kwh,
+                      advice?{v_rec_kmh,v_full_kmh,v_limit_kmh,e_full_kwh,e_rec_kwh,saving_kwh,
+                              saving_pct,stop_avoided,wait_full_s,text} — совет машинисту, только на перегоне}],
               sections[{id,status,single,restriction_kmh,occupants[],dir}],
               tracks[{id,occupant,reserved,available}],
               throats[{id,holder}]  (только занятые),
               signals[{id,state}]   (только открытые и неисправные),
               metrics{active_trains,avg_delay_s,max_delay_s,on_time_share,waiting_trains,...},
               perf{step_us,tick_ms,steps_per_s,load_ms}
+              advice?{trains,slowed,stops_avoided,saving_kwh} — сводка советов по скорости,
+              incidents[{id,kind,level,title,resource,section_id,station_id,until,t,restorable}]
 
 PlanOut       version, created_at, solver(cpsat|greedy|repair|fifo|hold|dispatcher), status(feasible|delayed|infeasible),
               compute_ms, notes[], cost{}, horizon_end, hold_all, held[],

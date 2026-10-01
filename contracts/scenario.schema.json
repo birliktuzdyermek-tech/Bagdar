@@ -63,6 +63,23 @@
       "title": "Wave",
       "type": "integer"
     },
+    "situation": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Situation"
+    },
+    "plain": {
+      "default": "",
+      "title": "Plain",
+      "type": "string"
+    },
     "world": {
       "additionalProperties": true,
       "title": "World",
