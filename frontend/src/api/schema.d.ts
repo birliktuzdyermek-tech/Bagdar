@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Индекс эффективности участка 0–100 и факторы, которые тянут его вниз */
+        get: operations["get_index_api_index_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -425,6 +442,65 @@ export interface components {
              * @default 10
              */
             conflicts_max: number;
+        };
+        /** IndexFactorOut */
+        IndexFactorOut: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "throughput" | "punctuality" | "track_load" | "resource_idle" | "conflicts";
+            /** Label */
+            label: string;
+            /**
+             * Score
+             * @description Оценка фактора от 0 до 1
+             */
+            score: number;
+            /**
+             * Weight
+             * @description Нормированный вес (сумма весов = 1)
+             */
+            weight: number;
+            /**
+             * Points
+             * @description Вклад в индекс, баллы из 100
+             */
+            points: number;
+            /**
+             * Loss
+             * @description Сколько баллов фактор недобирает
+             */
+            loss: number;
+            /** Detail */
+            detail: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+        };
+        /** IndexOut */
+        IndexOut: {
+            /** T */
+            t: number;
+            /** Value */
+            value: number;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "normal" | "warning" | "critical";
+            /** Thresholds */
+            thresholds: {
+                [key: string]: number;
+            };
+            /** Factors */
+            factors: components["schemas"]["IndexFactorOut"][];
+            /**
+             * Drag
+             * @description Факторы, которые сильнее всего тянут индекс вниз
+             */
+            drag: string[];
         };
         /** IndexThresholds */
         IndexThresholds: {
@@ -1179,6 +1255,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+        };
+    };
+    get_index_api_index_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexOut"];
                 };
             };
         };

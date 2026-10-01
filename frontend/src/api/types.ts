@@ -28,3 +28,5 @@ export type StreamMsg =
   | { type: "events"; reset: boolean; events: SimEvent[] }
   | State
   | { type: "pong" };
+export type EfficiencyIndex = S["IndexOut"];
+export type IndexFactor = S["IndexFactorOut"];

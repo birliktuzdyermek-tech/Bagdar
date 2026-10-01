@@ -342,3 +342,24 @@ class StreamSchema(BaseModel):
     world: WorldMsg
     events: EventsMsg
     state: StateOut
+
+
+# ---------------------------------------------------------------- индекс эффективности
+class IndexFactorOut(BaseModel):
+    key: Literal["throughput", "punctuality", "track_load", "resource_idle", "conflicts"]
+    label: str
+    score: float = Field(..., ge=0, le=1, description="Оценка фактора от 0 до 1")
+    weight: float = Field(..., description="Нормированный вес (сумма весов = 1)")
+    points: float = Field(..., description="Вклад в индекс, баллы из 100")
+    loss: float = Field(..., description="Сколько баллов фактор недобирает")
+    detail: str
+    data: dict
+
+
+class IndexOut(BaseModel):
+    t: float
+    value: float = Field(..., ge=0, le=100)
+    level: Literal["normal", "warning", "critical"]
+    thresholds: dict[str, float]
+    factors: list[IndexFactorOut]
+    drag: list[str] = Field(..., description="Факторы, которые сильнее всего тянут индекс вниз")

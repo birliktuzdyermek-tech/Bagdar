@@ -111,6 +111,9 @@ button, input, select { font: inherit; color: inherit; }
 .kpi { display: flex; flex-direction: column; line-height: 1.15; min-width: 64px; }
 .kpi-label { font-size: 11px; color: var(--text-muted); }
 .kpi-value { font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.kpi-index { cursor: help; }
+.kpi-index-level { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; font-size: 12px; font-weight: 600; }
+.kpi-index-drag { font-size: 11px; color: var(--text-muted); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .spacer { flex: 1; }
 

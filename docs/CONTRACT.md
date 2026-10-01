@@ -30,6 +30,7 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | GET | `/api/world` | Инфраструктура и поезда с исходным расписанием (`WorldOut`) |
 | GET | `/api/state` | Текущее состояние (`StateOut`) |
 | GET | `/api/plan` | Действующий план (`PlanOut`); на этапе 1 это исходный график, версия 0 |
+| GET | `/api/index` | Индекс эффективности участка 0–100, уровень и факторы (`IndexOut`, раздел 10 BAGDAR.md) |
 | GET | `/api/events?since=&limit=&min_severity=` | Журнал событий текущего прогона |
 | GET | `/api/scenarios` | Список сценариев |
 | POST | `/api/sim/control` | `{action: start\|pause\|speed\|step\|reset, speed?, step_s?}` |

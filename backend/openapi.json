@@ -90,6 +90,27 @@
     }
    }
   },
+  "/api/index": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Индекс эффективности участка 0–100 и факторы, которые тянут его вниз",
+    "operationId": "get_index_api_index_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/IndexOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/events": {
    "get": {
     "tags": [
@@ -760,6 +781,123 @@
     },
     "type": "object",
     "title": "IndexConfig"
+   },
+   "IndexFactorOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "enum": [
+       "throughput",
+       "punctuality",
+       "track_load",
+       "resource_idle",
+       "conflicts"
+      ],
+      "title": "Key"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "score": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Score",
+      "description": "Оценка фактора от 0 до 1"
+     },
+     "weight": {
+      "type": "number",
+      "title": "Weight",
+      "description": "Нормированный вес (сумма весов = 1)"
+     },
+     "points": {
+      "type": "number",
+      "title": "Points",
+      "description": "Вклад в индекс, баллы из 100"
+     },
+     "loss": {
+      "type": "number",
+      "title": "Loss",
+      "description": "Сколько баллов фактор недобирает"
+     },
+     "detail": {
+      "type": "string",
+      "title": "Detail"
+     },
+     "data": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Data"
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "label",
+     "score",
+     "weight",
+     "points",
+     "loss",
+     "detail",
+     "data"
+    ],
+    "title": "IndexFactorOut"
+   },
+   "IndexOut": {
+    "properties": {
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "value": {
+      "type": "number",
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "title": "Value"
+     },
+     "level": {
+      "type": "string",
+      "enum": [
+       "normal",
+       "warning",
+       "critical"
+      ],
+      "title": "Level"
+     },
+     "thresholds": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Thresholds"
+     },
+     "factors": {
+      "items": {
+       "$ref": "#/components/schemas/IndexFactorOut"
+      },
+      "type": "array",
+      "title": "Factors"
+     },
+     "drag": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Drag",
+      "description": "Факторы, которые сильнее всего тянут индекс вниз"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "value",
+     "level",
+     "thresholds",
+     "factors",
+     "drag"
+    ],
+    "title": "IndexOut"
    },
    "IndexThresholds": {
     "properties": {

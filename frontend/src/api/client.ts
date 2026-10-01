@@ -1,4 +1,4 @@
-import type { ControlIn, LoadIn, Plan, Scenario } from "./types";
+import type { ControlIn, EfficiencyIndex, LoadIn, Plan, Scenario } from "./types";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -29,4 +29,5 @@ export const api = {
   }),
   scenarios: () => request<Scenario[]>("/api/scenarios"),
   plan: () => request<Plan>("/api/plan"),
+  index: () => request<EfficiencyIndex>("/api/index"),
 };

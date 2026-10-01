@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { computeAlarms, RED_BUDGET } from "../lib/alarms";
 import { clock, minutes, simDate } from "../lib/format";
 import { useSim } from "../store/sim";
+import { IndexKpi } from "./IndexKpi";
 
 const MODE_LABEL: Record<string, string> = { light: "Лёгкий · Участок", medium: "Средний · Регион", ultra: "Ультра · Сеть" };
 
@@ -28,6 +29,7 @@ export function TopBar() {
       </div>
       <span className="chip chip-strong" title="Режим моделирования">{world ? MODE_LABEL[world.mode] ?? world.mode : "—"}</span>
       <div className="kpis">
+        <IndexKpi />
         <div className="kpi">
           <span className="kpi-label">Поездов на участке</span>
           <span className="kpi-value">{m?.active_trains ?? "—"}</span>

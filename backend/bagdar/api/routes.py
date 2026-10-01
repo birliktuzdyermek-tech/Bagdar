@@ -4,6 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from bagdar import __version__, dto
+from bagdar.efficiency import compute_index
 from bagdar.api import schemas as S
 from bagdar.config import BagdarConfig
 from bagdar.runtime import SimulationRuntime
@@ -36,6 +37,15 @@ def get_plan(request: Request) -> dict:
     r = rt(request)
     assert r.engine is not None
     return dto.plan_dto(r.engine.ex.plan)
+
+
+@router.get("/index", response_model=S.IndexOut, tags=["state"],
+            summary="Индекс эффективности участка 0–100 и факторы, которые тянут его вниз")
+def get_index(request: Request) -> dict:
+    r = rt(request)
+    assert r.engine is not None
+    # события из движка, ещё не попавшие в журнал, тоже учитываются
+    return compute_index(r.engine, r.cfg, [*r.events, *r.engine.pending_events])
 
 
 @router.get("/events", response_model=S.EventsOut, tags=["state"], summary="Журнал событий текущего прогона")
