@@ -3,6 +3,8 @@ import { Player } from "./player/Player";
 import { loadReplay, loadRunList } from "./replay/load";
 import { ReplayModel } from "./replay/model";
 import type { RunInfo } from "./replay/types";
+import { Gallery } from "./pages/Gallery";
+import { Home } from "./pages/Home";
 import { Header } from "./ui/Header";
 
 function useHashRoute(): string {
@@ -54,15 +56,22 @@ export function App() {
   }, []);
 
   const playId = /^#\/play\/([\w-]+)/.exec(route)?.[1] ?? null;
+  useEffect(() => {
+    if (playId) return;
+    document.title = route.startsWith("#/gallery") ? "Ситуации — Бағдар" : route.startsWith("#/runs") ? "Записи — Бағдар" : "Бағдар — Витрина";
+    window.scrollTo(0, 0);
+  }, [route, playId]);
 
   return (
     <div className="app">
-      <Header projector={projector} onProjector={toggleProjector} />
+      <Header projector={projector} onProjector={toggleProjector} route={route} />
       <main className="main" id="main">
         {error && <p className="error">⚠ {error}</p>}
         {!runs && !error && <p className="muted">Загружаю список записей…</p>}
         {runs && playId && <PlayRoute runs={runs} id={playId} projector={projector} />}
-        {runs && !playId && <RunList runs={runs} />}
+        {runs && !playId && route.startsWith("#/runs") && <RunList runs={runs} />}
+        {runs && !playId && route.startsWith("#/gallery") && <Gallery runs={runs} />}
+        {runs && !playId && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && <Home runs={runs} />}
       </main>
       <footer className="footer">
         <span>Консультативный прототип — не система управления движением.</span>
@@ -96,6 +105,7 @@ function RunList({ runs }: { runs: RunInfo[] }) {
                   ⚑ {d.at}: внешняя задержка поезда на {d.minutes} мин
                 </span>
               ))}
+              {r.note && <span className="muted small">{r.note}</span>}
               <span className="run-card-cta">Смотреть ▶</span>
             </a>
           </li>

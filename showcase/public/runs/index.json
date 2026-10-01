@@ -36,7 +36,7 @@
     "id": "seed5",
     "file": "seed5.replay.json.gz",
     "title": "Seed 5: без перепланирования здесь вставал участок",
-    "situation": null,
+    "situation": 1,
     "scenario_id": "normal",
     "seed": 5,
     "mode": "light",

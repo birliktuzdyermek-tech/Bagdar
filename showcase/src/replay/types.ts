@@ -70,4 +70,5 @@ export interface RunInfo {
   id: string; file: string; title: string; situation: number | null; scenario_id: string;
   seed: number; mode: string; from: string; to: string;
   injected?: { at: string; train_id: string; minutes: number; reason: string }[];
+  note?: string;
 }

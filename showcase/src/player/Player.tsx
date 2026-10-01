@@ -181,6 +181,7 @@ export function Player({ model, info, projector }: Props) {
         <span className="muted">
           {model.r.world.name} · seed {model.r.world.seed} · {info.from}–{info.to} модели
         </span>
+        {info.note && <span className="muted small player-note">{info.note}</span>}
         {injected.map((d) => (
           <span key={d.at + d.train_id} className="badge badge-warn" title="Внешняя команда Ядру, как кнопка «задержать поезд» или POST /api/events">
             ⚑ {d.at}: поезд {model.trains.get(d.train_id)?.number ?? d.train_id} задержан на {d.minutes} мин ({d.reason})

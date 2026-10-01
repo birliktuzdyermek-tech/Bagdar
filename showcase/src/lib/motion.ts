@@ -40,7 +40,12 @@ export function useCountUp(value: number, ms = 300): number {
       if (a < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    // страховка: если кадры не рисуются (скрытая вкладка, запись ролика), число всё равно встаёт на место
+    const done = window.setTimeout(() => setShown(value), ms + 50);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(done);
+    };
   }, [value, ms, reduced]);
   return shown;
 }
