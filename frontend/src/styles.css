@@ -325,7 +325,8 @@ button, input, select { font: inherit; color: inherit; }
 .decision:hover { background: var(--surface-2); }
 .decision.lvl-A { border-left-color: var(--text-muted); }
 .decision.lvl-C { border-left-color: var(--warning); }
-.decision-head { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 4px; }
+.decision-head { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+.decision-head .badge { white-space: nowrap; }
 .decision-type { font-weight: 600; color: var(--text-secondary); }
 .decision-action { font-weight: 650; font-size: 13.5px; margin-bottom: 4px; }
 .decision-row { font-size: 12.5px; margin-top: 2px; }
