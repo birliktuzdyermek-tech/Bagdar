@@ -1,0 +1,2354 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "Бағдар API",
+  "description": "\n**Бағдар** — консультативный автодиспетчер железнодорожного участка.\n\nДемонстрационный прототип на синтетических данных. **Не система управления\nдвижением**: не управляет реальными сигналами, стрелками и поездами и не\nзаменяет устройства СЦБ. Веса, цены и «сэкономленные деньги» условные.\n\nПоток реального времени: `ws /api/stream` (формат — `GET /api/stream/schema`).\n",
+  "version": "0.1.0"
+ },
+ "paths": {
+  "/api/health": {
+   "get": {
+    "tags": [
+     "service"
+    ],
+    "summary": "Health",
+    "operationId": "health_api_health_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HealthOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/world": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Инфраструктура участка и состав поездов с исходным расписанием",
+    "operationId": "get_world_api_world_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/WorldOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/state": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Текущее состояние участка",
+    "operationId": "get_state_api_state_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StateOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/plan": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Действующий план движения",
+    "operationId": "get_plan_api_plan_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlanOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/events": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Журнал событий текущего прогона",
+    "operationId": "get_events_api_events_get",
+    "parameters": [
+     {
+      "name": "since",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "minimum": 0,
+       "default": 0,
+       "title": "Since"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 20000,
+       "minimum": 1,
+       "default": 500,
+       "title": "Limit"
+      }
+     },
+     {
+      "name": "min_severity",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "debug",
+        "info",
+        "warn",
+        "critical"
+       ],
+       "type": "string",
+       "default": "debug",
+       "title": "Min Severity"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/scenarios": {
+   "get": {
+    "tags": [
+     "scenarios"
+    ],
+    "summary": "Get Scenarios",
+    "operationId": "get_scenarios_api_scenarios_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ScenarioOut"
+         },
+         "type": "array",
+         "title": "Response Get Scenarios Api Scenarios Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/sim/control": {
+   "post": {
+    "tags": [
+     "simulation"
+    ],
+    "summary": "Старт, пауза, ускорение ×1…×100, шаг, сброс",
+    "operationId": "sim_control_api_sim_control_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ControlIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ControlOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/sim/load": {
+   "post": {
+    "tags": [
+     "simulation"
+    ],
+    "summary": "Загрузить сценарий и/или сгенерировать мир с новым seed",
+    "operationId": "sim_load_api_sim_load_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LoadIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoadOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/config": {
+   "get": {
+    "tags": [
+     "config"
+    ],
+    "summary": "Веса, пороги, параметры",
+    "operationId": "get_config_api_config_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BagdarConfig"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/stream/schema": {
+   "get": {
+    "tags": [
+     "stream"
+    ],
+    "summary": "Формат сообщений WebSocket /api/stream на живых данных",
+    "operationId": "stream_schema_api_stream_schema_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StreamSchema"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "BagdarConfig": {
+    "properties": {
+     "mode": {
+      "type": "string",
+      "enum": [
+       "mainline",
+       "lrt"
+      ],
+      "title": "Mode",
+      "default": "mainline"
+     },
+     "pte_strict": {
+      "type": "boolean",
+      "title": "Pte Strict",
+      "default": true
+     },
+     "index": {
+      "$ref": "#/components/schemas/IndexConfig",
+      "default": {
+       "weights": {
+        "conflicts": 0.1,
+        "punctuality": 0.25,
+        "resource_idle": 0.15,
+        "throughput": 0.3,
+        "track_load": 0.2
+       },
+       "thresholds": {
+        "normal": 75.0,
+        "warning": 50.0
+       },
+       "punctuality_max_delay_min": 30.0,
+       "conflicts_max": 10.0
+      }
+     },
+     "priority": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/PriorityEntry"
+      },
+      "type": "object",
+      "title": "Priority"
+     },
+     "cost": {
+      "$ref": "#/components/schemas/CostConfig",
+      "default": {
+       "c_stop": 0.5,
+       "c_energy": 0.1,
+       "c_idle": 2.0,
+       "c_change": 15.0
+      }
+     },
+     "solver": {
+      "$ref": "#/components/schemas/SolverConfig",
+      "default": {
+       "horizon_min": 180.0,
+       "freeze_min": 5.0,
+       "time_limit_s": 2.0,
+       "fallback": "greedy"
+      }
+     },
+     "sim": {
+      "$ref": "#/components/schemas/SimConfig",
+      "default": {
+       "dt_s": 1.0,
+       "start_time": "06:00",
+       "tau_cross_s": 90.0,
+       "headway_s": 300.0,
+       "headway_arr_s": 180.0,
+       "throat_s": 90.0,
+       "approach_s": 90.0,
+       "clear_s": 60.0,
+       "prep_s": 600.0,
+       "terminate_s": 600.0,
+       "min_stop_s": 30.0,
+       "recovery_margin": 0.07,
+       "max_wait_s": 3600.0,
+       "dwell_jitter_prob": 0.25,
+       "dwell_jitter_max_s": 90.0,
+       "origin_delay_prob": 0.12,
+       "origin_delay_max_s": 300.0,
+       "broadcast_hz": 10.0
+      }
+     }
+    },
+    "type": "object",
+    "title": "BagdarConfig"
+   },
+   "ControlIn": {
+    "properties": {
+     "action": {
+      "type": "string",
+      "enum": [
+       "start",
+       "pause",
+       "speed",
+       "step",
+       "reset"
+      ],
+      "title": "Action"
+     },
+     "speed": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 100.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Speed"
+     },
+     "step_s": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 3600.0,
+        "exclusiveMinimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step S",
+      "description": "Шаг в секундах модели (по умолчанию 60)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "action"
+    ],
+    "title": "ControlIn"
+   },
+   "ControlOut": {
+    "properties": {
+     "running": {
+      "type": "boolean",
+      "title": "Running"
+     },
+     "speed": {
+      "type": "number",
+      "title": "Speed"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "running",
+     "speed",
+     "t",
+     "run_id"
+    ],
+    "title": "ControlOut"
+   },
+   "CostConfig": {
+    "properties": {
+     "c_stop": {
+      "type": "number",
+      "title": "C Stop",
+      "default": 0.5
+     },
+     "c_energy": {
+      "type": "number",
+      "title": "C Energy",
+      "default": 0.1
+     },
+     "c_idle": {
+      "type": "number",
+      "title": "C Idle",
+      "default": 2
+     },
+     "c_change": {
+      "type": "number",
+      "title": "C Change",
+      "default": 15
+     }
+    },
+    "type": "object",
+    "title": "CostConfig"
+   },
+   "EventOut": {
+    "properties": {
+     "seq": {
+      "type": "integer",
+      "title": "Seq"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "kind": {
+      "type": "string",
+      "title": "Kind"
+     },
+     "severity": {
+      "type": "string",
+      "enum": [
+       "debug",
+       "info",
+       "warn",
+       "critical"
+      ],
+      "title": "Severity"
+     },
+     "message": {
+      "type": "string",
+      "title": "Message"
+     },
+     "train_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Train Id"
+     },
+     "station_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Station Id"
+     },
+     "section_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Section Id"
+     },
+     "data": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Data"
+     }
+    },
+    "type": "object",
+    "required": [
+     "seq",
+     "t",
+     "kind",
+     "severity",
+     "message",
+     "train_id",
+     "station_id",
+     "section_id",
+     "data"
+    ],
+    "title": "EventOut"
+   },
+   "EventsMsg": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "const": "events",
+      "title": "Type",
+      "default": "events"
+     },
+     "reset": {
+      "type": "boolean",
+      "title": "Reset",
+      "description": "true — заменить ленту, false — дописать"
+     },
+     "events": {
+      "items": {
+       "$ref": "#/components/schemas/EventOut"
+      },
+      "type": "array",
+      "title": "Events"
+     }
+    },
+    "type": "object",
+    "required": [
+     "reset",
+     "events"
+    ],
+    "title": "EventsMsg"
+   },
+   "EventsOut": {
+    "properties": {
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "events": {
+      "items": {
+       "$ref": "#/components/schemas/EventOut"
+      },
+      "type": "array",
+      "title": "Events"
+     }
+    },
+    "type": "object",
+    "required": [
+     "run_id",
+     "events"
+    ],
+    "title": "EventsOut"
+   },
+   "GenerationOut": {
+    "properties": {
+     "trains_total": {
+      "type": "integer",
+      "title": "Trains Total"
+     },
+     "dropped": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Dropped"
+     },
+     "build_ms": {
+      "type": "number",
+      "title": "Build Ms"
+     },
+     "validated": {
+      "type": "boolean",
+      "title": "Validated"
+     }
+    },
+    "type": "object",
+    "required": [
+     "trains_total",
+     "dropped",
+     "build_ms",
+     "validated"
+    ],
+    "title": "GenerationOut"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "HealthOut": {
+    "properties": {
+     "status": {
+      "type": "string",
+      "const": "ok",
+      "title": "Status"
+     },
+     "version": {
+      "type": "string",
+      "title": "Version"
+     },
+     "world_loaded": {
+      "type": "boolean",
+      "title": "World Loaded"
+     }
+    },
+    "type": "object",
+    "required": [
+     "status",
+     "version",
+     "world_loaded"
+    ],
+    "title": "HealthOut"
+   },
+   "HelloMsg": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "const": "hello",
+      "title": "Type",
+      "default": "hello"
+     },
+     "protocol": {
+      "type": "integer",
+      "title": "Protocol"
+     },
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "world_version": {
+      "type": "integer",
+      "title": "World Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "protocol",
+     "run_id",
+     "world_version"
+    ],
+    "title": "HelloMsg"
+   },
+   "IndexConfig": {
+    "properties": {
+     "weights": {
+      "$ref": "#/components/schemas/IndexWeights",
+      "default": {
+       "throughput": 0.3,
+       "punctuality": 0.25,
+       "track_load": 0.2,
+       "resource_idle": 0.15,
+       "conflicts": 0.1
+      }
+     },
+     "thresholds": {
+      "$ref": "#/components/schemas/IndexThresholds",
+      "default": {
+       "normal": 75.0,
+       "warning": 50.0
+      }
+     },
+     "punctuality_max_delay_min": {
+      "type": "number",
+      "title": "Punctuality Max Delay Min",
+      "default": 30
+     },
+     "conflicts_max": {
+      "type": "number",
+      "title": "Conflicts Max",
+      "default": 10
+     }
+    },
+    "type": "object",
+    "title": "IndexConfig"
+   },
+   "IndexThresholds": {
+    "properties": {
+     "normal": {
+      "type": "number",
+      "title": "Normal",
+      "default": 75
+     },
+     "warning": {
+      "type": "number",
+      "title": "Warning",
+      "default": 50
+     }
+    },
+    "type": "object",
+    "title": "IndexThresholds"
+   },
+   "IndexWeights": {
+    "properties": {
+     "throughput": {
+      "type": "number",
+      "title": "Throughput",
+      "default": 0.3
+     },
+     "punctuality": {
+      "type": "number",
+      "title": "Punctuality",
+      "default": 0.25
+     },
+     "track_load": {
+      "type": "number",
+      "title": "Track Load",
+      "default": 0.2
+     },
+     "resource_idle": {
+      "type": "number",
+      "title": "Resource Idle",
+      "default": 0.15
+     },
+     "conflicts": {
+      "type": "number",
+      "title": "Conflicts",
+      "default": 0.1
+     }
+    },
+    "type": "object",
+    "title": "IndexWeights"
+   },
+   "LoadIn": {
+    "properties": {
+     "scenario_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Scenario Id"
+     },
+     "seed": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 2147483647.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Seed"
+     }
+    },
+    "type": "object",
+    "title": "LoadIn"
+   },
+   "LoadOut": {
+    "properties": {
+     "world_version": {
+      "type": "integer",
+      "title": "World Version"
+     },
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "scenario_id": {
+      "type": "string",
+      "title": "Scenario Id"
+     },
+     "seed": {
+      "type": "integer",
+      "title": "Seed"
+     },
+     "trains_total": {
+      "type": "integer",
+      "title": "Trains Total"
+     },
+     "load_ms": {
+      "type": "number",
+      "title": "Load Ms"
+     }
+    },
+    "type": "object",
+    "required": [
+     "world_version",
+     "run_id",
+     "scenario_id",
+     "seed",
+     "trains_total",
+     "load_ms"
+    ],
+    "title": "LoadOut"
+   },
+   "MetricsOut": {
+    "properties": {
+     "active_trains": {
+      "type": "integer",
+      "title": "Active Trains"
+     },
+     "finished_trains": {
+      "type": "integer",
+      "title": "Finished Trains"
+     },
+     "avg_delay_s": {
+      "type": "number",
+      "title": "Avg Delay S"
+     },
+     "max_delay_s": {
+      "type": "number",
+      "title": "Max Delay S"
+     },
+     "on_time_share": {
+      "type": "number",
+      "title": "On Time Share"
+     },
+     "waiting_trains": {
+      "type": "integer",
+      "title": "Waiting Trains"
+     },
+     "unplanned_stops": {
+      "type": "integer",
+      "title": "Unplanned Stops"
+     },
+     "stop_energy_kwh": {
+      "type": "number",
+      "title": "Stop Energy Kwh"
+     }
+    },
+    "type": "object",
+    "required": [
+     "active_trains",
+     "finished_trains",
+     "avg_delay_s",
+     "max_delay_s",
+     "on_time_share",
+     "waiting_trains",
+     "unplanned_stops",
+     "stop_energy_kwh"
+    ],
+    "title": "MetricsOut"
+   },
+   "PerfOut": {
+    "properties": {
+     "step_us": {
+      "type": "number",
+      "title": "Step Us"
+     },
+     "tick_ms": {
+      "type": "number",
+      "title": "Tick Ms"
+     },
+     "steps_per_s": {
+      "type": "number",
+      "title": "Steps Per S"
+     },
+     "load_ms": {
+      "type": "number",
+      "title": "Load Ms"
+     }
+    },
+    "type": "object",
+    "required": [
+     "step_us",
+     "tick_ms",
+     "steps_per_s",
+     "load_ms"
+    ],
+    "title": "PerfOut"
+   },
+   "PlanLegOut": {
+    "properties": {
+     "train_id": {
+      "type": "string",
+      "title": "Train Id"
+     },
+     "k": {
+      "type": "integer",
+      "title": "K"
+     },
+     "section_id": {
+      "type": "string",
+      "title": "Section Id"
+     },
+     "from_id": {
+      "type": "string",
+      "title": "From Id"
+     },
+     "to_id": {
+      "type": "string",
+      "title": "To Id"
+     },
+     "direction": {
+      "type": "integer",
+      "title": "Direction"
+     },
+     "dep": {
+      "type": "number",
+      "title": "Dep"
+     },
+     "arr": {
+      "type": "number",
+      "title": "Arr"
+     },
+     "track_id": {
+      "type": "string",
+      "title": "Track Id"
+     },
+     "stop": {
+      "type": "boolean",
+      "title": "Stop"
+     }
+    },
+    "type": "object",
+    "required": [
+     "train_id",
+     "k",
+     "section_id",
+     "from_id",
+     "to_id",
+     "direction",
+     "dep",
+     "arr",
+     "track_id",
+     "stop"
+    ],
+    "title": "PlanLegOut"
+   },
+   "PlanOut": {
+    "properties": {
+     "version": {
+      "type": "integer",
+      "title": "Version"
+     },
+     "created_at": {
+      "type": "number",
+      "title": "Created At"
+     },
+     "solver": {
+      "type": "string",
+      "title": "Solver"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "feasible",
+       "delayed",
+       "infeasible"
+      ],
+      "title": "Status"
+     },
+     "compute_ms": {
+      "type": "number",
+      "title": "Compute Ms"
+     },
+     "notes": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Notes"
+     },
+     "cost": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Cost"
+     },
+     "legs": {
+      "items": {
+       "$ref": "#/components/schemas/PlanLegOut"
+      },
+      "type": "array",
+      "title": "Legs"
+     }
+    },
+    "type": "object",
+    "required": [
+     "version",
+     "created_at",
+     "solver",
+     "status",
+     "compute_ms",
+     "notes",
+     "cost",
+     "legs"
+    ],
+    "title": "PlanOut"
+   },
+   "PriorityEntry": {
+    "properties": {
+     "weight": {
+      "type": "number",
+      "title": "Weight"
+     },
+     "tolerance_min": {
+      "type": "number",
+      "title": "Tolerance Min"
+     }
+    },
+    "type": "object",
+    "required": [
+     "weight",
+     "tolerance_min"
+    ],
+    "title": "PriorityEntry"
+   },
+   "ScenarioOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "summary": {
+      "type": "string",
+      "title": "Summary"
+     },
+     "mode": {
+      "type": "string",
+      "title": "Mode"
+     },
+     "seed": {
+      "type": "integer",
+      "title": "Seed"
+     },
+     "start_time": {
+      "type": "string",
+      "title": "Start Time"
+     },
+     "difficulty": {
+      "type": "integer",
+      "title": "Difficulty"
+     },
+     "wave": {
+      "type": "integer",
+      "title": "Wave"
+     },
+     "disruptions": {
+      "type": "integer",
+      "title": "Disruptions"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "title",
+     "summary",
+     "mode",
+     "seed",
+     "start_time",
+     "difficulty",
+     "wave",
+     "disruptions"
+    ],
+    "title": "ScenarioOut"
+   },
+   "ScheduleStopOut": {
+    "properties": {
+     "station_id": {
+      "type": "string",
+      "title": "Station Id"
+     },
+     "arr": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Arr"
+     },
+     "dep": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dep"
+     },
+     "stop": {
+      "type": "boolean",
+      "title": "Stop"
+     },
+     "dwell_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dwell S"
+     },
+     "track_id": {
+      "type": "string",
+      "title": "Track Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "station_id",
+     "arr",
+     "dep",
+     "stop",
+     "dwell_s",
+     "track_id"
+    ],
+    "title": "ScheduleStopOut"
+   },
+   "SectionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "a": {
+      "type": "string",
+      "title": "A"
+     },
+     "b": {
+      "type": "string",
+      "title": "B"
+     },
+     "length_km": {
+      "type": "number",
+      "title": "Length Km"
+     },
+     "tracks": {
+      "type": "integer",
+      "title": "Tracks",
+      "description": "1 — однопутный, 2 — двухпутный"
+     },
+     "signalling": {
+      "type": "string",
+      "enum": [
+       "AB",
+       "PAB"
+      ],
+      "title": "Signalling"
+     },
+     "blocks": {
+      "type": "integer",
+      "title": "Blocks"
+     },
+     "speed_limit_kmh": {
+      "type": "number",
+      "title": "Speed Limit Kmh"
+     },
+     "gradient_permille": {
+      "type": "number",
+      "title": "Gradient Permille",
+      "description": "Уклон в направлении a→b, ‰; плюс — подъём"
+     },
+     "no_stop_uphill": {
+      "type": "boolean",
+      "title": "No Stop Uphill"
+     },
+     "electrified": {
+      "type": "boolean",
+      "title": "Electrified"
+     },
+     "throat_a": {
+      "type": "string",
+      "title": "Throat A"
+     },
+     "throat_b": {
+      "type": "string",
+      "title": "Throat B"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "a",
+     "b",
+     "length_km",
+     "tracks",
+     "signalling",
+     "blocks",
+     "speed_limit_kmh",
+     "gradient_permille",
+     "no_stop_uphill",
+     "electrified",
+     "throat_a",
+     "throat_b"
+    ],
+    "title": "SectionOut"
+   },
+   "SectionStateOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "open",
+       "restricted",
+       "closed"
+      ],
+      "title": "Status"
+     },
+     "single": {
+      "type": "boolean",
+      "title": "Single"
+     },
+     "restriction_kmh": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Restriction Kmh"
+     },
+     "occupants": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Occupants"
+     },
+     "dir": {
+      "type": "integer",
+      "title": "Dir"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "status",
+     "single",
+     "restriction_kmh",
+     "occupants",
+     "dir"
+    ],
+    "title": "SectionStateOut"
+   },
+   "SignalOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "section_id": {
+      "type": "string",
+      "title": "Section Id"
+     },
+     "station_id": {
+      "type": "string",
+      "title": "Station Id"
+     },
+     "direction": {
+      "type": "integer",
+      "title": "Direction"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "section_id",
+     "station_id",
+     "direction"
+    ],
+    "title": "SignalOut"
+   },
+   "SignalStateOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "state": {
+      "type": "string",
+      "enum": [
+       "open",
+       "closed",
+       "fault"
+      ],
+      "title": "State"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "state"
+    ],
+    "title": "SignalStateOut"
+   },
+   "SimConfig": {
+    "properties": {
+     "dt_s": {
+      "type": "number",
+      "maximum": 10.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Dt S",
+      "default": 1.0
+     },
+     "start_time": {
+      "type": "string",
+      "title": "Start Time",
+      "default": "06:00"
+     },
+     "tau_cross_s": {
+      "type": "number",
+      "title": "Tau Cross S",
+      "default": 90
+     },
+     "headway_s": {
+      "type": "number",
+      "title": "Headway S",
+      "default": 300
+     },
+     "headway_arr_s": {
+      "type": "number",
+      "title": "Headway Arr S",
+      "default": 180
+     },
+     "throat_s": {
+      "type": "number",
+      "title": "Throat S",
+      "default": 90
+     },
+     "approach_s": {
+      "type": "number",
+      "title": "Approach S",
+      "default": 90
+     },
+     "clear_s": {
+      "type": "number",
+      "title": "Clear S",
+      "default": 60
+     },
+     "prep_s": {
+      "type": "number",
+      "title": "Prep S",
+      "default": 600
+     },
+     "terminate_s": {
+      "type": "number",
+      "title": "Terminate S",
+      "default": 600
+     },
+     "min_stop_s": {
+      "type": "number",
+      "title": "Min Stop S",
+      "default": 30
+     },
+     "recovery_margin": {
+      "type": "number",
+      "title": "Recovery Margin",
+      "default": 0.07
+     },
+     "max_wait_s": {
+      "type": "number",
+      "title": "Max Wait S",
+      "default": 3600
+     },
+     "dwell_jitter_prob": {
+      "type": "number",
+      "title": "Dwell Jitter Prob",
+      "default": 0.25
+     },
+     "dwell_jitter_max_s": {
+      "type": "number",
+      "title": "Dwell Jitter Max S",
+      "default": 90
+     },
+     "origin_delay_prob": {
+      "type": "number",
+      "title": "Origin Delay Prob",
+      "default": 0.12
+     },
+     "origin_delay_max_s": {
+      "type": "number",
+      "title": "Origin Delay Max S",
+      "default": 300
+     },
+     "broadcast_hz": {
+      "type": "number",
+      "title": "Broadcast Hz",
+      "default": 10
+     }
+    },
+    "type": "object",
+    "title": "SimConfig"
+   },
+   "SolverConfig": {
+    "properties": {
+     "horizon_min": {
+      "type": "number",
+      "title": "Horizon Min",
+      "default": 180
+     },
+     "freeze_min": {
+      "type": "number",
+      "title": "Freeze Min",
+      "default": 5
+     },
+     "time_limit_s": {
+      "type": "number",
+      "title": "Time Limit S",
+      "default": 2
+     },
+     "fallback": {
+      "type": "string",
+      "const": "greedy",
+      "title": "Fallback",
+      "default": "greedy"
+     }
+    },
+    "type": "object",
+    "title": "SolverConfig"
+   },
+   "StateOut": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "const": "state",
+      "title": "Type",
+      "default": "state"
+     },
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "world_version": {
+      "type": "integer",
+      "title": "World Version"
+     },
+     "seq": {
+      "type": "integer",
+      "title": "Seq"
+     },
+     "tick": {
+      "type": "integer",
+      "title": "Tick"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "running": {
+      "type": "boolean",
+      "title": "Running"
+     },
+     "speed": {
+      "type": "number",
+      "title": "Speed"
+     },
+     "trains": {
+      "items": {
+       "$ref": "#/components/schemas/TrainStateOut"
+      },
+      "type": "array",
+      "title": "Trains"
+     },
+     "sections": {
+      "items": {
+       "$ref": "#/components/schemas/SectionStateOut"
+      },
+      "type": "array",
+      "title": "Sections"
+     },
+     "tracks": {
+      "items": {
+       "$ref": "#/components/schemas/TrackStateOut"
+      },
+      "type": "array",
+      "title": "Tracks"
+     },
+     "throats": {
+      "items": {
+       "$ref": "#/components/schemas/ThroatStateOut"
+      },
+      "type": "array",
+      "title": "Throats"
+     },
+     "signals": {
+      "items": {
+       "$ref": "#/components/schemas/SignalStateOut"
+      },
+      "type": "array",
+      "title": "Signals"
+     },
+     "metrics": {
+      "$ref": "#/components/schemas/MetricsOut"
+     },
+     "perf": {
+      "$ref": "#/components/schemas/PerfOut"
+     }
+    },
+    "type": "object",
+    "required": [
+     "run_id",
+     "world_version",
+     "seq",
+     "tick",
+     "t",
+     "running",
+     "speed",
+     "trains",
+     "sections",
+     "tracks",
+     "throats",
+     "signals",
+     "metrics",
+     "perf"
+    ],
+    "title": "StateOut"
+   },
+   "StationOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "terminal",
+       "station",
+       "loop",
+       "junction"
+      ],
+      "title": "Kind"
+     },
+     "km": {
+      "type": "number",
+      "title": "Km"
+     },
+     "x": {
+      "type": "number",
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "title": "Y"
+     },
+     "zone_id": {
+      "type": "string",
+      "title": "Zone Id"
+     },
+     "crew_change": {
+      "type": "boolean",
+      "title": "Crew Change"
+     },
+     "tracks": {
+      "items": {
+       "$ref": "#/components/schemas/TrackOut"
+      },
+      "type": "array",
+      "title": "Tracks"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "kind",
+     "km",
+     "x",
+     "y",
+     "zone_id",
+     "crew_change",
+     "tracks"
+    ],
+    "title": "StationOut"
+   },
+   "StreamSchema": {
+    "properties": {
+     "hello": {
+      "$ref": "#/components/schemas/HelloMsg"
+     },
+     "world": {
+      "$ref": "#/components/schemas/WorldMsg"
+     },
+     "events": {
+      "$ref": "#/components/schemas/EventsMsg"
+     },
+     "state": {
+      "$ref": "#/components/schemas/StateOut"
+     }
+    },
+    "type": "object",
+    "required": [
+     "hello",
+     "world",
+     "events",
+     "state"
+    ],
+    "title": "StreamSchema",
+    "description": "Документация WebSocket /api/stream. Сервер шлёт hello, затем world (если версия\nмира у клиента устарела), events и state; дальше state с частотой broadcast_hz и\nevents по мере появления. Переподключение: /api/stream?world_version=N&last_seq=M&run_id=R."
+   },
+   "SwitchOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "station_id": {
+      "type": "string",
+      "title": "Station Id"
+     },
+     "track_id": {
+      "type": "string",
+      "title": "Track Id"
+     },
+     "number": {
+      "type": "integer",
+      "title": "Number"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "station_id",
+     "track_id",
+     "number"
+    ],
+    "title": "SwitchOut"
+   },
+   "ThroatStateOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "holder": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Holder"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "holder"
+    ],
+    "title": "ThroatStateOut"
+   },
+   "TrackOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "length_m": {
+      "type": "integer",
+      "title": "Length M"
+     },
+     "is_main": {
+      "type": "boolean",
+      "title": "Is Main"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "length_m",
+     "is_main"
+    ],
+    "title": "TrackOut"
+   },
+   "TrackStateOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "occupant": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Occupant"
+     },
+     "reserved": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reserved"
+     },
+     "available": {
+      "type": "boolean",
+      "title": "Available"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "occupant",
+     "reserved",
+     "available"
+    ],
+    "title": "TrackStateOut"
+   },
+   "TrainClassOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "title": "Key"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "pte_rank": {
+      "type": "integer",
+      "title": "Pte Rank"
+     },
+     "weight": {
+      "type": "number",
+      "title": "Weight"
+     },
+     "tolerance_min": {
+      "type": "number",
+      "title": "Tolerance Min"
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "label",
+     "pte_rank",
+     "weight",
+     "tolerance_min"
+    ],
+    "title": "TrainClassOut"
+   },
+   "TrainStateOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "pending",
+       "station",
+       "section",
+       "finished"
+      ],
+      "title": "Status"
+     },
+     "display": {
+      "type": "string",
+      "enum": [
+       "ready",
+       "dwell",
+       "held",
+       "terminated",
+       "running",
+       "braking",
+       "stopped",
+       "pending",
+       "finished"
+      ],
+      "title": "Display"
+     },
+     "k": {
+      "type": "integer",
+      "title": "K"
+     },
+     "station_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Station Id"
+     },
+     "track_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Track Id"
+     },
+     "section_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Section Id"
+     },
+     "progress": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Progress",
+      "description": "Положение на перегоне 0..1 от станции a к b"
+     },
+     "v_kmh": {
+      "type": "number",
+      "title": "V Kmh"
+     },
+     "v_target_kmh": {
+      "type": "number",
+      "title": "V Target Kmh"
+     },
+     "delay_s": {
+      "type": "integer",
+      "title": "Delay S"
+     },
+     "wait_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Wait Reason"
+     },
+     "dest_track": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dest Track"
+     },
+     "through": {
+      "type": "boolean",
+      "title": "Through"
+     },
+     "next_station_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Station Id"
+     },
+     "crew_left_s": {
+      "type": "integer",
+      "title": "Crew Left S"
+     },
+     "stops": {
+      "type": "integer",
+      "title": "Stops"
+     },
+     "unplanned_stops": {
+      "type": "integer",
+      "title": "Unplanned Stops"
+     },
+     "stop_energy_kwh": {
+      "type": "number",
+      "title": "Stop Energy Kwh"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "status",
+     "display",
+     "k",
+     "station_id",
+     "track_id",
+     "section_id",
+     "progress",
+     "v_kmh",
+     "v_target_kmh",
+     "delay_s",
+     "wait_reason",
+     "dest_track",
+     "through",
+     "next_station_id",
+     "crew_left_s",
+     "stops",
+     "unplanned_stops",
+     "stop_energy_kwh"
+    ],
+    "title": "TrainStateOut"
+   },
+   "TrainStaticOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "number": {
+      "type": "string",
+      "title": "Number"
+     },
+     "cls": {
+      "type": "string",
+      "title": "Cls"
+     },
+     "cls_label": {
+      "type": "string",
+      "title": "Cls Label"
+     },
+     "pte_rank": {
+      "type": "integer",
+      "title": "Pte Rank",
+      "description": "0 — внеочередной, 1..5 — очерёдность по ПТЭ"
+     },
+     "direction": {
+      "type": "integer",
+      "title": "Direction"
+     },
+     "length_m": {
+      "type": "integer",
+      "title": "Length M"
+     },
+     "mass_t": {
+      "type": "integer",
+      "title": "Mass T"
+     },
+     "passengers": {
+      "type": "integer",
+      "title": "Passengers"
+     },
+     "cargo": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Cargo"
+     },
+     "traction": {
+      "type": "string",
+      "enum": [
+       "electric",
+       "diesel"
+      ],
+      "title": "Traction"
+     },
+     "vmax_kmh": {
+      "type": "number",
+      "title": "Vmax Kmh"
+     },
+     "loco_id": {
+      "type": "string",
+      "title": "Loco Id"
+     },
+     "crew_id": {
+      "type": "string",
+      "title": "Crew Id"
+     },
+     "crew_shift_end": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Crew Shift End"
+     },
+     "route": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Route"
+     },
+     "sections": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Sections"
+     },
+     "suburban": {
+      "type": "boolean",
+      "title": "Suburban"
+     },
+     "transfer": {
+      "type": "boolean",
+      "title": "Transfer"
+     },
+     "schedule": {
+      "items": {
+       "$ref": "#/components/schemas/ScheduleStopOut"
+      },
+      "type": "array",
+      "title": "Schedule"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "number",
+     "cls",
+     "cls_label",
+     "pte_rank",
+     "direction",
+     "length_m",
+     "mass_t",
+     "passengers",
+     "cargo",
+     "traction",
+     "vmax_kmh",
+     "loco_id",
+     "crew_id",
+     "crew_shift_end",
+     "route",
+     "sections",
+     "suburban",
+     "transfer",
+     "schedule"
+    ],
+    "title": "TrainStaticOut"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "ctx": {
+      "type": "object",
+      "title": "Context"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   },
+   "WorldMsg": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "const": "world",
+      "title": "Type",
+      "default": "world"
+     },
+     "world": {
+      "$ref": "#/components/schemas/WorldOut"
+     }
+    },
+    "type": "object",
+    "required": [
+     "world"
+    ],
+    "title": "WorldMsg"
+   },
+   "WorldOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "mode": {
+      "type": "string",
+      "title": "Mode"
+     },
+     "seed": {
+      "type": "integer",
+      "title": "Seed"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "version": {
+      "type": "integer",
+      "title": "Version"
+     },
+     "scenario_id": {
+      "type": "string",
+      "title": "Scenario Id"
+     },
+     "start_time": {
+      "type": "number",
+      "title": "Start Time"
+     },
+     "date": {
+      "type": "string",
+      "title": "Date"
+     },
+     "tz": {
+      "type": "string",
+      "title": "Tz"
+     },
+     "zones": {
+      "items": {
+       "$ref": "#/components/schemas/ZoneOut"
+      },
+      "type": "array",
+      "title": "Zones"
+     },
+     "stations": {
+      "items": {
+       "$ref": "#/components/schemas/StationOut"
+      },
+      "type": "array",
+      "title": "Stations"
+     },
+     "sections": {
+      "items": {
+       "$ref": "#/components/schemas/SectionOut"
+      },
+      "type": "array",
+      "title": "Sections"
+     },
+     "signals": {
+      "items": {
+       "$ref": "#/components/schemas/SignalOut"
+      },
+      "type": "array",
+      "title": "Signals"
+     },
+     "switches": {
+      "items": {
+       "$ref": "#/components/schemas/SwitchOut"
+      },
+      "type": "array",
+      "title": "Switches"
+     },
+     "trains": {
+      "items": {
+       "$ref": "#/components/schemas/TrainStaticOut"
+      },
+      "type": "array",
+      "title": "Trains"
+     },
+     "classes": {
+      "items": {
+       "$ref": "#/components/schemas/TrainClassOut"
+      },
+      "type": "array",
+      "title": "Classes"
+     },
+     "generation": {
+      "$ref": "#/components/schemas/GenerationOut"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "mode",
+     "seed",
+     "name",
+     "version",
+     "scenario_id",
+     "start_time",
+     "date",
+     "tz",
+     "zones",
+     "stations",
+     "sections",
+     "signals",
+     "switches",
+     "trains",
+     "classes",
+     "generation"
+    ],
+    "title": "WorldOut"
+   },
+   "ZoneOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "station_ids": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Station Ids"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "station_ids"
+    ],
+    "title": "ZoneOut"
+   }
+  }
+ }
+}
