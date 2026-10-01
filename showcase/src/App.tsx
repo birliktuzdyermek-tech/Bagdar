@@ -68,7 +68,7 @@ export function App() {
   return (
     <div className="app">
       <Header projector={projector} onProjector={toggleProjector} route={route} />
-      <main className="main" id="main">
+      <main className="main" id="main" tabIndex={-1}>
         {error && <p className="error">⚠ {error}</p>}
         {!runs && !error && <p className="muted">Загружаю список записей…</p>}
         {runs && playId && <PlayRoute key={playId} runs={runs} id={playId} projector={projector} />}

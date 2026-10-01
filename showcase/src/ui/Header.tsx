@@ -24,27 +24,41 @@ const SECTIONS = [
 /** Общая шапка трёх сайтов. Адреса — public/site.config.json, null — пункт неактивен. */
 export function Header({ projector, onProjector, route }: { projector: boolean; onProjector: () => void; route: string }) {
   const [cfg, setCfg] = useState<SiteConfig | null>(null);
+  const [offlineReady, setOfflineReady] = useState(() => document.documentElement.dataset.offlineReady === "true");
   useEffect(() => {
     fetch("./site.config.json", { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : null))
       .then((c) => setCfg(c), () => setCfg(null));
   }, []);
+  useEffect(() => {
+    const update = () => setOfflineReady(document.documentElement.dataset.offlineReady === "true");
+    window.addEventListener("bagdar:offline-ready", update);
+    update();
+    return () => window.removeEventListener("bagdar:offline-ready", update);
+  }, []);
   return (
     <header className="header">
-      <a className="skip" href="#main">К содержимому</a>
-      <a className="brand" href="#/" aria-label="Бағдар — витрина, к списку записей">
+      <a className="skip" href="#main" onClick={(event) => {
+        event.preventDefault();
+        document.getElementById("main")?.focus();
+      }}>К содержимому</a>
+      <a className="brand" href="#/" aria-label="Бағдар — витрина, на главную">
         БАҒДАР
       </a>
       <nav className="nav" aria-label="Сайты проекта">
         {ITEMS.map((it) => {
-          const url = cfg?.[it.key] ?? null;
+          const configured = cfg?.[it.key] ?? null;
+          // In an offline bundle served at /, "/" points back to this page,
+          // while on the shared Render site / is the actual simulator.
+          const standaloneSimulator = it.key === "simulator" && configured === "/" && (location.pathname === "/" || location.pathname === "/index.html");
+          const url = standaloneSimulator ? null : configured;
           const current = it.key === "presentation";
           return url ? (
             <a key={it.key} className={`nav-item ${current ? "current" : ""}`} href={current ? "#/" : url} aria-current={current ? "page" : undefined}>
               {it.label}
             </a>
           ) : (
-            <span key={it.key} className="nav-item disabled" aria-disabled="true" title="Адрес пока не задан в site.config.json">
+            <span key={it.key} className="nav-item disabled" aria-disabled="true" title={standaloneSimulator ? "Симулятор недоступен в автономной Витрине" : "Адрес пока не задан в site.config.json"}>
               {it.label}
             </span>
           );
@@ -64,6 +78,7 @@ export function Header({ projector, onProjector, route }: { projector: boolean; 
       <span className="chip-disclaimer" title="Не управляет реальными сигналами, стрелками и поездами и не заменяет СЦБ">
         Консультативный прототип
       </span>
+      {offlineReady && <span className="chip-offline" role="status" title="Страница, код и все записи сохранены для показа без соединения">✓ Без сети готово</span>}
     </header>
   );
 }

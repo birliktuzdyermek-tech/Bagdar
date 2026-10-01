@@ -15,6 +15,7 @@ export interface Flash {
 
 export interface SchemeOpts {
   projector: boolean;
+  reduced?: boolean;
   selected: string | null;
   hover: string | null;
   flashes: Flash[];
@@ -195,8 +196,8 @@ export function drawScheme(
   for (const f of o.flashes) {
     const left = f.until - o.now;
     if (left <= 0) continue;
-    const a = Math.min(1, left / 1500);
-    const pulse = 0.5 + 0.5 * Math.sin((1500 - left) / 90);
+    const a = o.reduced ? 1 : Math.min(1, left / 1500);
+    const pulse = o.reduced ? 1 : 0.5 + 0.5 * Math.sin((1500 - left) / 90);
     ctx.strokeStyle = cssVar(f.tone);
     ctx.globalAlpha = a * (0.45 + 0.55 * pulse);
     ctx.lineWidth = lw + 2;

@@ -22,12 +22,7 @@
   inset: 0;
   background: linear-gradient(180deg, transparent 0, var(--surface-1) 38%, var(--surface-1) 100%);
 }
-.presentation .bg-caption {
-  top: 10px; right: 18px; z-index: 1;
-  padding: 4px 8px; border-radius: 6px;
-  color: var(--text-primary); background: var(--surface-1);
-  font-size: 0.875rem;
-}
+.presentation .bg-caption { display: none; }
 .pres-stage {
   min-height: inherit;
   display: flex;
@@ -36,7 +31,14 @@
 }
 .presentation:fullscreen .pres-stage { min-height: 100vh; }
 .pres-top, .pres-controls { display: flex; gap: 12px; align-items: center; }
-.pres-top { justify-content: space-between; padding-right: clamp(0px, 21vw, 300px); }
+.pres-top { justify-content: space-between; }
+.pres-bg-label {
+  margin-left: auto;
+  max-width: 36ch;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  text-align: right;
+}
 .pres-kicker, .pres-step {
   font-size: 0.8rem;
   font-weight: 800;
@@ -186,6 +188,9 @@ html.projector .pres-content { font-size: clamp(26px, 2.2vw, 34px); }
 .pres-dots button { width: 13px; height: 13px; padding: 0; border: 1px solid var(--text-secondary); border-radius: 50%; background: var(--surface-2); cursor: pointer; }
 .pres-dots button.current { background: var(--accent); border-color: var(--accent); transform: scale(1.22); }
 .pres-key-hint { margin: 8px 0 0; color: var(--text-secondary); font-size: 0.75rem; }
+html.projector .pres-kicker,
+html.projector .pres-step,
+html.projector .pres-controls .btn { font-size: 1rem; }
 @media (max-width: 1080px) {
   .pres-grid-four, .pres-hierarchy { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pres-two-col { grid-template-columns: 1fr; }
@@ -193,7 +198,9 @@ html.projector .pres-content { font-size: clamp(26px, 2.2vw, 34px); }
 }
 @media (max-width: 680px) {
   .presentation { min-height: calc(100svh - 120px); }
-  .pres-top { padding-right: 0; }
+  .pres-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+  .pres-bg-label { grid-column: 1 / -1; grid-row: 2; margin-left: 0; max-width: none; text-align: left; }
+  .pres-counter { grid-column: 2; grid-row: 1; }
   .pres-slide { padding: 22px 0; }
   .pres-grid-two, .pres-grid-three, .pres-grid-four, .pres-hierarchy, .pres-pairs, .pres-layers { grid-template-columns: 1fr; }
   .pres-pairs > div { flex-direction: row; justify-content: space-between; align-items: baseline; }

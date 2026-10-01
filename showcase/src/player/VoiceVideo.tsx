@@ -47,13 +47,16 @@ function fitText(ctx: CanvasRenderingContext2D, value: string, maxWidth: number)
 }
 
 function drawSource(ctx: CanvasRenderingContext2D, source: HTMLCanvasElement | null, x: number, y: number, w: number, h: number): void {
+  ctx.save();
   ctx.fillStyle = cssVar("--surface-1") || "#14212a";
   ctx.fillRect(x, y, w, h);
-  if (!source || !source.width || !source.height) return;
-  const scale = Math.min(w / source.width, h / source.height);
-  const dw = source.width * scale;
-  const dh = source.height * scale;
-  ctx.drawImage(source, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  if (source && source.width && source.height) {
+    const scale = Math.min(w / source.width, h / source.height);
+    const dw = source.width * scale;
+    const dh = source.height * scale;
+    ctx.drawImage(source, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  }
+  ctx.restore();
 }
 
 /** The saved frame contains only replay canvases and literal data from this run. */
@@ -261,6 +264,8 @@ export function VoiceVideo({ clk, model, info, schemeRef, graphRef, onRecordingC
       mounted.current = false;
       const session = sessionRef.current;
       if (session) {
+        // Уход со страницы прерывает запись, поэтому не сохраняем неполный файл.
+        session.discard = true;
         cancelAnimationFrame(session.raf);
         if (session.recorder.state !== "inactive") session.recorder.stop();
         else session.stream.getTracks().forEach((track) => track.stop());

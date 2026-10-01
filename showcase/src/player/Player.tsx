@@ -104,6 +104,7 @@ export function Player({ model, info, projector }: Props) {
       if (sc && schemeSize.current.w) {
         hits.current = drawScheme(sc, schemeSize.current.w, schemeSize.current.h, model, trains, frame, {
           projector,
+          reduced,
           selected: sel.current,
           hover: hov.current,
           flashes: flashes.current,

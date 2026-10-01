@@ -292,6 +292,7 @@ export function Presentation({ runs }: { runs: RunInfo[] }) {
   const [fsError, setFsError] = useState<string | null>(null);
   const normal = runs.find((r) => r.id === "normal-42") ?? runs.find((r) => r.mode === "light" && !(r.injected ?? []).length) ?? null;
   const disrupted = runs.find((r) => r.id === "butterfly-42") ?? runs.find((r) => (r.injected ?? []).length > 0) ?? null;
+  const backgroundRun = index === 4 ? disrupted : normal;
   const { model: normalModel, error: normalError } = useReplay(normal);
   const { model: disruptionModel, error: disruptionError } = useReplay(disrupted);
   const go = useCallback((delta: number) => setIndex((i) => Math.max(0, Math.min(TITLES.length - 1, i + delta))), []);
@@ -343,9 +344,10 @@ export function Presentation({ runs }: { runs: RunInfo[] }) {
 
   return <section ref={ref} className="presentation" aria-label="Презентация Бағдара"
     onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-    <BgReplay run={index === 4 ? disrupted : normal} />
+    <BgReplay run={backgroundRun} />
     <div className="pres-stage">
       <header className="pres-top"><span className="pres-kicker">БАҒДАР · РЕЖИМ ПОКАЗА</span>
+        <span className="pres-bg-label">{backgroundRun ? `Фон — запись прогона «${backgroundRun.title}»` : "Фоновая запись недоступна"}</span>
         <span className="pres-counter" aria-live="polite">{index + 1} / {TITLES.length}</span></header>
       <article key={index} className="pres-slide" aria-labelledby="pres-title">
         <div className="pres-heading"><span className="pres-step">СЛАЙД {String(index + 1).padStart(2, "0")}</span><h1 id="pres-title">{TITLES[index]}</h1></div>

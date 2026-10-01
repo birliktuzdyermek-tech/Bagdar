@@ -1,0 +1,12 @@
+.sit-run-link {
+  display: grid;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.sit-run-link .btn {
+  justify-self: start;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}

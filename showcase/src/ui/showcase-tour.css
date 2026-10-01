@@ -28,13 +28,7 @@
 }
 .showcase-tour > .bg-replay { z-index: 0; }
 .showcase-tour .bg-replay canvas { opacity: 0.9; }
-.showcase-tour .bg-caption {
-  top: clamp(100px, 23vh, 180px);
-  right: clamp(16px, 3vw, 48px);
-  padding: 5px 10px;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
-  border-radius: 6px;
-}
+.showcase-tour .bg-caption { display: none; }
 .showcase-tour-shade {
   position: absolute;
   inset: 0;
