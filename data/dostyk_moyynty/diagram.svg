@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="630" viewBox="0 0 1600 630" role="img" aria-label="Схема двух модельных версий линии Достык — Мойынты">
+<rect width="1600" height="630" fill="#111110"/>
+<text x="55.0" y="52.0" text-anchor="start" fill="#e8f0fb" font-size="30" font-family="Arial, sans-serif">Достык — Мойынты</text>
+<text x="55.0" y="80.0" text-anchor="start" fill="#c3c2b7" font-size="17" font-family="Arial, sans-serif">35 именованных пунктов · 34 перегона · 834 км тарифный маршрут</text>
+<text x="55.0" y="80.0" text-anchor="start" fill="#e8f0fb" font-size="21" font-family="Arial, sans-serif">До второго пути — модель</text>
+<text x="1545.0" y="80.0" text-anchor="end" fill="#c3c2b7" font-size="17" font-family="Arial, sans-serif">24 синтетических поездов/сутки</text>
+<path d="M70.0,208.8 L89.7,202.7 L118.9,198.8 L139.2,194.2 L186.4,190.7 L220.7,188.2 L261.0,186.1 L290.8,181.8 L321.7,178.5 L357.2,174.6 L395.1,170.8 L433.0,167.0 L467.5,163.6 L503.6,160.1 L515.6,159.0 L524.2,160.2 L551.6,160.5 L606.6,161.3 L648.9,161.9 L699.6,162.2 L746.6,162.5 L795.2,161.7 L841.7,160.9 L884.2,160.2 L926.4,164.4 L1020.2,166.2 L1110.4,162.5 L1160.8,162.3 L1224.7,162.0 L1261.5,161.8 L1270.0,161.7 L1344.6,160.4 L1397.4,158.3 L1464.5,153.7 L1520.0,151.2" transform="translate(0 0)" fill="none" stroke="#3987e5" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="70.0" cy="208.8" r="5" fill="#ffffff"/>
+<text x="70.0" y="237.8" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Достык</text>
+<text x="70.0" y="254.8" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">0 км</text>
+<circle cx="89.7" cy="202.7" r="2.4" fill="#98a5b8"/>
+<circle cx="118.9" cy="198.8" r="2.4" fill="#98a5b8"/>
+<circle cx="139.2" cy="194.2" r="2.4" fill="#98a5b8"/>
+<circle cx="186.4" cy="190.7" r="2.4" fill="#98a5b8"/>
+<circle cx="220.7" cy="188.2" r="2.4" fill="#98a5b8"/>
+<circle cx="261.0" cy="186.1" r="2.4" fill="#98a5b8"/>
+<circle cx="290.8" cy="181.8" r="5" fill="#ffffff"/>
+<text x="290.8" y="210.8" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Бесколь</text>
+<text x="290.8" y="227.8" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">166 км</text>
+<circle cx="321.7" cy="178.5" r="2.4" fill="#98a5b8"/>
+<circle cx="357.2" cy="174.6" r="2.4" fill="#98a5b8"/>
+<circle cx="395.1" cy="170.8" r="2.4" fill="#98a5b8"/>
+<circle cx="433.0" cy="167.0" r="2.4" fill="#98a5b8"/>
+<circle cx="467.5" cy="163.6" r="2.4" fill="#98a5b8"/>
+<circle cx="503.6" cy="160.1" r="2.4" fill="#98a5b8"/>
+<circle cx="515.6" cy="159.0" r="5" fill="#ffffff"/>
+<text x="515.6" y="188.0" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Актогай</text>
+<text x="515.6" y="205.0" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">310 км</text>
+<circle cx="524.2" cy="160.2" r="2.4" fill="#98a5b8"/>
+<circle cx="551.6" cy="160.5" r="2.4" fill="#98a5b8"/>
+<circle cx="606.6" cy="161.3" r="2.4" fill="#98a5b8"/>
+<circle cx="648.9" cy="161.9" r="2.4" fill="#98a5b8"/>
+<circle cx="699.6" cy="162.2" r="2.4" fill="#98a5b8"/>
+<circle cx="746.6" cy="162.5" r="2.4" fill="#98a5b8"/>
+<circle cx="795.2" cy="161.7" r="2.4" fill="#98a5b8"/>
+<circle cx="841.7" cy="160.9" r="2.4" fill="#98a5b8"/>
+<circle cx="884.2" cy="160.2" r="5" fill="#ffffff"/>
+<text x="884.2" y="189.2" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Саяк</text>
+<text x="884.2" y="206.2" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">496 км</text>
+<circle cx="926.4" cy="164.4" r="2.4" fill="#98a5b8"/>
+<circle cx="1020.2" cy="166.2" r="2.4" fill="#98a5b8"/>
+<circle cx="1110.4" cy="162.5" r="2.4" fill="#98a5b8"/>
+<circle cx="1160.8" cy="162.3" r="2.4" fill="#98a5b8"/>
+<circle cx="1224.7" cy="162.0" r="2.4" fill="#98a5b8"/>
+<circle cx="1261.5" cy="161.8" r="2.4" fill="#98a5b8"/>
+<circle cx="1270.0" cy="161.7" r="5" fill="#ffffff"/>
+<text x="1270.0" y="190.7" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Балхаш</text>
+<text x="1270.0" y="207.7" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">702 км</text>
+<circle cx="1344.6" cy="160.4" r="2.4" fill="#98a5b8"/>
+<circle cx="1397.4" cy="158.3" r="2.4" fill="#98a5b8"/>
+<circle cx="1464.5" cy="153.7" r="2.4" fill="#98a5b8"/>
+<circle cx="1520.0" cy="151.2" r="5" fill="#ffffff"/>
+<text x="1520.0" y="180.2" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Мойынты</text>
+<text x="1520.0" y="197.2" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">834 км</text>
+<text x="55.0" y="315.0" text-anchor="start" fill="#e8f0fb" font-size="21" font-family="Arial, sans-serif">После второго пути — модель</text>
+<text x="1545.0" y="315.0" text-anchor="end" fill="#c3c2b7" font-size="17" font-family="Arial, sans-serif">120 синтетических поездов/сутки</text>
+<path d="M70.0,443.8 L89.7,437.7 L118.9,433.8 L139.2,429.2 L186.4,425.7 L220.7,423.2 L261.0,421.1 L290.8,416.8 L321.7,413.5 L357.2,409.6 L395.1,405.8 L433.0,402.0 L467.5,398.6 L503.6,395.1 L515.6,394.0 L524.2,395.2 L551.6,395.5 L606.6,396.3 L648.9,396.9 L699.6,397.2 L746.6,397.5 L795.2,396.7 L841.7,395.9 L884.2,395.2 L926.4,399.4 L1020.2,401.2 L1110.4,397.5 L1160.8,397.3 L1224.7,397.0 L1261.5,396.8 L1270.0,396.7 L1344.6,395.4 L1397.4,393.3 L1464.5,388.7 L1520.0,386.2" transform="translate(0 -4)" fill="none" stroke="#3987e5" stroke-width="3" stroke-linejoin="round"/>
+<path d="M70.0,443.8 L89.7,437.7 L118.9,433.8 L139.2,429.2 L186.4,425.7 L220.7,423.2 L261.0,421.1 L290.8,416.8 L321.7,413.5 L357.2,409.6 L395.1,405.8 L433.0,402.0 L467.5,398.6 L503.6,395.1 L515.6,394.0 L524.2,395.2 L551.6,395.5 L606.6,396.3 L648.9,396.9 L699.6,397.2 L746.6,397.5 L795.2,396.7 L841.7,395.9 L884.2,395.2 L926.4,399.4 L1020.2,401.2 L1110.4,397.5 L1160.8,397.3 L1224.7,397.0 L1261.5,396.8 L1270.0,396.7 L1344.6,395.4 L1397.4,393.3 L1464.5,388.7 L1520.0,386.2" transform="translate(0 4)" fill="none" stroke="#3987e5" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="70.0" cy="443.8" r="5" fill="#ffffff"/>
+<text x="70.0" y="471.8" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Достык</text>
+<text x="70.0" y="488.8" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">0 км</text>
+<circle cx="89.7" cy="437.7" r="2.4" fill="#98a5b8"/>
+<circle cx="118.9" cy="433.8" r="2.4" fill="#98a5b8"/>
+<circle cx="139.2" cy="429.2" r="2.4" fill="#98a5b8"/>
+<circle cx="186.4" cy="425.7" r="2.4" fill="#98a5b8"/>
+<circle cx="220.7" cy="423.2" r="2.4" fill="#98a5b8"/>
+<circle cx="261.0" cy="421.1" r="2.4" fill="#98a5b8"/>
+<circle cx="290.8" cy="416.8" r="5" fill="#ffffff"/>
+<text x="290.8" y="444.8" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Бесколь</text>
+<text x="290.8" y="461.8" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">166 км</text>
+<circle cx="321.7" cy="413.5" r="2.4" fill="#98a5b8"/>
+<circle cx="357.2" cy="409.6" r="2.4" fill="#98a5b8"/>
+<circle cx="395.1" cy="405.8" r="2.4" fill="#98a5b8"/>
+<circle cx="433.0" cy="402.0" r="2.4" fill="#98a5b8"/>
+<circle cx="467.5" cy="398.6" r="2.4" fill="#98a5b8"/>
+<circle cx="503.6" cy="395.1" r="2.4" fill="#98a5b8"/>
+<circle cx="515.6" cy="394.0" r="5" fill="#ffffff"/>
+<text x="515.6" y="422.0" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Актогай</text>
+<text x="515.6" y="439.0" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">310 км</text>
+<circle cx="524.2" cy="395.2" r="2.4" fill="#98a5b8"/>
+<circle cx="551.6" cy="395.5" r="2.4" fill="#98a5b8"/>
+<circle cx="606.6" cy="396.3" r="2.4" fill="#98a5b8"/>
+<circle cx="648.9" cy="396.9" r="2.4" fill="#98a5b8"/>
+<circle cx="699.6" cy="397.2" r="2.4" fill="#98a5b8"/>
+<circle cx="746.6" cy="397.5" r="2.4" fill="#98a5b8"/>
+<circle cx="795.2" cy="396.7" r="2.4" fill="#98a5b8"/>
+<circle cx="841.7" cy="395.9" r="2.4" fill="#98a5b8"/>
+<circle cx="884.2" cy="395.2" r="5" fill="#ffffff"/>
+<text x="884.2" y="423.2" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Саяк</text>
+<text x="884.2" y="440.2" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">496 км</text>
+<circle cx="926.4" cy="399.4" r="2.4" fill="#98a5b8"/>
+<circle cx="1020.2" cy="401.2" r="2.4" fill="#98a5b8"/>
+<circle cx="1110.4" cy="397.5" r="2.4" fill="#98a5b8"/>
+<circle cx="1160.8" cy="397.3" r="2.4" fill="#98a5b8"/>
+<circle cx="1224.7" cy="397.0" r="2.4" fill="#98a5b8"/>
+<circle cx="1261.5" cy="396.8" r="2.4" fill="#98a5b8"/>
+<circle cx="1270.0" cy="396.7" r="5" fill="#ffffff"/>
+<text x="1270.0" y="424.7" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Балхаш</text>
+<text x="1270.0" y="441.7" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">702 км</text>
+<circle cx="1344.6" cy="395.4" r="2.4" fill="#98a5b8"/>
+<circle cx="1397.4" cy="393.3" r="2.4" fill="#98a5b8"/>
+<circle cx="1464.5" cy="388.7" r="2.4" fill="#98a5b8"/>
+<circle cx="1520.0" cy="386.2" r="5" fill="#ffffff"/>
+<text x="1520.0" y="414.2" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Мойынты</text>
+<text x="1520.0" y="431.2" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">834 км</text>
+<text x="55.0" y="594.0" text-anchor="start" fill="#c3c2b7" font-size="14" font-family="Arial, sans-serif">Схема по открытым данным. Движение смоделировано. Позиции промежуточных пунктов на схеме интерполированы.</text>
+<text x="55.0" y="616.0" text-anchor="start" fill="#c3c2b7" font-size="13" font-family="Arial, sans-serif">836 км — отдельная проектная длина второго пути; 12→60 пар/сутки — проектная способность, не измеренный поток.</text>
+</svg>
