@@ -1,0 +1,22 @@
+# Первая волна, № 13 «Тихое насыщение».
+id: saturation
+title: Тихое насыщение
+summary: >
+  Ничего не ломается. Просто каждые полчаса приходит пара лишних грузовых,
+  и поездов чуть больше, чем участок способен пропустить. Очереди растут на
+  минуты в час. Радар насыщения по тренду предупреждает заранее, когда участок
+  перестанет справляться, и предлагает скучное дешёвое решение: придержать
+  несколько грузовых на станциях отправления.
+mode: light
+seed: 42
+start_time: "06:00"
+difficulty: 3
+wave: 1
+disruptions:
+  - {at: "06:10", type: add_trains, params: {count: 2, within_min: 30}}
+  - {at: "06:40", type: add_trains, params: {count: 2, within_min: 30}}
+  - {at: "07:10", type: add_trains, params: {count: 2, within_min: 30}}
+  - {at: "07:40", type: add_trains, params: {count: 2, within_min: 30}}
+  - {at: "08:10", type: add_trains, params: {count: 2, within_min: 30}}
+  - {at: "08:40", type: add_trains, params: {count: 2, within_min: 30}}
+  - {at: "09:10", type: add_trains, params: {count: 2, within_min: 30}}

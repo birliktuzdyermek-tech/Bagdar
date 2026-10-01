@@ -124,6 +124,13 @@ export function GanttChart() {
           { x: params.coordSys.x, y: params.coordSys.y, width: params.coordSys.width, height: params.coordSys.height },
         );
         if (!rect) return undefined;
+        if (m.b.kind === "blocked") {
+          // ресурс недоступен из-за сбоя: полупрозрачная полоса с обводкой
+          return {
+            type: "rect", shape: { ...rect, r: 2 },
+            style: { fill: tokens["--serious"], opacity: 0.22, stroke: tokens["--serious"], lineWidth: 1.2, lineDash: [4, 3] },
+          };
+        }
         const tr = idx.trains.get(m.b.train_id);
         const col = groupColor(tokens, tr ? classGroup(tr.cls) : "freight");
         const isSel = selectedTrain === m.b.train_id;
@@ -157,6 +164,9 @@ export function GanttChart() {
         formatter: (p: { dataIndex: number }) => {
           const m = items[p.dataIndex];
           if (!m) return "";
+          if (m.b.kind === "blocked") {
+            return `<b>Недоступен из-за сбоя</b><br/>${m.row.label.trim()}<br/>${clock(m.b.t0, false)}–${clock(m.b.t1, false)}`;
+          }
           const tr = idx.trains.get(m.b.train_id);
           const src = m.b.source === "fact" ? "факт" : `${which === "current" ? "действующий" : "предыдущий"} план v${data.plan_version}`;
           const esc = (x: string) => x.replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]!));
@@ -245,6 +255,7 @@ export function GanttChart() {
         <span className="legend-item"><span className="bar-key" /> план</span>
         <span className="legend-item"><span className="bar-key bar-key-changed" /> отличается в другом плане</span>
         <span className="legend-item"><span className="tri-key" aria-hidden>▲</span> прогнозный конфликт</span>
+        <span className="legend-item"><span className="bar-key bar-key-blocked" /> недоступен (сбой)</span>
         <span className="legend-item muted">цвет — класс поезда, клик по полосе — выбрать поезд</span>
       </div>
     </div>

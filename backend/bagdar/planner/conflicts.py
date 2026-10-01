@@ -82,12 +82,19 @@ def project_conflicts(engine, plan: Plan, horizon_s: float = 3600, limit: int = 
     # пары, где хотя бы один поезд уже вошёл на перегон, разрешит блокировка (второй подождёт) —
     # это задержка, а не будущий конфликт; оставляем только пары ещё не начатых плеч
     entered = engine.entered
-    violations = [v for v in validate_plan(engine.world, trains, shifted, engine.rules, since=now)
+    il = engine.il
+    blocked = [(sid, now, x.closed_until if x.closed_until is not None else now + 1e7)
+               for sid, x in il.sections.items() if x.status == "closed"]
+    blocked += [(tid, now, now + 1e7) for tid, x in il.tracks.items() if not x.available]
+    pab = {(sid, d) for sid in engine.world.sections for d in (1, -1)
+           if (g := engine.world.exit_signal(sid, d)) in il.signals and il.signals[g].fault}
+    violations = [v for v in validate_plan(engine.world, trains, shifted, engine.rules, since=now,
+                                           blocked=blocked, pab=pab)
                   if not (v.kind in ("section", "headway") and _any_entered(shifted, v, entered))]
     res: list[dict] = []
     seen: set[tuple] = set()
     for v in sorted(violations, key=lambda x: x.t):
-        if v.t > now + horizon_s or v.kind in ("runtime", "dwell"):
+        if v.t > now + horizon_s + (3600 if v.kind == "closed" else 0) or v.kind in ("runtime", "dwell"):
             continue
         key = (v.kind, v.resource, tuple(sorted(v.trains)))
         if key in seen:

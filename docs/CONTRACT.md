@@ -38,7 +38,10 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | GET | `/api/occupancy?which=current\|previous&t_from=&t_to=` | Занятость путей и перегонов для Ганта: факт до текущего момента, дальше план; `changed` — отличается в другом плане (`OccupancyOut`) |
 | GET | `/api/planner` | Статус планировщика и история пересчётов: время, решатель, кандидаты, J |
 | POST | `/api/plan/replan` | Пересчитать план сейчас |
-| POST | `/api/events` | Внешнее событие: `{type: "train_delay", train_id, minutes}` |
+| POST | `/api/events` | Внешнее событие или сбой (`EventIn`): `{type, ...}` — `train_delay`, `section_closed`, `signal_fault`, `track_unavailable`, `switch_fault`, `speed_restriction`, `add_trains`, `extra_train`, `hold_at_origin`; параметры — в [`INCIDENTS.md`](INCIDENTS.md). 422 — событие нельзя применить (нет перегона, путь уже выключен) |
+| GET | `/api/incidents` | Сбои текущего прогона с отчётом «до / после» и очередь событий сценария (`IncidentsOut`) |
+| POST | `/api/incidents/{id}/restore` | Снять действующий сбой вручную; 409 — сбой уже снят или разовый |
+| GET | `/api/saturation` | Радар насыщения и варианты придержания грузовых на 4 ч (`SaturationOut`) |
 | GET | `/api/events?since=&limit=&min_severity=` | Журнал событий текущего прогона |
 | GET | `/api/scenarios` | Список сценариев |
 | POST | `/api/sim/control` | `{action: start\|pause\|speed\|step\|reset, speed?, step_s?}` |
@@ -65,7 +68,9 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 5. `state {...}` — полный снимок динамики, включая `planner` (версия и применённая версия плана,
    решатель, статус, время пересчёта, число прогнозных конфликтов, открытые окна отмены и
    выбора `actions[]`, «полный авто», прогноз восстановления `recovery`, прогноз индекса
-   `forecast`), `conflicts[]` (прогноз на час) и `index` (индекс с факторами и причинами).
+   `forecast`), `conflicts[]` (прогноз на час), `index` (индекс с факторами и причинами),
+   `incidents[]` (действующие сбои с таймером), `scenario_next` (ближайшее событие сценария) и
+   `radar` (радар насыщения).
 
 Дальше `state` идёт с частотой `sim.broadcast_hz` (10 Гц в лёгком режиме), пока
 симуляция идёт или что-то изменилось, `events` и `decisions` — сразу по мере появления. При загрузке
@@ -102,11 +107,11 @@ StateOut      run_id, world_version, seq, tick, t, running, speed,
               metrics{active_trains,avg_delay_s,max_delay_s,on_time_share,waiting_trains,...},
               perf{step_us,tick_ms,steps_per_s,load_ms}
 
-PlanOut       version, created_at, solver(cpsat|greedy|repair|hold), status(feasible|delayed|infeasible),
+PlanOut       version, created_at, solver(cpsat|greedy|repair|fifo|hold|dispatcher), status(feasible|delayed|infeasible),
               compute_ms, notes[], cost{}, horizon_end, hold_all, held[],
               legs[{train_id,k,section_id,from_id,to_id,direction,dep,arr,track_id,stop}]
 
-DecisionCardOut id, plan_version, t, type(crossing|overtake|track|no_plan), level(A|B|C),
+DecisionCardOut id, plan_version, t, type(crossing|overtake|track|no_plan|incident), level(A|B|C),
               station_id, section_id, trains[], action, reason, alternative,
               cost_plan, cost_alt, delta_cost, delta_money, alt_pte_violations, alt_feasible,
               wait_min, effects[], note, full_auto,
@@ -114,14 +119,29 @@ DecisionCardOut id, plan_version, t, type(crossing|overtake|track|no_plan), leve
               index_before (прогноз с альтернативой), index_after (с решением),
               status(applied|pending|proposed|cancelled|chosen|expired|superseded),
               can_cancel, can_choose, variants[{id,title,solver,valid,J,delta_money,
-              late_pax,pte_violations,note}], chosen_variant, choice_card, outcome
+              late_pax,pte_violations,note}], chosen_variant, choice_card, outcome,
+              incident_id, report{before, plan, no_change, fifo, tree} (у карточки сбоя)
 
 IndexOut      t, value(0–100|null), status(norm|warning|critical|no_data), status_label,
               factors[{key,label,weight,weight_eff,score|null,available,value_text,note,lost}],
               reasons[], missing[]
 
 OccupancyOut  which, plan_version, t, items[{resource,train_id,t0,t1,
-              kind(stand|pass|section|hold),source(fact|plan),changed}]
+              kind(stand|pass|section|hold|blocked),source(fact|plan|fault),changed}]
+              (blocked — закрытый перегон или выключенный путь на время сбоя)
+
+IncidentOut   id, t, kind, level(A|B|C), title, params, source(dispatcher|scenario), resource,
+              station_id, section_id, train_ids[], until, status(active|resolved|done), resolved_at,
+              before{index, forecast, affected, recovery_at, plan_version, J, conflicts, first_conflict},
+              after{plan, no_change, fifo — IncidentSummaryOut; tree}
+
+IncidentSummaryOut J, J_lex, delay_min, affected (задето волной), delay_add_min, late_trains,
+              recovery_at, beyond, forecast, pte, stuck (застряло в плане), plan_version, solver,
+              status, compute_ms, valid, why, deadlock, same, tree
+
+SaturationOut radar{status(no_data|ok|warning|critical), eta_s, text, delay_slope_min_h,
+              load_slope_pct_h, queue, delay_now_min, load_now_pct}, t, horizon_h,
+              options[{id, hold, train_ids[], numbers[], minutes, J, J_lex, stuck, avg_late_min, title}], best
 
 EventOut      seq, t, kind, severity(debug|info|warn|critical), message,
               train_id?, station_id?, section_id?, data{}

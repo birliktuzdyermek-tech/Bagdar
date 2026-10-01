@@ -2,7 +2,7 @@
 // причины ухудшения, прогноз по плану на час и динамика во времени.
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { IndexFactor, IndexPoint } from "../api/types";
+import type { IndexFactor, IndexPoint, Saturation } from "../api/types";
 import { useAlarms } from "../lib/alarms";
 import { useEChart } from "../lib/echarts";
 import { clock, num } from "../lib/format";
@@ -38,6 +38,58 @@ function FactorRow({ f }: { f: IndexFactor }) {
         {f.available ? `${f.value_text} · вес ${num(f.weight_eff * 100)} %` : `нет данных: ${f.note}`}
       </span>
     </li>
+  );
+}
+
+function RadarBox() {
+  const radar = useSim((s) => s.state?.radar ?? null);
+  const setError = useSim((s) => s.setError);
+  const [sat, setSat] = useState<Saturation | null>(null);
+  const [busy, setBusy] = useState(false);
+  if (!radar || radar.status === "no_data" || radar.status === "ok") {
+    return radar && radar.status === "ok" ? <div className="muted small">Радар насыщения: {radar.text}</div> : null;
+  }
+  const evaluate = async () => {
+    setBusy(true);
+    try {
+      setSat(await api.saturation());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const applyOpt = async (ids: string[], minutes: number) => {
+    try {
+      await api.event({ type: "hold_at_origin", train_ids: ids, minutes });
+      setSat(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+  return (
+    <div className={`radar st-${radar.status}`} role="status">
+      <b>Радар насыщения.</b> {radar.text}
+      <div style={{ marginTop: 4 }}>
+        <button className="btn btn-small" onClick={evaluate} disabled={busy}>
+          {busy ? "считаю…" : "Варианты придержания"}
+        </button>
+      </div>
+      {sat && (
+        <ul className="meter-opts">
+          {sat.options.map((o) => (
+            <li key={o.id} className={o.id === sat.best ? "best" : ""}>
+              <span>{o.id === sat.best ? "✓ " : ""}{o.title}{o.numbers.length ? ` (${o.numbers.join(", ")})` : ""}</span>
+              {o.hold > 0 && <button className="btn btn-small" onClick={() => applyOpt(o.train_ids, o.minutes)}>Применить</button>}
+              <span className="muted small">
+                на {sat.horizon_h} ч: ср. опоздание {num(o.avg_late_min, 1)} мин, цена {num(o.J_lex)} у.е.{o.stuck ? `, застряло ${o.stuck}` : ""}
+              </span>
+            </li>
+          ))}
+          <li className="muted small" style={{ border: 0 }}>Оценка — быстрой событийной моделью на {sat.horizon_h} ч вперёд, приблизительная.</li>
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -137,6 +189,7 @@ export function IndexPanel() {
             )}
           </div>
         </div>
+        <RadarBox />
         {index && index.reasons.length > 0 ? (
           <ul className="reasons" aria-label="Что тянет индекс вниз">
             {index.reasons.slice(0, 2).map((r) => <li key={r} title={r}>{r}</li>)}

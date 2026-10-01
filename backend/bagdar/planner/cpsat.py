@@ -31,12 +31,12 @@ from dataclasses import dataclass, field
 from ortools.sat.python import cp_model
 
 from bagdar.models.plan import Plan, PlanLeg, StartHold
-from bagdar.planner.economics import PAX_STOP_FACTOR, PTE_WINDOW_S, stop_cost
+from bagdar.planner.economics import EXTRA_PENALTY as EXTRA_PENALTY_PER_CASE, PTE_PENALTY_PER_MIN, PAX_STOP_FACTOR, PTE_WINDOW_S, stop_cost
 from bagdar.planner.inputs import PlanningInput
 
 DET_RATIO = 8.0
-EXTRA_PENALTY = 100 * 20000          # 20 000 у.е. за каждый случай «внеочередной не первым»
-PTE_PENALTY = int(100 * 1000 / 60)   # 1000 у.е. за минуту сверх допуска старшего (в сотых, за секунду)
+EXTRA_PENALTY = int(100 * EXTRA_PENALTY_PER_CASE)   # слой 1, в сотых долях у.е. за случай
+PTE_PENALTY = int(round(100 * PTE_PENALTY_PER_MIN / 60))   # в сотых долях у.е. за секунду превышения
 
 STATUS_NAME = {cp_model.OPTIMAL: "optimal", cp_model.FEASIBLE: "feasible", cp_model.INFEASIBLE: "infeasible",
                cp_model.MODEL_INVALID: "invalid", cp_model.UNKNOWN: "unknown"}
@@ -132,13 +132,20 @@ def solve_cpsat(inp: PlanningInput, ref: Plan | None, time_limit_s: float, worke
             continue
         k0 = ti.first_leg()
         chosen: list[int] = []
+        # опорный план потерял поезд, ждущий отправления (эвристика его не отправила): планируем его
+        # целиком, иначе CP-SAT молча выбросит поезд из плана. Поезда, брошенные опорным планом посреди
+        # горизонта, так не достраиваются: с подсказкой «после всех» фаза А для них невыполнима
+        lost = ref is not None and ti.phase == "pending" and not ref.legs.get(tid)
         for k in range(k0, len(ti.legs)):
             if ti.phase == "section" and k == ti.k:
                 chosen.append(k)
                 continue
+            cw = inp.closed_sections.get(ti.legs[k].sec.id)
+            if cw is not None and cw[1] >= inp.horizon_end:
+                break        # перегон закрыт до конца горизонта: дальше поезд не планируется, ждёт на станции
             e = ti.earliest_dep[k]
             rl = ref_leg(tid, k)
-            if rl is None and ref is not None and "allegs" not in debug_disable:
+            if rl is None and ref is not None and not lost and "allegs" not in debug_disable:
                 break
             start = min(e if e is not None else 1e18, rl.dep if rl else 1e18)
             if start > inp.horizon_end:
@@ -158,6 +165,9 @@ def solve_cpsat(inp: PlanningInput, ref: Plan | None, time_limit_s: float, worke
                 dep: object = rel(ti.since)
             else:
                 lb = rel(ti.earliest_dep[k]) if ti.earliest_dep[k] is not None else 0
+                cw = inp.closed_sections.get(li.sec.id)
+                if cw is not None:
+                    lb = max(lb, rel(cw[1]))     # закрытый перегон: вход не раньше открытия
                 dep = m.new_int_var(max(0, lb), DOM, f"dep_{tid}_{k}")
                 if rl:
                     hints.append((dep, max(max(0, lb), rel(rl.dep))))
@@ -375,7 +385,7 @@ def solve_cpsat(inp: PlanningInput, ref: Plan | None, time_limit_s: float, worke
                     continue
                 if sec.tracks == 2 and lp.d != lq.d:
                     continue
-                exclusive = lp.d != lq.d or sec.signalling == "PAB"
+                exclusive = lp.d != lq.d or sec.signalling == "PAB" or (sid, lp.d) in inp.pab
                 fixed: bool | None = None          # True — p раньше q
                 if p.entered and not q.entered:
                     fixed = True
@@ -394,13 +404,21 @@ def solve_cpsat(inp: PlanningInput, ref: Plan | None, time_limit_s: float, worke
                          (prev_order[(p.tid, p.k)] <= prev_order[(q.tid, q.k)]) == (p.ref_dep <= q.ref_dep)):
                     # заморозка: ближайшие решения прошлого плана не меняются
                     fixed = prev_order[(p.tid, p.k)] <= prev_order[(q.tid, q.k)]
-                elif p.in_ref and q.in_ref and abs(p.ref_dep - q.ref_dep) > W and "window" not in debug_disable:
+                elif p.in_ref and q.in_ref and abs(p.ref_dep - q.ref_dep) > W and "window" not in debug_disable \
+                        and not (cfg.pte_strict and tp.rank != tq.rank and
+                                 (tp.rank > tq.rank) == (p.ref_dep <= q.ref_dep)):
+                    # далёкие пары не переупорядочиваются; но «младший впереди старшего» в строгом ПТЭ
+                    # оставляем решателю: за время решения поезда сближаются и пара может стать нарушением
                     fixed = p.ref_dep <= q.ref_dep
                 if fixed is None:
                     b = m.new_bool_var(f"b_{p.tid}_{p.k}_{q.tid}_{q.k}")
                     st.order_vars += 1
                     if p.in_ref and q.in_ref:
                         hints.append((b, 1 if p.ref_dep <= q.ref_dep else 0))   # согласованная подсказка
+                    elif p.in_ref != q.in_ref and tp.extra == tq.extra:
+                        # поезд, потерянный опорным планом, в подсказке идёт после всех — фаза А остаётся
+                        # выполнимой, а решатель сам подвинет его вперёд, если есть окно
+                        hints.append((b, 1 if p.in_ref else 0))
                     elif tp.extra != tq.extra:
                         hints.append((b, 1 if tp.extra else 0))
                     if tp.extra != tq.extra:
@@ -425,8 +443,9 @@ def solve_cpsat(inp: PlanningInput, ref: Plan | None, time_limit_s: float, worke
                             c.only_enforce_if(lit)
                 if fixed is None:
                     # слой 2: младший вперёд старшего — только если старший в допуске
+                    # окно шире, чем в оценке плана: за время решения поезда сдвигаются и могут сблизиться
                     if cfg.pte_strict and tp.rank != tq.rank and not tp.extra and not tq.extra \
-                            and abs(p.ref_dep - q.ref_dep) <= PTE_WINDOW_S:
+                            and abs(p.ref_dep - q.ref_dep) <= 2 * PTE_WINDOW_S:
                         senior, s_leg, junior_first = (p, lp, b.Not()) if tp.rank < tq.rank else (q, lq, b)
                         ts_ = inp.trains[senior.tid]
                         if s_leg.sched_arr_next is not None:

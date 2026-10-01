@@ -19,12 +19,19 @@ from bagdar.models.plan import Plan, PlanLeg, StartHold
 from bagdar.planner.cpsat import CpStats, solve_cpsat
 from bagdar.planner.decisions import CardCtx, build_cards
 from bagdar.planner.economics import CostBreakdown, override_violations, plan_cost
-from bagdar.planner.forward import ForwardResult, run_greedy, run_repair
+from bagdar.planner.forward import ForwardResult, run_fifo, run_greedy, run_repair
 from bagdar.planner.inputs import PlanningInput
 from bagdar.validator import validate_plan
 
 log = logging.getLogger("bagdar.planner")
 RESERVE_S = 0.4   # запас бюджета после CP-SAT: проверка кандидатов и карточки решений
+
+
+def blocked_of(inp: PlanningInput) -> list[tuple[str, float, float]]:
+    """Закрытые перегоны и недоступные пути — для независимой проверки плана."""
+    out = [(sid, a, b) for sid, (a, b) in inp.closed_sections.items()]
+    out += [(tid, inp.t0, inp.t0 + 1e7) for tid in inp.unavailable_tracks]
+    return out
 
 
 @dataclass
@@ -80,6 +87,8 @@ class PlanResult:
     late_trains: list[str] = field(default_factory=list)
     card_ctx: dict[str, CardCtx] = field(default_factory=dict)
     variants: dict[str, list[Variant]] = field(default_factory=dict)
+    inp: PlanningInput | None = None          # снимок, по которому считали (для разбора инцидентов)
+    incident_ids: list[str] = field(default_factory=list)
 
     def stats(self) -> dict:
         return {
@@ -99,8 +108,7 @@ class Planner:
         if cand.plan is None:
             return cand
         trains = {tid: ti.train for tid, ti in inp.trains.items()}
-        blocked = [(sid, a, b) for sid, (a, b) in inp.closed_sections.items()]
-        v = validate_plan(inp.world, trains, cand.plan, inp.rules, blocked=blocked, since=inp.t0)
+        v = validate_plan(inp.world, trains, cand.plan, inp.rules, blocked=blocked_of(inp), since=inp.t0, pab=inp.pab)
         cand.violations = [x.message for x in v] + override_violations(inp, cand.plan)
         cand.valid = not cand.violations and not cand.deadlock
         cand.cost = plan_cost(inp, cand.plan)
@@ -126,6 +134,12 @@ class Planner:
             rp = self._check(inp, self._from_forward("repair", run_repair(inp, inp.prev_plan), 0.0))
             rp.ms = timings["repair_ms"] = (time.perf_counter() - t) * 1000
             cands.append(rp)
+        # «кто первый пришёл» с защитой от замка — тоже кандидат: дешёвый, и опубликованный план
+        # по построению не хуже простого правила
+        t = time.perf_counter()
+        ff = self._check(inp, self._from_forward("fifo", run_fifo(inp, anti_lock=True), 0.0))
+        ff.ms = timings["fifo_ms"] = (time.perf_counter() - t) * 1000
+        cands.append(ff)
         heur = [c for c in cands if c.valid]
         ref = min(heur, key=lambda c: c.cost.lex).plan if heur else None
 
@@ -203,7 +217,7 @@ class Planner:
         timings["total_ms"] = (time.perf_counter() - t_all) * 1000
         return PlanResult(plan=plan, status=status, solver=solver, cost=cost, candidates=cands, cp=cp,
                           timings=timings, cards=cards, t0=inp.t0, reason=inp.reason, late_trains=late,
-                          card_ctx=ctx, variants=variants)
+                          card_ctx=ctx, variants=variants, inp=inp)
 
     def _late_pax(self, inp: PlanningInput, cost: CostBreakdown) -> int:
         return sum(1 for tid, tc in cost.per_train.items()
@@ -234,7 +248,8 @@ class Planner:
                 continue
             title = {"repair": "Сохранить прежний порядок всех поездов",
                      "greedy": "Другой план: эвристика по классу и весу поездов",
-                     "cpsat": "Другой план: решатель CP-SAT"}.get(c.name, c.name)
+                     "cpsat": "Другой план: решатель CP-SAT",
+                     "fifo": "Другой план: «кто первый пришёл» без приоритетов, с защитой от замка"}.get(c.name, c.name)
             out.append(Variant(f"v{len(out) + 1}", title, c.name, c.plan, c.cost, True, self._late_pax(inp, c.cost)))
             seen.append(c.cost.total)
         return out

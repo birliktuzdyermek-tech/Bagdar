@@ -77,6 +77,12 @@ def get_index(request: Request, since: float | None = Query(None)) -> dict:
     return rt(request).index_payload(since)
 
 
+@router.get("/saturation", response_model=S.SaturationOut, tags=["planner"],
+            summary="Радар насыщения и варианты придержания грузовых (оценка на 4 ч вперёд)")
+def get_saturation(request: Request) -> dict:
+    return rt(request).saturation_payload()
+
+
 @router.get("/traces", response_model=S.TracesOut, tags=["state"],
             summary="Факт движения для графика: точки [t, км] по поездам после since")
 def get_traces(request: Request, since: float = Query(0.0)) -> dict:
@@ -107,13 +113,33 @@ def replan(request: Request) -> dict:
 
 
 @router.post("/events", response_model=S.EventAck, tags=["simulation"],
-             summary="Внешнее событие (в демо: задержка поезда; сбои — этап 4)")
+             summary="Внешнее событие или сбой: задержка, закрытие перегона, отказ светофора или стрелки, "
+                     "недоступный путь, ограничение скорости, рост потока, внеочередной поезд")
 def post_event(body: S.EventIn, request: Request) -> dict:
     r = rt(request)
     try:
         msg = r.external_event(body.type, body.model_dump(exclude_none=True))
     except (ValueError, KeyError) as e:
         raise HTTPException(422, str(e)) from e
+    return {"ok": True, "message": msg}
+
+
+@router.get("/incidents", response_model=S.IncidentsOut, tags=["simulation"],
+            summary="Инциденты прогона с разбором «до / после» и таймерами")
+def get_incidents(request: Request) -> dict:
+    r = rt(request)
+    tl = [{"t": t, "kind": k, "source": src, "params": p} for t, _, k, p, src in r.incidents.timeline]
+    return {"run_id": r.run_id, "incidents": r.incidents.payload(), "timeline": tl}
+
+
+@router.post("/incidents/{inc_id}/restore", response_model=S.EventAck, tags=["simulation"],
+             summary="Снять сбой раньше таймера (открыть перегон, починить светофор или стрелку)")
+def restore_incident(inc_id: str, request: Request) -> dict:
+    r = rt(request)
+    try:
+        msg = r.restore_incident(inc_id)
+    except ValueError as e:
+        raise HTTPException(409, str(e)) from e
     return {"ok": True, "message": msg}
 
 

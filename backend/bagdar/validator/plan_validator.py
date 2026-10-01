@@ -33,6 +33,7 @@ class _Hold:
     train: str
     t0: float
     t1: float
+    committed: bool = False   # поезд уже стоит на пути или едет к нему по заданному маршруту
 
 
 def _overlap(a0: float, a1: float, b0: float, b1: float, gap: float = 0.0) -> bool:
@@ -41,10 +42,16 @@ def _overlap(a0: float, a1: float, b0: float, b1: float, gap: float = 0.0) -> bo
 
 def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: TimingRules,
                   blocked: list[tuple[str, float, float]] | None = None,
-                  since: float | None = None) -> list[Violation]:
+                  since: float | None = None,
+                  pab: set[tuple[str, int]] | frozenset | None = None) -> list[Violation]:
     """since — момент построения плана. Плечи, начавшиеся раньше, — уже
     свершившийся факт: пары таких плеч между собой не проверяются, а их
-    прошлые окна горловин не учитываются."""
+    прошлые окна горловин не учитываются.
+    blocked — закрытые перегоны и недоступные пути (ресурс, с, по): на них нельзя
+    планировать новых движений; поезд, который уже на перегоне или уже стоит на
+    пути (или едет к нему по заданному маршруту), — свершившийся факт.
+    pab — (перегон, направление) с неисправным светофором: попутные по одному."""
+    pab = pab or frozenset()
     out: list[Violation] = []
     t_from = -1e18 if since is None else since
 
@@ -56,7 +63,7 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
 
     for tid, sh in plan.start_hold.items():
         if sh.until is not None and not plan.legs.get(tid):
-            track_holds[sh.track_id].append(_Hold(tid, max(sh.since, t_from), sh.until))
+            track_holds[sh.track_id].append(_Hold(tid, max(sh.since, t_from), sh.until, True))
     for tid, legs in plan.legs.items():
         tr = trains.get(tid)
         if tr is None or not legs:
@@ -101,7 +108,7 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
                 h1 = leg.arr + rules.terminate_s
             else:
                 h1 = leg.arr + rules.clear_s
-            track_holds[leg.track_id].append(_Hold(tid, h0, h1))
+            track_holds[leg.track_id].append(_Hold(tid, h0, h1, committed=started(leg)))
             # горловины
             stopped_before = (i == 0 and (leg.k == 0 or tid in plan.start_hold)) or (i > 0 and legs[i - 1].stop)
             d0 = leg.dep if stopped_before else leg.dep - rules.approach_s
@@ -112,7 +119,7 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
         sh = plan.start_hold.get(tid)
         if sh is not None:
             # поезд стоит на станции в момент построения плана
-            track_holds[sh.track_id].append(_Hold(tid, max(sh.since, t_from), first.dep + rules.clear_s))
+            track_holds[sh.track_id].append(_Hold(tid, max(sh.since, t_from), first.dep + rules.clear_s, True))
         elif first.k == 0 and tid in plan.origin_track:
             # путь на станции формирования
             track_holds[plan.origin_track[tid]].append(
@@ -130,7 +137,7 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
                     continue
                 if started(a) and started(b):
                     continue
-                if a.direction != b.direction or sec.signalling == "PAB":
+                if a.direction != b.direction or sec.signalling == "PAB" or (sid, a.direction) in pab:
                     if _overlap(a.dep, a.arr, b.dep, b.arr, rules.tau_cross_s):
                         kind = "section"
                         what = "встречные" if a.direction != b.direction else "два поезда при ПАБ"
@@ -186,11 +193,11 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
     # закрытые элементы
     for res, t0, t1 in blocked or []:
         for leg in by_section.get(res, []):
-            if _overlap(leg.dep, leg.arr, t0, t1):
+            if not started(leg) and _overlap(leg.dep, leg.arr, t0, t1):
                 out.append(Violation("closed", res, [leg.train_id], max(leg.dep, t0),
                                      f"Поезд {trains[leg.train_id].number} запланирован на закрытый {res}"))
         for h in track_holds.get(res, []):
-            if _overlap(h.t0, h.t1, t0, t1):
+            if not h.committed and _overlap(h.t0, h.t1, t0, t1):
                 out.append(Violation("closed", res, [h.train], max(h.t0, t0),
                                      f"Поезд {trains[h.train].number} запланирован на недоступный путь {res}"))
     return out

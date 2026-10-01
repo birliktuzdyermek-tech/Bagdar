@@ -49,6 +49,7 @@ class ReservationTable:
         self.sec: dict[str, list[SecRes]] = defaultdict(list)
         self.trk: dict[str, list[Interval]] = defaultdict(list)
         self.thr: dict[str, list[Interval]] = defaultdict(list)
+        self.pab: set[tuple[str, int]] = set()      # (перегон, направление): светофор неисправен — как ПАБ
 
     def section_retry(self, sec: Section, d: int, t_in: float, t_out: float) -> float | None:
         r = self.r
@@ -56,7 +57,7 @@ class ReservationTable:
         for res in self.sec[sec.id]:
             if sec.tracks == 2 and res.direction != d:
                 continue  # двухпутный: встречные на разных путях
-            if res.direction != d or sec.signalling == "PAB":
+            if res.direction != d or sec.signalling == "PAB" or (sec.id, d) in self.pab:
                 # встречные на однопутном или любой поезд при ПАБ — взаимное исключение
                 if t_in < res.t_out + r.tau_cross_s and res.t_in < t_out + r.tau_cross_s:
                     cand = res.t_out + r.tau_cross_s

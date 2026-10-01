@@ -23,6 +23,7 @@ from bagdar.core.rules import TimingRules
 from bagdar.generator.timetable import TimetableBuilder
 from bagdar.generator.trains_gen import TrafficParams, generate_traffic
 from bagdar.generator.world_gen import CorridorParams, generate_world
+from bagdar.incidents import IncidentManager
 from bagdar.index import IndexTracker
 from bagdar.models.plan import Plan
 from bagdar.models.train import Train
@@ -79,6 +80,7 @@ class SimulationRuntime:
         self._world_payload: dict | None = None
         self.planner = PlannerRunner(self, sync=planner_sync)
         self.index = IndexTracker(cfg)
+        self.incidents = IncidentManager(self)
 
     # ------------------------------------------------------------ загрузка мира
     def load(self, scenario_id: str | None = None, seed: int | None = None) -> None:
@@ -112,6 +114,7 @@ class SimulationRuntime:
         log.info("load scenario=%s seed=%s trains=%d dropped=%d build_ms=%.0f total_ms=%.0f",
                  sc.id, seed, len(tt.trains), len(tt.dropped), tt.build_ms, self.perf["load_ms"])
         self.planner.reset(tt.plan)
+        self.incidents.reset(sc)
         self.index.reset(self.engine)
         self.index.update([])
         self._flush_events()
@@ -188,6 +191,7 @@ class SimulationRuntime:
                 if steps:
                     self._advance_steps(steps)
                     self.perf["steps_per_s"] = round(steps / max(real_dt, 1e-3), 1)
+            self.incidents.tick()
             self.planner.tick()
             self.planner.advance_windows(real_dt if self.running else 0.0)
             self.index.update(self.planner.conflicts)
@@ -200,8 +204,11 @@ class SimulationRuntime:
     def _advance_steps(self, steps: int) -> None:
         assert self.engine is not None
         t0 = time.perf_counter()
+        inc = self.incidents
         for _ in range(steps):
             self.engine.step()
+            if inc.timeline and self.engine.t >= inc.timeline[0][0]:
+                inc.tick()
             if self.planner.sync:
                 self.planner.tick()
                 if self.engine.t >= self.index.next_sample:
@@ -227,6 +234,10 @@ class SimulationRuntime:
         st["planner"] = self.planner.summary()
         st["conflicts"] = list(self.planner.conflicts)
         st["index"] = self.index.current
+        st["incidents"] = self.incidents.active_payload()
+        st["radar"] = self.index.radar
+        nxt = next(((t, k) for t, _, k, _, src in self.incidents.timeline if src == "scenario"), None)
+        st["scenario_next"] = None if nxt is None else {"t": nxt[0], "kind": nxt[1]}
         return st
 
     # ------------------------------------------------------- график и Гант
@@ -265,8 +276,21 @@ class SimulationRuntime:
                     abs(o.t0 - b.t0) < 120 and abs(o.t1 - b.t1) < 120 for o in ref.get((b.resource, b.train_id), []))
                 items.append({"resource": b.resource, "train_id": b.train_id, "t0": round(max(b.t0, now), 1),
                               "t1": round(min(b.t1, t_to), 1), "kind": b.kind, "source": "plan", "changed": changed})
+        # действующие сбои — недоступный ресурс до восстановления (или до конца окна)
+        for inc in self.incidents.active():
+            if inc.resource and inc.kind in ("section_closed", "track_unavailable", "switch_fault"):
+                items.append({"resource": inc.resource, "train_id": "", "t0": round(max(inc.t, t_from), 1),
+                              "t1": round(min(inc.until if inc.until is not None else t_to, t_to), 1),
+                              "kind": "blocked", "source": "fault", "changed": False})
         return {"which": which, "plan_version": None if plan is None else plan.version, "t": round(now, 1),
                 "items": items}
+
+    def saturation_payload(self) -> dict:
+        from bagdar.planner.saturation import metering_options
+        assert self.engine is not None
+        out = metering_options(self.engine, self.cfg, self.planner.current)
+        out["radar"] = self.index.radar
+        return out
 
     def index_payload(self, since: float | None) -> dict:
         return {"current": self.index.current, "forecast": self.planner.forecast,
@@ -274,23 +298,38 @@ class SimulationRuntime:
 
     # ------------------------------------------------------------- внешние события
     def external_event(self, kind: str, params: dict) -> str:
+        """Внешнее событие (кнопка сбоя, POST /api/events): применяется к модели, план пересчитывается."""
         assert self.engine is not None
-        if kind == "train_delay":
-            tid = params.get("train_id")
-            minutes = float(params.get("minutes", 10))
-            if not tid or not (1 <= minutes <= 240):
-                raise ValueError("Нужны train_id и minutes от 1 до 240")
-            where = self.engine.inject_delay(tid, minutes * 60, params.get("reason") or "внешнее событие")
-            self.planner.request(f"задержка поезда {self.engine.trains[tid].number} на {round(minutes)} мин",
-                                 urgent=True)
-            msg = f"Поезд {self.engine.trains[tid].number}: {where}"
-        else:
-            raise ValueError(f"Тип события «{kind}» пока не поддерживается (сбои — этап 4)")
-        self._flush_events()
+        try:
+            msg, _ = self.incidents.apply(kind, params, "dispatcher")
+        finally:
+            self._flush_events()
         self._broadcast_state()
         if self.planner.sync:
             self.planner.tick()
         return msg
+
+    def restore_incident(self, inc_id: str) -> str:
+        assert self.engine is not None
+        try:
+            msg = self.incidents.restore(inc_id)
+        finally:
+            self._flush_events()
+        self._broadcast_state()
+        if self.planner.sync:
+            self.planner.tick()
+        return msg
+
+    def add_trains(self, trains: list[Train]) -> None:
+        """Новые поезда во время прогона: мир у клиентов обновляется (растёт world_version)."""
+        assert self.engine is not None
+        self.engine.add_trains(trains)
+        self.trains.extend(trains)
+        self.index.add_trains(trains)
+        self.generation["trains_total"] = len(self.trains)
+        self.world_version += 1
+        self._world_payload = None
+        self._broadcast({"type": "world", "world": self.world_payload()})
 
     def _mark_planner_update(self, res) -> None:
         self._dirty = True

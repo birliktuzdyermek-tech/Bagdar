@@ -23,6 +23,9 @@ from bagdar.sim.executor import PlanExecutor
 from bagdar.sim.interlocking import POS_INF, Interlocking
 
 
+SIGNAL_FAULT_KMH = 40.0   # движение по неисправному светофору — с ограничением скорости
+
+
 def hhmm(t: float) -> str:
     t = int(round(t)) % 86400
     return f"{t // 3600:02d}:{(t % 3600) // 60:02d}"
@@ -219,6 +222,59 @@ class Engine:
         """Новый план вступает в силу: порядок на перегонах и пути приёма."""
         self.ex.set_plan(plan, self.entered)
         self.hold_all = plan.hold_all
+
+    # ----------------------------------------------------------------- сбои инфраструктуры
+    def _signal_fault(self, sec_id: str) -> bool:
+        return any(self.il.signals[g].fault for d in (1, -1)
+                   if (g := self.world.exit_signal(sec_id, d)) in self.il.signals)
+
+    def close_section(self, sec_id: str, until: float | None) -> None:
+        s = self.il.sections[sec_id]
+        s.status = "closed"
+        s.closed_until = until
+
+    def open_section(self, sec_id: str) -> None:
+        s = self.il.sections[sec_id]
+        s.status = "open"
+        s.closed_until = None
+        s.refresh(self._signal_fault(sec_id))
+
+    def set_signal_fault(self, sec_id: str, on: bool, direction: int | None = None) -> None:
+        """Неисправность выходного светофора: перегон работает как при ПАБ (один поезд
+        в направлении) и с ограничением скорости."""
+        for d in ((1, -1) if direction is None else (direction,)):
+            g = self.world.exit_signal(sec_id, d)
+            if g in self.il.signals:
+                self.il.signals[g].fault = on
+        s = self.il.sections[sec_id]
+        if on:
+            s.limits["signal"] = SIGNAL_FAULT_KMH
+        else:
+            s.limits.pop("signal", None)
+        s.refresh(self._signal_fault(sec_id))
+
+    def set_speed_restriction(self, sec_id: str, kmh: float | None) -> None:
+        s = self.il.sections[sec_id]
+        if kmh is None:
+            s.limits.pop("order", None)
+        else:
+            s.limits["order"] = float(kmh)
+        s.refresh(self._signal_fault(sec_id))
+
+    def set_track_available(self, track_id: str, available: bool) -> None:
+        self.il.tracks[track_id].available = available
+
+    def add_trains(self, trains: list[Train]) -> None:
+        """Новые поезда (рост потока, внеочередной): появятся на станции отправления
+        по своему расписанию, в план войдут при ближайшем пересчёте."""
+        for tr in trains:
+            if tr.id in self.trains:
+                raise ValueError(f"Поезд {tr.id} уже есть")
+            self.trains[tr.id] = tr
+            rt = TrainRT(train=tr)
+            rt.ready_at = tr.origin_dep
+            self.rt[tr.id] = rt
+        self.order = sorted(self.trains)
 
     def inject_delay(self, train_id: str, seconds: float, reason: str = "внешнее событие") -> str:
         """Задержать поезд: стоит на станции дольше или сделает стоянку на ближайшей."""
@@ -422,8 +478,21 @@ class Engine:
                 st = self.world.stations[nxt]
                 return (f"на ст. {st.name} нет свободного пути ≥ {tr.length_m} м "
                         f"(защита от взаимной блокировки)"), True
+            first = self.ex.track_blocker(trk, tr.id, kl, self._arrived, self.gone)
+            if first is not None:
+                return self._track_order_reason(trk, first), True
             self._cand = trk
         return None, False
+
+    def _arrived(self, tid: str, k: int) -> bool:
+        """Поезд уже прибыл (или проследовал) на станцию в конце плеча k."""
+        rt = self.rt.get(tid)
+        return rt is None or rt.status == "done" or rt.k > k
+
+    def _track_order_reason(self, trk: str, first: str) -> str:
+        st = self.world.stations[trk.split("-")[0]]
+        name = next((t.name for t in st.tracks if t.id == trk), trk)
+        return f"по плану путь {name} ст. {st.name} первым займёт {self.number(first)}"
 
     def _grant_departure(self, rt: TrainRT, now: float, through: bool) -> None:
         tr = rt.train
@@ -555,6 +624,10 @@ class Engine:
                                      prefer_main=not must_stop)
             if trk is None:
                 rt.wait_reason = f"нет свободного пути приёма на ст. {st.name}"
+                return
+            first = self.ex.track_blocker(trk, tr.id, rt.k, self._arrived, self.gone)
+            if first is not None:
+                rt.wait_reason = self._track_order_reason(trk, first)
                 return
             self.il.reserve_track(trk, tr.id)
             rt.dest_track = trk

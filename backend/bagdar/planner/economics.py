@@ -28,9 +28,11 @@ if TYPE_CHECKING:
 
 PAX_STOP_FACTOR = 0.3
 UPHILL_STOP_FACTOR = 4.0
-PTE_PENALTY_PER_MIN = 1000.0   # слой 2 лексикографически выше экономики
+PTE_PENALTY_PER_MIN = 5000.0   # слой 2 лексикографически выше экономики (минута сверх допуска дороже любой экономии)
 PTE_WINDOW_S = 15 * 60         # младший «мешает» старшему, если прошёл перегон не раньше чем за 15 мин
-EXTRA_PENALTY = 20000.0        # слой 1: «внеочередной не первым» — за каждый случай
+EXTRA_PENALTY = 1_000_000.0    # слой 1: «внеочередной не первым» — за каждый случай, выше всех остальных штрафов
+STUCK_PENALTY = 50000.0        # поезд застрял в плане (ждёт ресурс, который никогда не освободится) — хуже ПТЭ
+STUCK_MARGIN_S = 3600.0        # последний час горизонта: «не доведён» — артефакт конца горизонта, а не тупик
 
 
 def train_weight(tr: Train, cfg: BagdarConfig, now: float, lateness_s: float) -> tuple[float, list[tuple[str, float]]]:
@@ -85,19 +87,21 @@ class CostBreakdown:
     pte_excess_s: float = 0.0
     pte_violations: list[tuple[str, str, str, float]] = field(default_factory=list)
     extra_violations: list[tuple[str, str, str]] = field(default_factory=list)
+    stuck: list[str] = field(default_factory=list)
     per_train: dict[str, TrainCost] = field(default_factory=dict)
 
     @property
     def lex(self) -> float:
         """J с лексикографическим штрафом за нарушения ПТЭ — для сравнения планов."""
         return (self.total + PTE_PENALTY_PER_MIN * self.pte_excess_s / 60
-                + EXTRA_PENALTY * len(self.extra_violations))
+                + EXTRA_PENALTY * len(self.extra_violations) + STUCK_PENALTY * len(self.stuck))
 
     def as_dict(self) -> dict[str, float]:
         return {"total": round(self.total, 1), "delay": round(self.delay, 1), "stops": round(self.stops, 1),
                 "idle": round(self.idle, 1), "changes": round(self.changes, 1), "n_changes": self.n_changes,
                 "shift_min": round(self.shift_min, 1),
-                "pte_violations": len(self.pte_violations), "pte_excess_min": round(self.pte_excess_s / 60, 1)}
+                "pte_violations": len(self.pte_violations), "pte_excess_min": round(self.pte_excess_s / 60, 1),
+                "stuck": len(self.stuck)}
 
 
 def plan_cost(inp: "PlanningInput", plan: Plan) -> CostBreakdown:
@@ -159,6 +163,38 @@ def plan_cost(inp: "PlanningInput", plan: Plan) -> CostBreakdown:
     if cfg.pte_strict:
         _pte(inp, plan, out)
     _extra(inp, plan, out)
+    out.stuck = stuck_trains(inp, plan)
+    return out
+
+
+def stuck_trains(inp: "PlanningInput", plan: Plan) -> list[str]:
+    """Поезда, которые план бросил посреди горизонта: маршрут продолжается, перегон впереди
+    не закрыт, времени до конца горизонта больше часа, а плеч дальше нет. Такой план
+    по сути содержит тупик: поезд ждёт ресурс, который не освободится."""
+    H = plan.horizon_end or inp.horizon_end
+    out = []
+    for tid, ti in inp.trains.items():
+        if ti.phase == "terminal":
+            continue
+        # ждать на станции отправления законно, пока поезд в плане есть (придержание при насыщении);
+        # а поезд, готовый к отправлению, которого план не отправляет вовсе, — брошен так же, как в пути
+        legs = [lg for lg in plan.legs.get(tid, []) if lg.k >= ti.first_leg()]
+        if legs:
+            last = legs[-1]
+            nk = last.k + 1
+            t_free = last.arr
+        else:
+            nk = ti.first_leg()
+            t_free = max(inp.t0, ti.t_ready)
+            sd = ti.train.schedule[nk].dep if nk < len(ti.train.schedule) else None
+            if sd is not None:
+                t_free = max(t_free, sd)
+        if nk >= len(ti.legs) or t_free >= H - STUCK_MARGIN_S:
+            continue
+        cw = inp.closed_sections.get(ti.legs[nk].sec.id)
+        if cw is not None and cw[1] >= H - STUCK_MARGIN_S:
+            continue                     # стоит у закрытого перегона — законное ожидание
+        out.append(tid)
     return out
 
 
@@ -182,10 +218,22 @@ def _pte(inp: "PlanningInput", plan: Plan, out: CostBreakdown) -> None:
     W = PTE_WINDOW_S
     prev = inp.prev_plan
 
+    # пары, чей порядок закреплён заморозкой прошлого плана хотя бы на одном перегоне: если младший
+    # уже заморожен впереди старшего, очередь за ним на следующих перегонах — следствие той же заморозки
+    frozen_order: set[tuple[str, str]] = set()
+    if prev is not None:
+        for seq in section_sequences(prev, inp.world, inp.entered).values():
+            early = [lg for lg in seq if lg.dep < inp.freeze_until]
+            for i, x in enumerate(early):
+                for y in seq[seq.index(x) + 1:]:
+                    frozen_order.add((x.train_id, y.train_id))
+
     def frozen(a: PlanLeg, b: PlanLeg) -> bool:
         # решение по паре закреплено заморозкой прошлого плана — его не пересматривают
         if prev is None:
             return False
+        if (a.train_id, b.train_id) in frozen_order:
+            return True
         pa, pb = prev.leg(a.train_id, a.k), prev.leg(b.train_id, b.k)
         return pa is not None and pb is not None and min(pa.dep, pb.dep) < inp.freeze_until
 

@@ -34,12 +34,18 @@ class IndexTracker:
         self.engine = engine
         self.sched = sorted(sp.arr for tr in engine.trains.values() for sp in tr.schedule[1:] if sp.arr is not None)
         self.samples: deque[tuple[float, float, float, float]] = deque(maxlen=200)
+        self.trend: deque[tuple[float, float, float, int]] = deque(maxlen=2 * 60 * 6)   # (t, ср. задержка, загрузка, очередь)
+        self.radar: dict | None = None
         self.history.clear()
         self.current = None
         self.next_sample = engine.t
         self.next_hist = engine.t
         self.last_status: str | None = None
         self.tracks_total = sum(len(st.tracks) for st in engine.world.stations.values())
+
+    def add_trains(self, trains) -> None:
+        self.sched = sorted(self.sched + [sp.arr for tr in trains for sp in tr.schedule[1:] if sp.arr is not None])
+        self.tracks_total = sum(len(st.tracks) for st in self.engine.world.stations.values())
 
     # ------------------------------------------------------------ сырые показатели
     def _load_now(self) -> tuple[float, list[str]]:
@@ -117,6 +123,12 @@ class IndexTracker:
             self.next_sample = now + SAMPLE_S
             share, _ = self._load_now()
             self.samples.append((now, eng.idle_total_s, eng.active_total_s, share))
+            act = eng.active()
+            avg = sum(eng.live_delay(rt) for rt in act) / len(act) if act else 0.0
+            queue = sum(1 for rt in eng.rt.values() if rt.status == "pending" and now > rt.train.origin_dep + 300) + \
+                sum(1 for rt in act if rt.wait_since is not None and now - rt.wait_since > 300)
+            self.trend.append((now, avg, share, queue))
+            self.radar = saturation_radar(self.trend, now, self.cfg.index.punctuality_max_delay_min * 60)
         if now >= self.next_hist:
             self.next_hist = now + HISTORY_S
             point = {"t": round(now, 1), "value": cur["value"], "status": cur["status"],
@@ -143,3 +155,48 @@ class IndexTracker:
 
     def history_since(self, t: float | None = None) -> list[dict]:
         return [p for p in self.history if t is None or p["t"] > t]
+
+
+RADAR_WINDOW_S = 3600        # тренд — по последнему часу
+RADAR_MIN_S = 1200           # раньше 20 мин данных тренд не считается
+RADAR_HORIZON_S = 6 * 3600   # предупреждаем, если участок встанет в ближайшие 6 ч
+LOAD_CRIT = 0.95
+
+
+def _slope(xs: list[float], ys: list[float]) -> float:
+    n = len(xs)
+    mx, my = sum(xs) / n, sum(ys) / n
+    den = sum((x - mx) ** 2 for x in xs)
+    return 0.0 if den <= 0 else sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / den
+
+
+def saturation_radar(trend, now: float, delay_crit_s: float) -> dict:
+    """Радар насыщения (BAGDAR_PLAN, ситуация 13): по тренду последнего часа — когда участок
+    перестанет справляться. Критерии: средняя задержка дойдёт до порога пунктуальности индекса
+    (по умолчанию 30 мин) или загрузка путей до 95 %. Прогноз линейный и честно так подписан."""
+    pts = [p for p in trend if p[0] >= now - RADAR_WINDOW_S]
+    if not pts or pts[-1][0] - pts[0][0] < RADAR_MIN_S:
+        return {"status": "no_data", "eta_s": None, "text": "Тренд копится: нужно 20 мин данных",
+                "delay_slope_min_h": None, "load_slope_pct_h": None, "queue": pts[-1][3] if pts else 0}
+    ts = [p[0] for p in pts]
+    sd = _slope(ts, [p[1] for p in pts]) * 3600          # с задержки в час
+    sl = _slope(ts, [p[2] for p in pts]) * 3600          # доля загрузки в час
+    cur_d, cur_l, queue = pts[-1][1], pts[-1][2], pts[-1][3]
+    etas = []
+    if sd > 30:                                          # растёт больше чем на полминуты в час
+        etas.append(((delay_crit_s - cur_d) / sd * 3600, f"средняя задержка дойдёт до {round(delay_crit_s / 60)} мин"))
+    if sl > 0.005:
+        etas.append(((LOAD_CRIT - cur_l) / sl * 3600, "загрузка путей дойдёт до 95 %"))
+    etas = [(max(0.0, e), why) for e, why in etas]
+    eta, why = min(etas) if etas else (None, None)
+    if eta is not None and eta <= RADAR_HORIZON_S:
+        status = "critical" if eta <= 3600 else "warning"
+        h, m = int(eta // 3600), int(eta % 3600 // 60)
+        text = (f"При текущем тренде через {h} ч {m:02d} мин участок перестанет справляться: {why}. "
+                f"Задержка растёт на {sd / 60:.1f} мин/ч, в очереди {queue} п.").replace(".0 мин/ч", " мин/ч")
+    else:
+        status = "ok"
+        text = f"Насыщения не видно: задержка {'растёт' if sd > 0 else 'не растёт'} ({sd / 60:+.1f} мин/ч)"
+    return {"status": status, "eta_s": None if eta is None else round(eta), "text": text,
+            "delay_slope_min_h": round(sd / 60, 2), "load_slope_pct_h": round(sl * 100, 2), "queue": queue,
+            "delay_now_min": round(cur_d / 60, 1), "load_now_pct": round(cur_l * 100, 1)}

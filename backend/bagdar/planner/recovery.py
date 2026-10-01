@@ -54,3 +54,34 @@ def recovery(cfg: BagdarConfig, engine, plan: Plan) -> dict:
         rec_at = t_rec if rec_at is None else max(rec_at, t_rec)
     return {"affected": len(affected), "affected_ids": affected[:30], "late_now": late_now,
             "recovery_at": None if rec_at is None else round(rec_at, 1), "beyond_horizon": beyond}
+
+
+WAVE_S = 120.0   # сдвиг прибытия, начиная с которого поезд считается задетым волной
+
+
+def wave(before, after, now: float) -> dict:
+    """Волна задержки: поезда, чьё прибытие в последней общей точке сдвинулось позже,
+    чем в плане до события, хотя бы на 2 мин; поезда, которые план до события вёл, а новый
+    до этой точки не довёл (стоят у закрытого перегона), тоже задеты."""
+    ids: list[str] = []
+    total = 0.0
+    worst = 0.0
+    for tid, blegs in before.legs.items():
+        bl = {lg.k: lg for lg in blegs if lg.arr >= now}
+        if not bl:
+            continue
+        al = {lg.k: lg for lg in after.legs.get(tid, [])}
+        common = sorted(set(bl) & set(al))
+        if not common:
+            ids.append(tid)
+            continue
+        k = common[-1]
+        d = al[k].arr - bl[k].arr
+        if max(bl) > max(al) and max(bl) > k:
+            d = max(d, WAVE_S)          # новый план не довёл поезд так далеко, как прежний
+        if d >= WAVE_S:
+            ids.append(tid)
+            total += d
+            worst = max(worst, d)
+    return {"affected": len(ids), "ids": ids[:40], "delay_add_min": round(total / 60, 1),
+            "worst_min": round(worst / 60, 1)}

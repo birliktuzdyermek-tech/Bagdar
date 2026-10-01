@@ -86,6 +86,8 @@ class PlanningInput:
     reason: str = ""
     # решения диспетчера (отмена B, выбор C): пара плеч на перегоне → кто идёт первым
     overrides: dict[frozenset, tuple[str, int]] = field(default_factory=dict)
+    # (перегон, направление) с неисправным выходным светофором: попутные — по одному, как при ПАБ
+    pab: frozenset[tuple[str, int]] = frozenset()
 
     def fitting_tracks(self, station_id: str, length_m: int, keep: str | None = None) -> list[str]:
         st = self.world.stations[station_id]
@@ -146,7 +148,10 @@ def build_input(engine, cfg: BagdarConfig, prev_plan: Plan | None, reason: str =
     rules = engine.rules
     margin = cfg.planner.run_margin
     restrictions = {sid: s.restriction_kmh for sid, s in engine.il.sections.items()}
-    closed = {sid: (t0, t0 + 1e7) for sid, s in engine.il.sections.items() if s.status == "closed"}
+    closed = {sid: (t0, s.closed_until if s.closed_until is not None else t0 + 1e7)
+              for sid, s in engine.il.sections.items() if s.status == "closed"}
+    pab = frozenset((sid, d) for sid in engine.world.sections for d in (1, -1)
+                    if (g := engine.world.exit_signal(sid, d)) in engine.il.signals and engine.il.signals[g].fault)
     unavailable = frozenset(tid for tid, t in engine.il.tracks.items() if not t.available)
     trains: dict[str, TrainIn] = {}
     for tid in engine.order:
@@ -202,7 +207,7 @@ def build_input(engine, cfg: BagdarConfig, prev_plan: Plan | None, reason: str =
         freeze_until=t0 + max(cfg.solver.freeze_min * 60, extra_freeze_s),
         world=engine.world, rules=rules, cfg=cfg, trains=trains, unavailable_tracks=unavailable,
         closed_sections=closed, prev_plan=prev_plan, entered=frozenset(engine.entered), reason=reason,
-        overrides=dict(overrides or {}))
+        overrides=dict(overrides or {}), pab=pab)
 
 
 def _entry_time(engine, rt) -> float:

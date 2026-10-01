@@ -49,8 +49,13 @@ export function usePlanSync(): void {
     if (!runId || applied < 0) return;
     let off = false;
     api.plan("current").then((p) => !off && usePlans.getState().set({ current: p })).catch(() => {});
-    api.plan("previous").then((p) => !off && usePlans.getState().set({ previous: p }))
-      .catch(() => !off && usePlans.getState().set({ previous: null }));
+    if (applied >= 1) {
+      // до первого пересчёта предыдущего плана нет — не спрашиваем (сервер честно ответил бы 404)
+      api.plan("previous").then((p) => !off && usePlans.getState().set({ previous: p }))
+        .catch(() => !off && usePlans.getState().set({ previous: null }));
+    } else {
+      usePlans.getState().set({ previous: null });
+    }
     return () => {
       off = true;
     };

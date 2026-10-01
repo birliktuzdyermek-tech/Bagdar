@@ -164,7 +164,7 @@ def test_fallback_to_heuristic_then_hold(fast_cfg, monkeypatch):
 
     monkeypatch.setattr(service_mod, "solve_cpsat", broken)
     inp, res = _solve(eng, fast_cfg, tt.plan)
-    assert res.solver in ("greedy", "repair") and _valid(eng, inp, res.plan) == []
+    assert res.solver in ("greedy", "repair", "fifo") and _valid(eng, inp, res.plan) == []
 
     # теперь валидатор отвергает всё: должен получиться честный план удержания
     class _V:

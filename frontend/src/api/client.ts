@@ -3,6 +3,8 @@ import type {
   ControlIn,
   EventIn,
   IndexHistory,
+  Incidents,
+  Saturation,
   LoadIn,
   Occupancy,
   Plan,
@@ -50,6 +52,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ action, variant_id: variantId ?? null }),
     }),
+  incidents: () => request<Incidents>("/api/incidents"),
+  restore: (id: string) => request<{ ok: boolean; message: string }>(`/api/incidents/${encodeURIComponent(id)}/restore`, {
+    method: "POST",
+  }),
+  saturation: () => request<Saturation>("/api/saturation"),
   autonomy: (fullAuto: boolean) => request<Autonomy>("/api/autonomy", {
     method: "POST",
     body: JSON.stringify({ full_auto: fullAuto }),

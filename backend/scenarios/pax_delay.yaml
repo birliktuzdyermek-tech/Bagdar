@@ -1,0 +1,19 @@
+# Обязательный сценарий: пассажирский поезд опаздывает и меняет очерёдность.
+id: pax_delay
+title: Опоздание скорого
+summary: >
+  Скорый пассажирский задерживается на 15 минут, позже скоростной — ещё на 8.
+  Бағдар переносит скрещения на другие разъезды и меняет порядок пропуска,
+  чтобы старшие поезда не вышли за допуск, а грузовые не простаивали зря.
+mode: light
+seed: 42
+start_time: "06:00"
+difficulty: 1
+wave: 0
+disruptions:
+  - at: "06:20"
+    type: train_delay
+    params: {train_class: fast_passenger, minutes: 15, reason: "задержка посадки на станции"}
+  - at: "06:50"
+    type: train_delay
+    params: {train_class: high_speed_passenger, minutes: 8, reason: "ограничение по пути на соседнем участке"}

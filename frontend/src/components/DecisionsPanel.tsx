@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import type { DecisionCard, PlannerInfo, Variant } from "../api/types";
 import { useAlarms } from "../lib/alarms";
+import { IncidentReport } from "./IncidentReport";
 import { clock, num } from "../lib/format";
 import { useSim } from "../store/sim";
 
@@ -21,6 +22,7 @@ const TYPE: Record<string, string> = {
   track: "Путь приёма",
   hold: "Удержание",
   no_plan: "План не найден",
+  incident: "Нештатная ситуация",
 };
 
 const STATUS: Record<string, { text: string; cls: string }> = {
@@ -34,7 +36,8 @@ const STATUS: Record<string, { text: string; cls: string }> = {
 };
 
 const SOLVER: Record<string, string> = {
-  cpsat: "CP-SAT", greedy: "эвристика", repair: "прежний порядок", hold: "удержание", dispatcher: "решение диспетчера",
+  cpsat: "CP-SAT", greedy: "эвристика", repair: "прежний порядок", fifo: "«кто первый пришёл»", hold: "удержание",
+  dispatcher: "решение диспетчера",
 };
 const PLAN_STATUS: Record<string, { text: string; cls: string }> = {
   feasible: { text: "допустим", cls: "badge-good" },
@@ -129,8 +132,8 @@ function Card({ c, left }: { c: DecisionCard; left: number | null | undefined })
         <span className="muted tabular">{clock(c.t, false)} · v{c.plan_version}</span>
       </div>
       <div className="decision-action">{c.action}</div>
-      <div className="decision-row"><span className="muted">Почему:</span> {c.reason}</div>
-      <div className="decision-row">
+      {c.type !== "incident" && <div className="decision-row"><span className="muted">Почему:</span> {c.reason}</div>}
+      <div className="decision-row" hidden={c.type === "incident"}>
         <span className="muted">Альтернатива:</span> {c.alternative}
         {c.alt_feasible && money != null && (
           <span className="badge badge-neutral" style={{ marginLeft: 6 }}>
@@ -164,6 +167,7 @@ function Card({ c, left }: { c: DecisionCard; left: number | null | undefined })
         </div>
       )}
       {c.note && <div className="decision-row muted">{c.note}</div>}
+      {c.type === "incident" && c.report && <IncidentReport report={c.report as never} />}
       {c.variants.length > 0 && (
         <ul className="variants" aria-label="Варианты решения">
           {c.variants.map((v) => (

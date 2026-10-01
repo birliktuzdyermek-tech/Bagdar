@@ -65,6 +65,7 @@ class ForwardResult:
 class Policy:
     can_relax = True
     relax = False
+    anti_lock = True       # защита от «замка» на две станции вперёд — часть диспетчерской логики Бағдара
 
     def sort_key(self, sched: "ForwardScheduler", tid: str) -> tuple:
         return (0, tid)
@@ -87,6 +88,13 @@ class Policy:
         pass
 
 
+ANTI_LOCK = True        # защита от замка на две станции вперёд
+LOCK_WINDOW_S = 600.0   # «станция занята» — нет свободного пути в ближайшие 10 мин после прибытия
+LOCK_RETRY_S = 60.0
+LOCK_COMING = True      # учитывать встречных, которые уже едут к Y без назначенного пути
+LOCK_LONGEST = True     # запирается самый длинный встречный, а не самый короткий
+
+
 class ForwardScheduler:
     def __init__(self, inp: PlanningInput, policy: Policy, horizon_end: float | None = None) -> None:
         self.inp = inp
@@ -95,6 +103,7 @@ class ForwardScheduler:
         self.policy = policy
         self.h_end = horizon_end if horizon_end is not None else inp.horizon_end
         self.table = ReservationTable(inp.world, inp.rules)
+        self.table.pab = set(inp.pab)
         self.ts: dict[str, _TS] = {}
         self.heap: list[tuple[float, int, str, str]] = []
         self.seq = 0
@@ -350,8 +359,16 @@ class ForwardScheduler:
                                         exclude=set(self.inp.unavailable_tracks))
                 if trk is None:
                     return None if rr is None else t_in + max(1.0, rr - h0)
+                if self._would_lock(ti, k, trk, t_arr):
+                    trk = self._lock_free_track(ti, k, st, trk, h0, t_arr)
+                    if trk is None:
+                        return t_in + LOCK_RETRY_S
             else:
                 trk = None  # на двухпутном маршрут приёма задаётся при подходе, как в симуляторе
+                cand, _ = tb.pick_track(st, ti.train.length_m, h0, INF, prefer_main=not se, preferred=preferred,
+                                        exclude=set(self.inp.unavailable_tracks))
+                if cand is not None and self._would_lock(ti, k, cand, t_arr):
+                    return t_in + LOCK_RETRY_S   # подождать на станции, а не запереть две станции
         elif not single and preferred is None:
             trk = None
         else:
@@ -370,6 +387,75 @@ class ForwardScheduler:
             tb.trk[trk].append(hold)
         return {"k": k, "res": res, "aw": aw, "t_arr": t_arr, "trk": trk, "hold": hold, "se": se, "ss": ss,
                 "approach": t_arr - self.r.approach_s}
+
+    def _lock_free_track(self, ti: TrainIn, k: int, st, first: str, h0: float, t_arr: float) -> str | None:
+        """Другой свободный путь на X, при котором замка нет: сначала самые короткие подходящие —
+        длинный путь лучше оставить длинному встречному."""
+        bad = set(self.inp.unavailable_tracks) | {first}
+        for t in sorted(st.tracks, key=lambda t: t.length_m):
+            if t.id in bad or t.length_m < ti.train.length_m or not self.table.track_free(t.id, h0, INF):
+                continue
+            if not self._would_lock(ti, k, t.id, t_arr):
+                return t.id
+        return None
+
+    def _would_lock(self, ti: TrainIn, k: int, trk: str, t_arr: float) -> bool:
+        """Защита от «замка» на две станции вперёд (BAGDAR_PLAN, ситуация 1).
+
+        Поезд не занимает станцию X (путь trk), если после этого на X не останется пути,
+        куда поместится встречный со следующей станции Y, которому нужна X, а самому
+        поезду некуда уйти на Y. Тогда X и Y ждали бы друг друга вечно. Проверка «впереди
+        есть свободный путь» спасает только от застревания на перегоне, а это круговое
+        ожидание двух станций. Длины путей учитываются: короткий свободный путь длинному
+        встречному не поможет."""
+        legs = ti.legs
+        if not ANTI_LOCK or not self.policy.anti_lock or k + 1 >= len(legs):
+            return False                          # X — конечная поезда, дальше ему не нужно
+        tb, w = self.table, self.world
+        x_id, d = legs[k].to_id, legs[k].d
+        y_id = legs[k + 1].to_id
+        win = (t_arr, t_arr + LOCK_WINDOW_S)
+        unavailable = self.inp.unavailable_tracks
+        opp: list[int] = []                       # длины встречных, которые стоят (или встанут) на Y и ждут X
+        for t in w.stations[y_id].tracks:
+            for h0, h1, other in tb.trk[t.id]:
+                if other == ti.id or h1 <= win[0] or h0 >= win[1]:
+                    continue
+                oi = self.inp.trains.get(other)
+                if oi is None or y_id not in oi.train.route:
+                    continue
+                j = oi.train.route.index(y_id)
+                if j < len(oi.legs) and oi.legs[j].to_id == x_id and oi.legs[j].d == -d:
+                    opp.append(oi.train.length_m)
+        # встречные, которые уже едут к Y по двухпутному перегону: путь приёма им назначат только
+        # при подходе, в таблице их ещё нет, но место на Y они займут раньше нас
+        coming: list[float] = []
+        for s in (self.ts.values() if LOCK_COMING else ()):
+            if s.phase != "section" or s.dest is not None or s.leg is None or s.ti.id == ti.id:
+                continue
+            if s.leg.to_id != y_id or s.t_arr >= win[1] or s.k + 1 >= len(s.ti.legs):
+                continue
+            nxt = s.ti.legs[s.k + 1]
+            if nxt.to_id == x_id and nxt.d == -d:
+                coming.append(s.ti.train.length_m)
+        opp += coming
+        if not opp:
+            return False
+        # запирается самый длинный встречный: короткий путь на X, свободный для короткого
+        # встречного, длинному не поможет — он так и будет ждать на Y, пока мы не уйдём с X
+        longest = max(opp) if LOCK_LONGEST else min(opp)
+        if any(t.id != trk and t.id not in unavailable and t.length_m >= longest and tb.track_free(t.id, *win)
+               for t in w.stations[x_id].tracks):
+            return False                          # на X останется путь для любого встречного
+        free_y = sorted((t for t in w.stations[y_id].tracks if t.id not in unavailable and tb.track_free(t.id, *win)),
+                        key=lambda t: t.length_m)
+        for length in sorted(coming, reverse=True):
+            fit = next((t for t in free_y if t.length_m >= length), None)
+            if fit is not None:
+                free_y.remove(fit)                # подходящий встречный займёт кратчайший подходящий путь
+        if any(t.length_m >= ti.train.length_m for t in free_y):
+            return False                          # поезду будет куда уйти с X
+        return True
 
     def _activate(self, s: _TS, k: int, got: dict, t_in: float) -> None:
         ti = s.ti
@@ -749,6 +835,42 @@ class OrderPolicy(Policy):
                 continue
             return False
         return True
+
+
+class FifoPolicy(Policy):
+    """«Кто первый пришёл, тот первый едет» — эталон «без Бағдара».
+
+    Без приоритетов, без заглядывания вперёд и без придержаний: поезд занимает
+    ресурс, как только он свободен. Защита от застревания на однопутном перегоне
+    остаётся (это СЦБ, а не диспетчер). Поезда идут по расписанию и не раньше него.
+
+    anti_lock=False — эталон для отчёта «до / после»: правила «на две станции вперёд»
+    нет, станции могут запереться. anti_lock=True — кандидат планировщика: тот же
+    порядок, но с защитой от замка (без неё исполнение такого плана запирало участок)."""
+    can_relax = False
+
+    def __init__(self, inp: PlanningInput, anti_lock: bool = False) -> None:
+        self.inp = inp
+        self.anti_lock = anti_lock
+
+    def sort_key(self, sched: "ForwardScheduler", tid: str) -> tuple:
+        s = sched.ts[tid]
+        return (s.retry_at if s.retry_at < INF else 0.0, tid)
+
+    def track(self, tid: str, k: int) -> str | None:
+        tr = self.inp.trains[tid].train
+        return tr.schedule[k + 1].track_id if 0 <= k + 1 < len(tr.schedule) else tr.schedule[0].track_id
+
+    def not_before(self, tid: str, k: int, through: bool) -> float | None:
+        dep = self.inp.trains[tid].train.schedule[k].dep
+        return None if dep is None else dep - (60 if through else 0)
+
+    def arrive_not_before(self, tid: str, k: int) -> float | None:
+        return self.inp.trains[tid].train.schedule[k + 1].arr
+
+
+def run_fifo(inp: PlanningInput, horizon_end: float | None = None, anti_lock: bool = False) -> ForwardResult:
+    return ForwardScheduler(inp, FifoPolicy(inp, anti_lock), horizon_end=horizon_end).run()
 
 
 def run_greedy(inp: PlanningInput) -> ForwardResult:

@@ -27,9 +27,17 @@ class SectionRT:
     restriction_kmh: float | None = None
     headway_factor: float = 1.0
     open_tracks: int = 0
+    closed_until: float | None = None    # ожидаемое открытие (None — неизвестно)
+    limits: dict = field(default_factory=dict)   # источник ограничения скорости -> км/ч
 
     def __post_init__(self) -> None:
         self.open_tracks = self.sec.tracks
+
+    def refresh(self, signal_fault: bool) -> None:
+        """Итоговое ограничение и статус по всем источникам (сбой сигнала, приказ и т.п.)."""
+        self.restriction_kmh = min(self.limits.values()) if self.limits else None
+        if self.status != "closed":
+            self.status = "restricted" if (self.restriction_kmh is not None or signal_fault) else "open"
 
     @property
     def single(self) -> bool:

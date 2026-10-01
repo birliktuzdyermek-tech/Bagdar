@@ -222,6 +222,23 @@ export function TimeGraph() {
           { xAxis: cf.t + 180, yAxis: hi },
         ]);
       }
+      // закрытые перегоны: полоса по километрам от момента закрытия до ожидаемого открытия
+      const closed = (st.incidents ?? []).filter((i) => i.kind === "section_closed" && i.section_id);
+      const closedAreas = closed.map((i) => {
+        const sec = idx.sections.get(i.section_id as string)!;
+        const a = kmOf(idx, sec.a);
+        const b = kmOf(idx, sec.b);
+        return [{ xAxis: i.t, yAxis: Math.min(a, b), name: "закрыт" }, { xAxis: i.until ?? now + AFTER, yAxis: Math.max(a, b) }];
+      });
+      series.push({
+        name: "closed", type: "line", silent: true, symbol: "none", data: [], animation: false,
+        markArea: {
+          silent: true, animation: false,
+          itemStyle: { color: tokens["--serious"], opacity: 0.18, borderColor: tokens["--serious"], borderWidth: 1, borderType: "dashed" },
+          label: { color: tokens["--text-secondary"], fontSize: 10, position: "insideTopLeft" },
+          data: closedAreas,
+        },
+      });
       series.push({
         name: "now", type: "line", silent: true, symbol: "none", data: [], animation: false,
         markLine: {
@@ -376,6 +393,7 @@ function GraphLegend({ tokens }: { tokens: Tokens }) {
       <Key color={tokens["--text-muted"]} width={1} label="Исходное расписание" />
       <Key color={tokens["--warning"]} dash="2 3" label="Прогноз без пересчёта" />
       <span className="legend-item"><span className="swatch-warn" aria-hidden /> Конфликт (с таймером)</span>
+      <span className="legend-item"><span className="swatch-closed" aria-hidden /> Перегон закрыт</span>
       {(["fast", "pax", "freight", "extra"] as const).map((g) => (
         <span key={g} className="legend-item">
           <span className="dot" style={{ background: groupColor(tokens, g) }} aria-hidden />

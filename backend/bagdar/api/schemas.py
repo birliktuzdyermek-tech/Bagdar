@@ -317,6 +317,9 @@ class StateOut(BaseModel):
     planner: PlannerSummaryOut
     conflicts: list[ConflictOut]
     index: IndexOut | None
+    incidents: list[IncidentActiveOut] = Field(description="Действующие сбои")
+    radar: RadarOut | None = Field(None, description="Радар насыщения: тренд и прогноз, когда участок перестанет справляться")
+    scenario_next: dict | None = Field(description="Ближайшее событие сценария {t, kind}")
 
 
 # ------------------------------------------------------------------- план
@@ -387,7 +390,7 @@ class DecisionCardOut(BaseModel):
     seq: int = 0
     plan_version: int
     t: float
-    type: Literal["crossing", "overtake", "track", "hold", "no_plan"]
+    type: Literal["crossing", "overtake", "track", "hold", "no_plan", "incident"]
     level: Literal["A", "B", "C"] = Field(description="A — авто, B — авто с уведомлением, C — нужен выбор")
     station_id: str | None
     station: str | None
@@ -417,6 +420,8 @@ class DecisionCardOut(BaseModel):
     outcome: str | None = None
     can_cancel: bool = False
     can_choose: bool = False
+    incident_id: str | None = Field(None, description="Карточка-разбор инцидента «до / после»")
+    report: dict | None = Field(None, description="Разбор инцидента: before, plan, no_change, fifo, tree")
 
 
 class DecisionsOut(BaseModel):
@@ -454,8 +459,8 @@ class BusyOut(BaseModel):
     train_id: str
     t0: float
     t1: float
-    kind: Literal["stand", "pass", "section", "hold"]
-    source: Literal["fact", "plan"]
+    kind: Literal["stand", "pass", "section", "hold", "blocked"]
+    source: Literal["fact", "plan", "fault"]
     changed: bool = Field(description="Интервал отличается в другом плане (до/после)")
 
 
@@ -501,11 +506,146 @@ class PlannerOut(BaseModel):
     history: list[SolveStatsOut]
 
 
+EventKind = Literal["train_delay", "section_closed", "signal_fault", "track_unavailable", "switch_fault",
+                    "speed_restriction", "add_trains", "extra_train", "hold_at_origin"]
+
+
+class NewTrainIn(BaseModel):
+    cls: str = "freight"
+    direction: int = 1
+    in_min: float | None = Field(None, ge=0, le=600, description="Отправление через N мин модели")
+    dep: str | None = Field(None, description="Или время отправления «ЧЧ:ММ»")
+    length_m: int | None = None
+    mass_t: int | None = None
+    from_idx: int | None = None
+    to_idx: int | None = None
+
+
 class EventIn(BaseModel):
-    type: Literal["train_delay"]
-    train_id: str | None = None
-    minutes: float | None = Field(None, ge=1, le=240)
+    """Внешнее событие или сбой. Какие поля нужны — зависит от type."""
+    type: EventKind
+    train_id: str | None = Field(None, description="train_delay: поезд")
+    train_class: str | None = Field(None, description="train_delay: или класс поезда (выбирается первый на участке)")
+    minutes: float | None = Field(None, ge=1, le=1440, description="Задержка или длительность сбоя; нет — неизвестно")
+    section_id: str | None = Field(None, description="section_closed, signal_fault, speed_restriction")
+    track_id: str | None = Field(None, description="track_unavailable, switch_fault")
+    station_id: str | None = Field(None, description="switch_fault: станция (берётся боковой путь)")
+    direction: int | None = Field(None, description="signal_fault: одно направление; extra_train: направление")
+    kmh: float | None = Field(None, ge=5, le=200, description="speed_restriction")
+    count: int | None = Field(None, ge=1, le=60, description="add_trains: сколько поездов")
+    within_min: float | None = Field(None, ge=1, le=600, description="add_trains: за сколько минут")
+    in_min: float | None = Field(None, ge=0, le=600, description="extra_train: отправление через N мин")
+    trains: list[NewTrainIn] | None = Field(None, description="add_trains: явный список поездов")
+    train_ids: list[str] | None = Field(None, description="hold_at_origin: какие поезда придержать")
     reason: str | None = None
+
+
+class RadarOut(BaseModel):
+    status: Literal["no_data", "ok", "warning", "critical"]
+    eta_s: float | None = Field(description="Через сколько секунд модели участок перестанет справляться")
+    text: str
+    delay_slope_min_h: float | None
+    load_slope_pct_h: float | None
+    queue: int
+    delay_now_min: float | None = None
+    load_now_pct: float | None = None
+
+
+class MeterOptionOut(BaseModel):
+    id: str
+    hold: int
+    train_ids: list[str]
+    numbers: list[str]
+    minutes: int
+    J: float
+    J_lex: float
+    stuck: int
+    avg_late_min: float
+    title: str
+
+
+class SaturationOut(BaseModel):
+    radar: RadarOut | None
+    t: float
+    horizon_h: int
+    options: list[MeterOptionOut]
+    best: str | None
+
+
+class IncidentSummaryOut(BaseModel):
+    J: float | None
+    J_lex: float | None = None
+    delay_min: float | None
+    affected: int = Field(description="Задето волной: прибытие позже, чем в плане до события, на 2 мин и больше")
+    delay_add_min: float | None = Field(None, description="Сколько поездо-минут добавила волна")
+    late_trains: int | None = Field(None, description="Поездов сверх допуска по опозданию")
+    recovery_at: float | None
+    beyond: int
+    forecast: float | None
+    pte: int = 0
+    plan_version: int | None = None
+    solver: str | None = None
+    status: str | None = None
+    compute_ms: int | None = None
+    stuck: int = Field(0, description="Поездов, которых план бросил посреди горизонта (одно правило для всех планов)")
+    valid: bool | None = None
+    why: str | None = None
+    deadlock: bool | None = None
+    same: bool | None = Field(None, description="fifo: опубликован порядок «кто первый пришёл» (с защитой от замка)")
+    tree: dict | None = None
+
+
+class DelayTreeOut(BaseModel):
+    root: str
+    affected: int
+    total_wait_min: float
+    tree: dict = Field(description="{train_id, number, wait_s, station, children[]}")
+
+
+class IncidentAfterOut(BaseModel):
+    plan: IncidentSummaryOut
+    no_change: IncidentSummaryOut | None = Field(description="Если не менять порядок поездов (прежний план)")
+    fifo: IncidentSummaryOut | None = Field(description="«Кто первый пришёл, тот первый едет»")
+    tree: DelayTreeOut | None = Field(description="Дерево распространения задержки (для опозданий)")
+
+
+class IncidentOut(BaseModel):
+    id: str
+    t: float
+    kind: EventKind
+    level: Literal["A", "B", "C"]
+    title: str
+    params: dict
+    source: Literal["dispatcher", "scenario"]
+    resource: str | None
+    station_id: str | None
+    section_id: str | None
+    train_ids: list[str]
+    until: float | None
+    status: Literal["active", "resolved", "done"]
+    resolved_at: float | None
+    before: dict | None = Field(description="Состояние в момент сбоя: индекс, прогноз, задето, конфликты плана")
+    after: IncidentAfterOut | None
+    card_id: str | None
+
+
+class IncidentActiveOut(BaseModel):
+    id: str
+    kind: EventKind
+    level: Literal["A", "B", "C"]
+    title: str
+    resource: str | None
+    section_id: str | None
+    station_id: str | None
+    until: float | None
+    t: float
+    restorable: bool
+
+
+class IncidentsOut(BaseModel):
+    run_id: str
+    incidents: list[IncidentOut]
+    timeline: list[dict] = Field(description="Запланированные события сценария и таймеры восстановления")
 
 
 class EventAck(BaseModel):

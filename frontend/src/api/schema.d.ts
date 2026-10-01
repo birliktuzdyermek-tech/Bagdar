@@ -140,6 +140,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/saturation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Радар насыщения и варианты придержания грузовых (оценка на 4 ч вперёд) */
+        get: operations["get_saturation_api_saturation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/traces": {
         parameters: {
             query?: never;
@@ -218,8 +235,42 @@ export interface paths {
         /** Журнал событий текущего прогона */
         get: operations["get_events_api_events_get"];
         put?: never;
-        /** Внешнее событие (в демо: задержка поезда; сбои — этап 4) */
+        /** Внешнее событие или сбой: задержка, закрытие перегона, отказ светофора или стрелки, недоступный путь, ограничение скорости, рост потока, внеочередной поезд */
         post: operations["post_event_api_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Инциденты прогона с разбором «до / после» и таймерами */
+        get: operations["get_incidents_api_incidents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/incidents/{inc_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Снять сбой раньше таймера (открыть перегон, починить светофор или стрелку) */
+        post: operations["restore_incident_api_incidents__inc_id__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -477,12 +528,12 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "stand" | "pass" | "section" | "hold";
+            kind: "stand" | "pass" | "section" | "hold" | "blocked";
             /**
              * Source
              * @enum {string}
              */
-            source: "fact" | "plan";
+            source: "fact" | "plan" | "fault";
             /**
              * Changed
              * @description Интервал отличается в другом плане (до/после)
@@ -646,7 +697,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "crossing" | "overtake" | "track" | "hold" | "no_plan";
+            type: "crossing" | "overtake" | "track" | "hold" | "no_plan" | "incident";
             /**
              * Level
              * @description A — авто, B — авто с уведомлением, C — нужен выбор
@@ -745,6 +796,18 @@ export interface components {
              * @default false
              */
             can_choose: boolean;
+            /**
+             * Incident Id
+             * @description Карточка-разбор инцидента «до / после»
+             */
+            incident_id?: string | null;
+            /**
+             * Report
+             * @description Разбор инцидента: before, plan, no_change, fifo, tree
+             */
+            report?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** DecisionsMsg */
         DecisionsMsg: {
@@ -766,6 +829,22 @@ export interface components {
             /** Cards */
             cards: components["schemas"]["DecisionCardOut"][];
         };
+        /** DelayTreeOut */
+        DelayTreeOut: {
+            /** Root */
+            root: string;
+            /** Affected */
+            affected: number;
+            /** Total Wait Min */
+            total_wait_min: number;
+            /**
+             * Tree
+             * @description {train_id, number, wait_s, station, children[]}
+             */
+            tree: {
+                [key: string]: unknown;
+            };
+        };
         /** EventAck */
         EventAck: {
             /** Ok */
@@ -773,17 +852,81 @@ export interface components {
             /** Message */
             message: string;
         };
-        /** EventIn */
+        /**
+         * EventIn
+         * @description Внешнее событие или сбой. Какие поля нужны — зависит от type.
+         */
         EventIn: {
             /**
              * Type
-             * @constant
+             * @enum {string}
              */
-            type: "train_delay";
-            /** Train Id */
+            type: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin";
+            /**
+             * Train Id
+             * @description train_delay: поезд
+             */
             train_id?: string | null;
-            /** Minutes */
+            /**
+             * Train Class
+             * @description train_delay: или класс поезда (выбирается первый на участке)
+             */
+            train_class?: string | null;
+            /**
+             * Minutes
+             * @description Задержка или длительность сбоя; нет — неизвестно
+             */
             minutes?: number | null;
+            /**
+             * Section Id
+             * @description section_closed, signal_fault, speed_restriction
+             */
+            section_id?: string | null;
+            /**
+             * Track Id
+             * @description track_unavailable, switch_fault
+             */
+            track_id?: string | null;
+            /**
+             * Station Id
+             * @description switch_fault: станция (берётся боковой путь)
+             */
+            station_id?: string | null;
+            /**
+             * Direction
+             * @description signal_fault: одно направление; extra_train: направление
+             */
+            direction?: number | null;
+            /**
+             * Kmh
+             * @description speed_restriction
+             */
+            kmh?: number | null;
+            /**
+             * Count
+             * @description add_trains: сколько поездов
+             */
+            count?: number | null;
+            /**
+             * Within Min
+             * @description add_trains: за сколько минут
+             */
+            within_min?: number | null;
+            /**
+             * In Min
+             * @description extra_train: отправление через N мин
+             */
+            in_min?: number | null;
+            /**
+             * Trains
+             * @description add_trains: явный список поездов
+             */
+            trains?: components["schemas"]["NewTrainIn"][] | null;
+            /**
+             * Train Ids
+             * @description hold_at_origin: какие поезда придержать
+             */
+            train_ids?: string[] | null;
             /** Reason */
             reason?: string | null;
         };
@@ -887,6 +1030,178 @@ export interface components {
             run_id: string;
             /** World Version */
             world_version: number;
+        };
+        /** IncidentActiveOut */
+        IncidentActiveOut: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "A" | "B" | "C";
+            /** Title */
+            title: string;
+            /** Resource */
+            resource: string | null;
+            /** Section Id */
+            section_id: string | null;
+            /** Station Id */
+            station_id: string | null;
+            /** Until */
+            until: number | null;
+            /** T */
+            t: number;
+            /** Restorable */
+            restorable: boolean;
+        };
+        /** IncidentAfterOut */
+        IncidentAfterOut: {
+            plan: components["schemas"]["IncidentSummaryOut"];
+            /** @description Если не менять порядок поездов (прежний план) */
+            no_change: components["schemas"]["IncidentSummaryOut"] | null;
+            /** @description «Кто первый пришёл, тот первый едет» */
+            fifo: components["schemas"]["IncidentSummaryOut"] | null;
+            /** @description Дерево распространения задержки (для опозданий) */
+            tree: components["schemas"]["DelayTreeOut"] | null;
+        };
+        /** IncidentOut */
+        IncidentOut: {
+            /** Id */
+            id: string;
+            /** T */
+            t: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "A" | "B" | "C";
+            /** Title */
+            title: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "dispatcher" | "scenario";
+            /** Resource */
+            resource: string | null;
+            /** Station Id */
+            station_id: string | null;
+            /** Section Id */
+            section_id: string | null;
+            /** Train Ids */
+            train_ids: string[];
+            /** Until */
+            until: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "resolved" | "done";
+            /** Resolved At */
+            resolved_at: number | null;
+            /**
+             * Before
+             * @description Состояние в момент сбоя: индекс, прогноз, задето, конфликты плана
+             */
+            before: {
+                [key: string]: unknown;
+            } | null;
+            after: components["schemas"]["IncidentAfterOut"] | null;
+            /** Card Id */
+            card_id: string | null;
+        };
+        /** IncidentSummaryOut */
+        IncidentSummaryOut: {
+            /** J */
+            J: number | null;
+            /** J Lex */
+            J_lex?: number | null;
+            /** Delay Min */
+            delay_min: number | null;
+            /**
+             * Affected
+             * @description Задето волной: прибытие позже, чем в плане до события, на 2 мин и больше
+             */
+            affected: number;
+            /**
+             * Delay Add Min
+             * @description Сколько поездо-минут добавила волна
+             */
+            delay_add_min?: number | null;
+            /**
+             * Late Trains
+             * @description Поездов сверх допуска по опозданию
+             */
+            late_trains?: number | null;
+            /** Recovery At */
+            recovery_at: number | null;
+            /** Beyond */
+            beyond: number;
+            /** Forecast */
+            forecast: number | null;
+            /**
+             * Pte
+             * @default 0
+             */
+            pte: number;
+            /** Plan Version */
+            plan_version?: number | null;
+            /** Solver */
+            solver?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Compute Ms */
+            compute_ms?: number | null;
+            /**
+             * Stuck
+             * @description Поездов, которых план бросил посреди горизонта (одно правило для всех планов)
+             * @default 0
+             */
+            stuck: number;
+            /** Valid */
+            valid?: boolean | null;
+            /** Why */
+            why?: string | null;
+            /** Deadlock */
+            deadlock?: boolean | null;
+            /**
+             * Same
+             * @description fifo: опубликован порядок «кто первый пришёл» (с защитой от замка)
+             */
+            same?: boolean | null;
+            /** Tree */
+            tree?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** IncidentsOut */
+        IncidentsOut: {
+            /** Run Id */
+            run_id: string;
+            /** Incidents */
+            incidents: components["schemas"]["IncidentOut"][];
+            /**
+             * Timeline
+             * @description Запланированные события сценария и таймеры восстановления
+             */
+            timeline: {
+                [key: string]: unknown;
+            }[];
         };
         /** IndexConfig */
         IndexConfig: {
@@ -1064,6 +1379,29 @@ export interface components {
             /** Load Ms */
             load_ms: number;
         };
+        /** MeterOptionOut */
+        MeterOptionOut: {
+            /** Id */
+            id: string;
+            /** Hold */
+            hold: number;
+            /** Train Ids */
+            train_ids: string[];
+            /** Numbers */
+            numbers: string[];
+            /** Minutes */
+            minutes: number;
+            /** J */
+            J: number;
+            /** J Lex */
+            J_lex: number;
+            /** Stuck */
+            stuck: number;
+            /** Avg Late Min */
+            avg_late_min: number;
+            /** Title */
+            title: string;
+        };
         /** MetricsOut */
         MetricsOut: {
             /** Active Trains */
@@ -1082,6 +1420,37 @@ export interface components {
             unplanned_stops: number;
             /** Stop Energy Kwh */
             stop_energy_kwh: number;
+        };
+        /** NewTrainIn */
+        NewTrainIn: {
+            /**
+             * Cls
+             * @default freight
+             */
+            cls: string;
+            /**
+             * Direction
+             * @default 1
+             */
+            direction: number;
+            /**
+             * In Min
+             * @description Отправление через N мин модели
+             */
+            in_min?: number | null;
+            /**
+             * Dep
+             * @description Или время отправления «ЧЧ:ММ»
+             */
+            dep?: string | null;
+            /** Length M */
+            length_m?: number | null;
+            /** Mass T */
+            mass_t?: number | null;
+            /** From Idx */
+            from_idx?: number | null;
+            /** To Idx */
+            to_idx?: number | null;
         };
         /** OccupancyOut */
         OccupancyOut: {
@@ -1293,6 +1662,31 @@ export interface components {
             /** Tolerance Min */
             tolerance_min: number;
         };
+        /** RadarOut */
+        RadarOut: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "no_data" | "ok" | "warning" | "critical";
+            /**
+             * Eta S
+             * @description Через сколько секунд модели участок перестанет справляться
+             */
+            eta_s: number | null;
+            /** Text */
+            text: string;
+            /** Delay Slope Min H */
+            delay_slope_min_h: number | null;
+            /** Load Slope Pct H */
+            load_slope_pct_h: number | null;
+            /** Queue */
+            queue: number;
+            /** Delay Now Min */
+            delay_now_min?: number | null;
+            /** Load Now Pct */
+            load_now_pct?: number | null;
+        };
         /** RecoveryOut */
         RecoveryOut: {
             /**
@@ -1317,6 +1711,18 @@ export interface components {
              * @description Задетых поездов, не восстанавливающихся на горизонте плана
              */
             beyond_horizon: number;
+        };
+        /** SaturationOut */
+        SaturationOut: {
+            radar: components["schemas"]["RadarOut"] | null;
+            /** T */
+            t: number;
+            /** Horizon H */
+            horizon_h: number;
+            /** Options */
+            options: components["schemas"]["MeterOptionOut"][];
+            /** Best */
+            best: string | null;
         };
         /** ScenarioOut */
         ScenarioOut: {
@@ -1625,6 +2031,20 @@ export interface components {
             /** Conflicts */
             conflicts: components["schemas"]["ConflictOut"][];
             index: components["schemas"]["IndexOut"] | null;
+            /**
+             * Incidents
+             * @description Действующие сбои
+             */
+            incidents: components["schemas"]["IncidentActiveOut"][];
+            /** @description Радар насыщения: тренд и прогноз, когда участок перестанет справляться */
+            radar?: components["schemas"]["RadarOut"] | null;
+            /**
+             * Scenario Next
+             * @description Ближайшее событие сценария {t, kind}
+             */
+            scenario_next: {
+                [key: string]: unknown;
+            } | null;
         };
         /** StationOut */
         StationOut: {
@@ -2167,6 +2587,26 @@ export interface operations {
             };
         };
     };
+    get_saturation_api_saturation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaturationOut"];
+                };
+            };
+        };
+    };
     get_traces_api_traces_get: {
         parameters: {
             query?: {
@@ -2316,6 +2756,57 @@ export interface operations {
                 "application/json": components["schemas"]["EventIn"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventAck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_incidents_api_incidents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentsOut"];
+                };
+            };
+        };
+    };
+    restore_incident_api_incidents__inc_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

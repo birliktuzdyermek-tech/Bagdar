@@ -41,8 +41,10 @@ from bagdar.planner.recovery import recovery
 from bagdar.planner.service import Candidate, Planner, PlanResult, Variant
 
 log = logging.getLogger("bagdar.planner")
+STALE_REQUESTS = ("прогноз конфликта", "отклонение от плана")
 MIN_SIM_GAP_S = 90   # неэкстренный пересчёт не чаще, чем раз в 90 с модели после применения плана
-SOLVER_NAMES = {"cpsat": "CP-SAT", "greedy": "эвристика", "repair": "прежний порядок", "hold": "удержание",
+SOLVER_NAMES = {"cpsat": "CP-SAT", "greedy": "эвристика", "repair": "прежний порядок", "fifo": "«кто первый пришёл»",
+                "hold": "удержание",
                 "dispatcher": "решение диспетчера"}
 
 
@@ -77,6 +79,7 @@ class PlannerRunner:
         self.urgent = False
         self.future: Future | None = None
         self.future_run_id = ""
+        self.future_incidents: list[str] = []
         self.last_real = 0.0
         self.last_sim = -1e18
         self.last_applied_t = -1e18
@@ -134,6 +137,7 @@ class PlannerRunner:
                 self.rt.engine.emit("planner_error", "critical", "Ошибка планировщика — действует прежний план")
                 res = None
             if res is not None and self.future_run_id == self.rt.run_id:
+                res.incident_ids = self.future_incidents
                 self.apply(res)
         if self.pending and self.future is None:
             if self.proposal is not None and not self.urgent:
@@ -172,10 +176,14 @@ class PlannerRunner:
         self._prune_overrides()
         inp = build_input(eng, self.rt.cfg, self.current, reason, extra_freeze_s=extra, overrides=self.overrides)
         version = self.version + 1
+        incidents = self.rt.incidents.take_waiting()
         if self.sync:
-            self.apply(self.planner.solve(inp, version))
+            res = self.planner.solve(inp, version)
+            res.incident_ids = incidents
+            self.apply(res)
         else:
             self.future_run_id = self.rt.run_id
+            self.future_incidents = incidents
             self.future = self.pool.submit(self.planner.solve, inp, version)
 
     def check(self) -> None:
@@ -209,6 +217,10 @@ class PlannerRunner:
         eng.apply_plan(plan)
         self.last_applied_t = eng.t
         self.conflicts = []
+        # запросы «прогноз конфликта» и «отклонение» считались по прежнему плану — устарели;
+        # если конфликт остался, ближайшая проверка найдёт его уже в новом плане
+        self.pending = [p for p in self.pending if not p.startswith(STALE_REQUESTS)]
+        self.urgent = self.urgent and bool(self.pending)
         self._refresh_outlook(plan, [])
 
     def apply(self, res: PlanResult) -> None:
@@ -216,6 +228,17 @@ class PlannerRunner:
         auto = self.rt.cfg.autonomy
         self.version = res.plan.version
         self.last = res
+        if res.incident_ids:
+            # разбор инцидента «до / после» — первой карточкой; если у инцидента есть варианты (уровень C),
+            # выбор делается в ней, а не в карточках отдельных перестановок
+            inc_cards = self.rt.incidents.on_result(res, res.incident_ids)
+            main = next((c for c in inc_cards if res.variants.get(c["id"])), None)
+            if main is not None:
+                for c in res.cards:
+                    if res.variants.pop(c["id"], None) is not None or c.get("choice_card"):
+                        c["variants"] = []
+                        c["choice_card"] = main["id"]
+            res.cards = inc_cards + res.cards
         stats = res.stats()
         stats["applied_at"] = round(eng.t, 1)
         stats["lag_s"] = round(eng.t - res.t0, 1)
@@ -250,7 +273,9 @@ class PlannerRunner:
                            "ms": round(res.timings["total_ms"]), "cp_status": res.cp.status})
             self._level_a(res)
         win = auto.b_cancel_s
-        for card in res.cards:
+        # лента показывает карточки от новых к старым: нумеруем с конца, чтобы внутри одного пересчёта
+        # они шли в порядке значимости — разбор сбоя первым
+        for card in reversed(res.cards):
             self.card_seq += 1
             card["seq"] = self.card_seq
             card["full_auto"] = auto.full_auto

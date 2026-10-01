@@ -36,6 +36,12 @@ export type Traces = S["TracesOut"];
 export type Occupancy = S["OccupancyOut"];
 export type Busy = S["BusyOut"];
 export type Autonomy = S["AutonomyConfig"];
+export type IncidentActive = S["IncidentActiveOut"];
+export type Incident = S["IncidentOut"];
+export type Incidents = S["IncidentsOut"];
+export type Radar = S["RadarOut"];
+export type Saturation = S["SaturationOut"];
+export type MeterOption = S["MeterOptionOut"];
 
 export type HelloMsg = S["HelloMsg"];
 export type StreamMsg =

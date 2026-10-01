@@ -314,6 +314,27 @@
     }
    }
   },
+  "/api/saturation": {
+   "get": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Радар насыщения и варианты придержания грузовых (оценка на 4 ч вперёд)",
+    "operationId": "get_saturation_api_saturation_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SaturationOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/traces": {
    "get": {
     "tags": [
@@ -480,7 +501,7 @@
     "tags": [
      "simulation"
     ],
-    "summary": "Внешнее событие (в демо: задержка поезда; сбои — этап 4)",
+    "summary": "Внешнее событие или сбой: задержка, закрытие перегона, отказ светофора или стрелки, недоступный путь, ограничение скорости, рост потока, внеочередной поезд",
     "operationId": "post_event_api_events_post",
     "requestBody": {
      "required": true,
@@ -569,6 +590,69 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/EventsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/incidents": {
+   "get": {
+    "tags": [
+     "simulation"
+    ],
+    "summary": "Инциденты прогона с разбором «до / после» и таймерами",
+    "operationId": "get_incidents_api_incidents_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/IncidentsOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/incidents/{inc_id}/restore": {
+   "post": {
+    "tags": [
+     "simulation"
+    ],
+    "summary": "Снять сбой раньше таймера (открыть перегон, починить светофор или стрелку)",
+    "operationId": "restore_incident_api_incidents__inc_id__restore_post",
+    "parameters": [
+     {
+      "name": "inc_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Inc Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventAck"
         }
        }
       }
@@ -959,7 +1043,8 @@
        "stand",
        "pass",
        "section",
-       "hold"
+       "hold",
+       "blocked"
       ],
       "title": "Kind"
      },
@@ -967,7 +1052,8 @@
       "type": "string",
       "enum": [
        "fact",
-       "plan"
+       "plan",
+       "fault"
       ],
       "title": "Source"
      },
@@ -1406,7 +1492,8 @@
        "overtake",
        "track",
        "hold",
-       "no_plan"
+       "no_plan",
+       "incident"
       ],
       "title": "Type"
      },
@@ -1665,6 +1752,31 @@
       "type": "boolean",
       "title": "Can Choose",
       "default": false
+     },
+     "incident_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Incident Id",
+      "description": "Карточка-разбор инцидента «до / после»"
+     },
+     "report": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Report",
+      "description": "Разбор инцидента: before, plan, no_change, fifo, tree"
      }
     },
     "type": "object",
@@ -1741,6 +1853,36 @@
     ],
     "title": "DecisionsOut"
    },
+   "DelayTreeOut": {
+    "properties": {
+     "root": {
+      "type": "string",
+      "title": "Root"
+     },
+     "affected": {
+      "type": "integer",
+      "title": "Affected"
+     },
+     "total_wait_min": {
+      "type": "number",
+      "title": "Total Wait Min"
+     },
+     "tree": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Tree",
+      "description": "{train_id, number, wait_s, station, children[]}"
+     }
+    },
+    "type": "object",
+    "required": [
+     "root",
+     "affected",
+     "total_wait_min",
+     "tree"
+    ],
+    "title": "DelayTreeOut"
+   },
    "EventAck": {
     "properties": {
      "ok": {
@@ -1763,7 +1905,17 @@
     "properties": {
      "type": {
       "type": "string",
-      "const": "train_delay",
+      "enum": [
+       "train_delay",
+       "section_closed",
+       "signal_fault",
+       "track_unavailable",
+       "switch_fault",
+       "speed_restriction",
+       "add_trains",
+       "extra_train",
+       "hold_at_origin"
+      ],
       "title": "Type"
      },
      "train_id": {
@@ -1775,20 +1927,168 @@
         "type": "null"
        }
       ],
-      "title": "Train Id"
+      "title": "Train Id",
+      "description": "train_delay: поезд"
+     },
+     "train_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Train Class",
+      "description": "train_delay: или класс поезда (выбирается первый на участке)"
      },
      "minutes": {
       "anyOf": [
        {
         "type": "number",
-        "maximum": 240.0,
+        "maximum": 1440.0,
         "minimum": 1.0
        },
        {
         "type": "null"
        }
       ],
-      "title": "Minutes"
+      "title": "Minutes",
+      "description": "Задержка или длительность сбоя; нет — неизвестно"
+     },
+     "section_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Section Id",
+      "description": "section_closed, signal_fault, speed_restriction"
+     },
+     "track_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Track Id",
+      "description": "track_unavailable, switch_fault"
+     },
+     "station_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Station Id",
+      "description": "switch_fault: станция (берётся боковой путь)"
+     },
+     "direction": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Direction",
+      "description": "signal_fault: одно направление; extra_train: направление"
+     },
+     "kmh": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 200.0,
+        "minimum": 5.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kmh",
+      "description": "speed_restriction"
+     },
+     "count": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 60.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Count",
+      "description": "add_trains: сколько поездов"
+     },
+     "within_min": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 600.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Within Min",
+      "description": "add_trains: за сколько минут"
+     },
+     "in_min": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 600.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "In Min",
+      "description": "extra_train: отправление через N мин"
+     },
+     "trains": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/NewTrainIn"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Trains",
+      "description": "add_trains: явный список поездов"
+     },
+     "train_ids": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Train Ids",
+      "description": "hold_at_origin: какие поезда придержать"
      },
      "reason": {
       "anyOf": [
@@ -1806,7 +2106,8 @@
     "required": [
      "type"
     ],
-    "title": "EventIn"
+    "title": "EventIn",
+    "description": "Внешнее событие или сбой. Какие поля нужны — зависит от type."
    },
    "EventOut": {
     "properties": {
@@ -2064,6 +2365,580 @@
      "world_version"
     ],
     "title": "HelloMsg"
+   },
+   "IncidentActiveOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "train_delay",
+       "section_closed",
+       "signal_fault",
+       "track_unavailable",
+       "switch_fault",
+       "speed_restriction",
+       "add_trains",
+       "extra_train",
+       "hold_at_origin"
+      ],
+      "title": "Kind"
+     },
+     "level": {
+      "type": "string",
+      "enum": [
+       "A",
+       "B",
+       "C"
+      ],
+      "title": "Level"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "resource": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Resource"
+     },
+     "section_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Section Id"
+     },
+     "station_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Station Id"
+     },
+     "until": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Until"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "restorable": {
+      "type": "boolean",
+      "title": "Restorable"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "level",
+     "title",
+     "resource",
+     "section_id",
+     "station_id",
+     "until",
+     "t",
+     "restorable"
+    ],
+    "title": "IncidentActiveOut"
+   },
+   "IncidentAfterOut": {
+    "properties": {
+     "plan": {
+      "$ref": "#/components/schemas/IncidentSummaryOut"
+     },
+     "no_change": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IncidentSummaryOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Если не менять порядок поездов (прежний план)"
+     },
+     "fifo": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IncidentSummaryOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "«Кто первый пришёл, тот первый едет»"
+     },
+     "tree": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DelayTreeOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Дерево распространения задержки (для опозданий)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "plan",
+     "no_change",
+     "fifo",
+     "tree"
+    ],
+    "title": "IncidentAfterOut"
+   },
+   "IncidentOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "train_delay",
+       "section_closed",
+       "signal_fault",
+       "track_unavailable",
+       "switch_fault",
+       "speed_restriction",
+       "add_trains",
+       "extra_train",
+       "hold_at_origin"
+      ],
+      "title": "Kind"
+     },
+     "level": {
+      "type": "string",
+      "enum": [
+       "A",
+       "B",
+       "C"
+      ],
+      "title": "Level"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "params": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Params"
+     },
+     "source": {
+      "type": "string",
+      "enum": [
+       "dispatcher",
+       "scenario"
+      ],
+      "title": "Source"
+     },
+     "resource": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Resource"
+     },
+     "station_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Station Id"
+     },
+     "section_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Section Id"
+     },
+     "train_ids": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Train Ids"
+     },
+     "until": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Until"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "active",
+       "resolved",
+       "done"
+      ],
+      "title": "Status"
+     },
+     "resolved_at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Resolved At"
+     },
+     "before": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Before",
+      "description": "Состояние в момент сбоя: индекс, прогноз, задето, конфликты плана"
+     },
+     "after": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IncidentAfterOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "card_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Card Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "t",
+     "kind",
+     "level",
+     "title",
+     "params",
+     "source",
+     "resource",
+     "station_id",
+     "section_id",
+     "train_ids",
+     "until",
+     "status",
+     "resolved_at",
+     "before",
+     "after",
+     "card_id"
+    ],
+    "title": "IncidentOut"
+   },
+   "IncidentSummaryOut": {
+    "properties": {
+     "J": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "J"
+     },
+     "J_lex": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "J Lex"
+     },
+     "delay_min": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delay Min"
+     },
+     "affected": {
+      "type": "integer",
+      "title": "Affected",
+      "description": "Задето волной: прибытие позже, чем в плане до события, на 2 мин и больше"
+     },
+     "delay_add_min": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delay Add Min",
+      "description": "Сколько поездо-минут добавила волна"
+     },
+     "late_trains": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Late Trains",
+      "description": "Поездов сверх допуска по опозданию"
+     },
+     "recovery_at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery At"
+     },
+     "beyond": {
+      "type": "integer",
+      "title": "Beyond"
+     },
+     "forecast": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Forecast"
+     },
+     "pte": {
+      "type": "integer",
+      "title": "Pte",
+      "default": 0
+     },
+     "plan_version": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Plan Version"
+     },
+     "solver": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Solver"
+     },
+     "status": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status"
+     },
+     "compute_ms": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Compute Ms"
+     },
+     "stuck": {
+      "type": "integer",
+      "title": "Stuck",
+      "description": "Поездов, которых план бросил посреди горизонта (одно правило для всех планов)",
+      "default": 0
+     },
+     "valid": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Valid"
+     },
+     "why": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Why"
+     },
+     "deadlock": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Deadlock"
+     },
+     "same": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Same",
+      "description": "fifo: опубликован порядок «кто первый пришёл» (с защитой от замка)"
+     },
+     "tree": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tree"
+     }
+    },
+    "type": "object",
+    "required": [
+     "J",
+     "delay_min",
+     "affected",
+     "recovery_at",
+     "beyond",
+     "forecast"
+    ],
+    "title": "IncidentSummaryOut"
+   },
+   "IncidentsOut": {
+    "properties": {
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "incidents": {
+      "items": {
+       "$ref": "#/components/schemas/IncidentOut"
+      },
+      "type": "array",
+      "title": "Incidents"
+     },
+     "timeline": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Timeline",
+      "description": "Запланированные события сценария и таймеры восстановления"
+     }
+    },
+    "type": "object",
+    "required": [
+     "run_id",
+     "incidents",
+     "timeline"
+    ],
+    "title": "IncidentsOut"
    },
    "IndexConfig": {
     "properties": {
@@ -2442,6 +3317,70 @@
     ],
     "title": "LoadOut"
    },
+   "MeterOptionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "hold": {
+      "type": "integer",
+      "title": "Hold"
+     },
+     "train_ids": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Train Ids"
+     },
+     "numbers": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Numbers"
+     },
+     "minutes": {
+      "type": "integer",
+      "title": "Minutes"
+     },
+     "J": {
+      "type": "number",
+      "title": "J"
+     },
+     "J_lex": {
+      "type": "number",
+      "title": "J Lex"
+     },
+     "stuck": {
+      "type": "integer",
+      "title": "Stuck"
+     },
+     "avg_late_min": {
+      "type": "number",
+      "title": "Avg Late Min"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "hold",
+     "train_ids",
+     "numbers",
+     "minutes",
+     "J",
+     "J_lex",
+     "stuck",
+     "avg_late_min",
+     "title"
+    ],
+    "title": "MeterOptionOut"
+   },
    "MetricsOut": {
     "properties": {
      "active_trains": {
@@ -2489,6 +3428,92 @@
      "stop_energy_kwh"
     ],
     "title": "MetricsOut"
+   },
+   "NewTrainIn": {
+    "properties": {
+     "cls": {
+      "type": "string",
+      "title": "Cls",
+      "default": "freight"
+     },
+     "direction": {
+      "type": "integer",
+      "title": "Direction",
+      "default": 1
+     },
+     "in_min": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 600.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "In Min",
+      "description": "Отправление через N мин модели"
+     },
+     "dep": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dep",
+      "description": "Или время отправления «ЧЧ:ММ»"
+     },
+     "length_m": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Length M"
+     },
+     "mass_t": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Mass T"
+     },
+     "from_idx": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "From Idx"
+     },
+     "to_idx": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "To Idx"
+     }
+    },
+    "type": "object",
+    "title": "NewTrainIn"
    },
    "OccupancyOut": {
     "properties": {
@@ -3013,6 +4038,94 @@
     ],
     "title": "PriorityEntry"
    },
+   "RadarOut": {
+    "properties": {
+     "status": {
+      "type": "string",
+      "enum": [
+       "no_data",
+       "ok",
+       "warning",
+       "critical"
+      ],
+      "title": "Status"
+     },
+     "eta_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Eta S",
+      "description": "Через сколько секунд модели участок перестанет справляться"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     },
+     "delay_slope_min_h": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delay Slope Min H"
+     },
+     "load_slope_pct_h": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Load Slope Pct H"
+     },
+     "queue": {
+      "type": "integer",
+      "title": "Queue"
+     },
+     "delay_now_min": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delay Now Min"
+     },
+     "load_now_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Load Now Pct"
+     }
+    },
+    "type": "object",
+    "required": [
+     "status",
+     "eta_s",
+     "text",
+     "delay_slope_min_h",
+     "load_slope_pct_h",
+     "queue"
+    ],
+    "title": "RadarOut"
+   },
    "RecoveryOut": {
     "properties": {
      "affected": {
@@ -3059,6 +4172,55 @@
      "beyond_horizon"
     ],
     "title": "RecoveryOut"
+   },
+   "SaturationOut": {
+    "properties": {
+     "radar": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/RadarOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "horizon_h": {
+      "type": "integer",
+      "title": "Horizon H"
+     },
+     "options": {
+      "items": {
+       "$ref": "#/components/schemas/MeterOptionOut"
+      },
+      "type": "array",
+      "title": "Options"
+     },
+     "best": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Best"
+     }
+    },
+    "type": "object",
+    "required": [
+     "radar",
+     "t",
+     "horizon_h",
+     "options",
+     "best"
+    ],
+    "title": "SaturationOut"
    },
    "ScenarioOut": {
     "properties": {
@@ -3695,6 +4857,38 @@
         "type": "null"
        }
       ]
+     },
+     "incidents": {
+      "items": {
+       "$ref": "#/components/schemas/IncidentActiveOut"
+      },
+      "type": "array",
+      "title": "Incidents",
+      "description": "Действующие сбои"
+     },
+     "radar": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/RadarOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Радар насыщения: тренд и прогноз, когда участок перестанет справляться"
+     },
+     "scenario_next": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Scenario Next",
+      "description": "Ближайшее событие сценария {t, kind}"
      }
     },
     "type": "object",
@@ -3715,7 +4909,9 @@
      "perf",
      "planner",
      "conflicts",
-     "index"
+     "index",
+     "incidents",
+     "scenario_next"
     ],
     "title": "StateOut"
    },

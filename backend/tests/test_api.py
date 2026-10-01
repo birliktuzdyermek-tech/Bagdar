@@ -80,3 +80,42 @@ def test_stage3_endpoints(client):
     assert client.post("/api/autonomy", json={"full_auto": True}).json()["full_auto"] is True
     r = client.post("/api/decisions/d-9999-9/action", json={"action": "cancel"})
     assert r.status_code == 409
+
+
+def test_stage4_incidents_api(client):
+    client.post("/api/sim/load", json={"scenario_id": "normal"})
+    client.post("/api/sim/control", json={"action": "step", "step_s": 900})
+    world = S.WorldOut.model_validate(client.get("/api/world").json())
+    single = next(s.id for s in world.sections if s.tracks == 1)
+    events = [
+        {"type": "train_delay", "train_class": "passenger_any", "minutes": 12},
+        {"type": "section_closed", "section_id": single, "minutes": 20},
+        {"type": "signal_fault", "section_id": "s05", "minutes": 20},
+        {"type": "switch_fault", "station_id": "st12", "minutes": 20},
+        {"type": "speed_restriction", "section_id": "s08", "kmh": 30, "minutes": 20},
+        {"type": "add_trains", "count": 2, "within_min": 20},
+        {"type": "extra_train", "direction": -1, "in_min": 5},
+    ]
+    for ev in events:
+        r = client.post("/api/events", json=ev)
+        assert r.status_code == 200, (ev, r.text)
+    # то же событие второй раз: перегон уже закрыт — честный отказ, а не молчание
+    assert client.post("/api/events", json=events[1]).status_code == 422
+    assert client.post("/api/events", json={"type": "section_closed", "section_id": "nope"}).status_code == 422
+    inc = S.IncidentsOut.model_validate(client.get("/api/incidents").json())
+    assert [i.kind for i in inc.incidents] == [e["type"] for e in events]
+    assert any(t["kind"] == "restore" for t in inc.timeline)           # таймеры восстановления
+    assert all(i.after is not None for i in inc.incidents)              # отчёт «до / после» у каждого
+    st = S.StateOut.model_validate(client.get("/api/state").json())
+    assert {i.kind for i in st.incidents} >= {"section_closed", "signal_fault", "switch_fault", "speed_restriction"}
+    cards = S.DecisionsOut.model_validate(client.get("/api/decisions").json()).cards
+    assert sum(1 for c in cards if c.type == "incident") >= len(events)
+    occ = S.OccupancyOut.model_validate(client.get("/api/occupancy?which=current").json())
+    assert any(b.kind == "blocked" and b.source == "fault" for b in occ.items)
+    closed = next(i for i in inc.incidents if i.kind == "section_closed")
+    assert client.post(f"/api/incidents/{closed.id}/restore").status_code == 200
+    assert client.post(f"/api/incidents/{closed.id}/restore").status_code == 409
+    delay = next(i for i in inc.incidents if i.kind == "train_delay")
+    assert client.post(f"/api/incidents/{delay.id}/restore").status_code == 409   # разовое событие
+    sat = S.SaturationOut.model_validate(client.get("/api/saturation").json())
+    assert sat.options and sat.best in {o.id for o in sat.options}

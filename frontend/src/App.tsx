@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { connectStream, disconnectStream } from "./api/stream";
 import { IndexPanel } from "./charts/IndexPanel";
 import { DecisionsPanel } from "./components/DecisionsPanel";
+import { DisruptionPanel } from "./components/DisruptionPanel";
 import { EventFeed } from "./components/EventFeed";
 import { LineScheme, SchemeLegend } from "./components/LineScheme";
 import { StationDetail } from "./components/StationDetail";
@@ -76,6 +77,7 @@ export default function App() {
         </section>
         <ViewsCard />
         <div className="bottom-row">
+          <DisruptionPanel />
           <TrainDetail />
           <StationDetail />
           <EventFeed />

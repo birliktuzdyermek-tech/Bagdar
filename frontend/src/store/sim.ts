@@ -111,6 +111,8 @@ export const useSim = create<SimStore>()((set, get) => ({
         base[i] = c;
       }
     }
+    // порядок — по номеру карточки: внутри одного пересчёта сервер нумерует их по значимости
+    base.sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
     set({ cards: base.slice(-200) });
   },
   selectTrain: (id) => set({ selectedTrain: id }),

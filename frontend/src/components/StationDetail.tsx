@@ -1,8 +1,12 @@
 import { useMemo } from "react";
+import { api } from "../api/client";
 import { hhmm } from "../lib/format";
 import { classGroup, GROUP_COLOR } from "../lib/palette";
 import { useAlarms } from "../lib/alarms";
 import { useSim } from "../store/sim";
+import type { IncidentActive } from "../api/types";
+
+const NO_INCIDENTS: IncidentActive[] = [];   // стабильная ссылка: новый [] в селекторе zustand зацикливает рендер
 
 const W = 560;
 const X0 = 96;
@@ -16,6 +20,8 @@ export function StationDetail() {
   const world = useSim((s) => s.world);
   const state = useSim((s) => s.state);
   const selectTrain = useSim((s) => s.selectTrain);
+  const setError = useSim((s) => s.setError);
+  const incidents = useSim((s) => s.state?.incidents ?? NO_INCIDENTS);
   const st = id && idx ? idx.stations.get(id) : undefined;
 
   const upcoming = useMemo(() => {
@@ -124,6 +130,24 @@ export function StationDetail() {
         <p className="muted" style={{ fontSize: 12, margin: "4px 0 8px" }}>
           Длина линии пути пропорциональна полезной длине; прямоугольник поезда — длине состава. Н/Ч — нечётная и чётная горловины, каждая пропускает один маршрут за раз.
         </p>
+        <div className="track-actions" aria-label="Вывести путь из работы (режим руки)">
+          {st.tracks.map((t) => {
+            const ts = trackState.get(t.id);
+            const inc = incidents.find((i) => i.resource === t.id);
+            const off = ts && !ts.available;
+            return (
+              <button key={t.id} className="btn btn-small"
+                title={off ? "Вернуть путь в работу" : "Вывести путь из работы на 30 мин (отказ стрелки, осмотр)"}
+                onClick={() => {
+                  const p = off && inc ? api.restore(inc.id)
+                    : api.event({ type: "track_unavailable", track_id: t.id, minutes: 30, reason: "выведен диспетчером" });
+                  p.catch((e) => setError(e instanceof Error ? e.message : String(e)));
+                }}>
+                {off ? `↺ путь ${t.name}` : `⚡ путь ${t.name}`}
+              </button>
+            );
+          })}
+        </div>
         <div className="secondary" style={{ fontSize: 12.5, marginBottom: 4 }}>
           На станции: {trainsHere.length ? trainsHere.map((t) => idx.trains.get(t.id)?.number).join(", ") : "нет поездов"}
         </div>
