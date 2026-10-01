@@ -109,10 +109,20 @@ class SimConfig(BaseModel):
     broadcast_hz: float = 10
 
 
+class TariffConfig(BaseModel):
+    """«Подставьте свой тариф»: цены для счётчиков денег. Все значения условные (у.е.)."""
+    kwh: float = Field(0.05, ge=0, description="у.е. за кВт·ч")
+    loco_hour: float = Field(30, ge=0, description="у.е. за час простоя локомотива")
+    crew_hour: float = Field(15, ge=0, description="у.е. за час простоя бригады")
+    delay_min_pax: float = Field(10, ge=0, description="у.е. за минуту задержки пассажирского поезда")
+    delay_min_freight: float = Field(2, ge=0, description="у.е. за минуту задержки грузового поезда")
+
+
 class BagdarConfig(BaseModel):
     mode: Literal["mainline", "lrt"] = "mainline"
     pte_strict: bool = True
     index: IndexConfig = IndexConfig()
+    tariffs: TariffConfig = TariffConfig()
     priority: dict[str, PriorityEntry] = Field(default_factory=_default_priority)
     cost: CostConfig = CostConfig()
     solver: SolverConfig = SolverConfig()

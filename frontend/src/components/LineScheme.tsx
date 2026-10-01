@@ -209,26 +209,40 @@ function lerp(a: number, b: number, k: number): number {
   return a + (b - a) * k;
 }
 
+/** Откуда схема берёт кадры состояния: по умолчанию живой поток, в «Человек против Бағдара» — теневая модель. */
+export interface SchemeSource {
+  state: State | null;
+  prev: State | null;
+  recvAt: number;
+  prevRecvAt: number;
+}
+const liveSource = (): SchemeSource => useSim.getState();
+
 /* Слой поездов: обновляется каждый кадр, позиции интерполируются между кадрами состояния. */
-function TrainsLayer({ layout, red, onHover }: {
+function TrainsLayer({ layout, red, onHover, source = liveSource, onTrain, selectedOverride }: {
   layout: Layout;
   red: Set<string>;
   onHover: (id: string | null, x?: number, y?: number) => void;
+  source?: () => SchemeSource;
+  onTrain?: (id: string) => void;
+  selectedOverride?: string | null;
 }) {
   const [, setFrame] = useState(0);
   useEffect(() => {
     let raf = 0;
     const loop = () => {
-      const { state, recvAt, prevRecvAt } = useSim.getState();
+      const { state, recvAt, prevRecvAt } = source();
       const span = Math.max(16, recvAt - prevRecvAt);
       if (state?.running || performance.now() - recvAt < span + 50) setFrame((f) => (f + 1) % 1_000_000);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [source]);
 
-  const { state, prev, recvAt, prevRecvAt, idx, world, selectedTrain, selectTrain } = useSim.getState();
+  const { state, prev, recvAt, prevRecvAt } = source();
+  const { idx, world, selectTrain } = useSim.getState();
+  const selectedTrain = selectedOverride !== undefined ? selectedOverride : useSim.getState().selectedTrain;
   if (!state || !idx || !world) return null;
   const tol = new Map(world.classes.map((c) => [c.key, c.tolerance_min * 60]));
   const alpha = prev ? Math.min(1, Math.max(0, (performance.now() - recvAt) / Math.max(16, recvAt - prevRecvAt))) : 1;
@@ -259,7 +273,8 @@ function TrainsLayer({ layout, red, onHover }: {
         transform={`translate(${x.toFixed(2)},${y.toFixed(2)})`}
         onClick={(e) => {
           e.stopPropagation();
-          selectTrain(selected ? null : ts.id);
+          if (onTrain) onTrain(ts.id);
+          else selectTrain(selected ? null : ts.id);
         }}
         onMouseEnter={(e) => onHover(ts.id, e.clientX, e.clientY)}
         onMouseMove={(e) => onHover(ts.id, e.clientX, e.clientY)}
@@ -291,11 +306,18 @@ function TrainsLayer({ layout, red, onHover }: {
   return <g>{items}</g>;
 }
 
-export function LineScheme() {
+export function LineScheme({ source, stateOverride, onTrain, selectedOverride }: {
+  source?: () => SchemeSource;
+  stateOverride?: State | null;
+  onTrain?: (id: string) => void;
+  selectedOverride?: string | null;
+} = {}) {
   const world = useSim((s) => s.world);
   const idx = useSim((s) => s.idx);
-  const state = useSim((s) => s.state);
-  const selectedTrain = useSim((s) => s.selectedTrain);
+  const liveState = useSim((s) => s.state);
+  const state = source ? stateOverride ?? null : liveState;
+  const liveSelected = useSim((s) => s.selectedTrain);
+  const selectedTrain = selectedOverride !== undefined ? selectedOverride : liveSelected;
   const selectedStation = useSim((s) => s.selectedStation);
   const selectStation = useSim((s) => s.selectStation);
   const selectTrain = useSim((s) => s.selectTrain);
@@ -329,7 +351,8 @@ export function LineScheme() {
         <StaticLayer world={world} layout={layout} onStation={(id) => selectStation(id)} />
         <InfraLayer world={world} idx={idx} layout={layout} state={state} selectedTrain={selectedTrain}
           selectedStation={selectedStation} red={alarms.red} />
-        <TrainsLayer layout={layout} red={alarms.red} onHover={onHover} />
+        <TrainsLayer layout={layout} red={alarms.red} onHover={onHover} source={source} onTrain={onTrain}
+          selectedOverride={selectedOverride} />
       </svg>
       {hover && hoverTrain && hoverState && (
         <div className="tooltip" style={{ left: Math.min(hover.x + 14, (wrapRef.current?.scrollWidth ?? 9999) - 220), top: hover.y + 14 }}>

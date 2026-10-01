@@ -11,6 +11,11 @@ import type {
   PlannerInfo,
   PlannerSummary,
   Scenario,
+  HistoryAt,
+  HistoryInfo,
+  Versus,
+  Settings,
+  SettingsIn,
   Traces,
 } from "./types";
 
@@ -43,8 +48,18 @@ export const api = {
   }),
   scenarios: () => request<Scenario[]>("/api/scenarios"),
   plan: (which: "current" | "previous" | "projected" = "current") => request<Plan>(`/api/plan?which=${which}`),
-  occupancy: (which: "current" | "previous", tFrom: number, tTo: number) =>
-    request<Occupancy>(`/api/occupancy?which=${which}&t_from=${tFrom}&t_to=${tTo}`),
+  occupancy: (which: "current" | "previous", tFrom: number, tTo: number, at?: number) =>
+    request<Occupancy>(`/api/occupancy?which=${which}&t_from=${tFrom}&t_to=${tTo}${at != null ? `&at=${at}` : ""}`),
+  history: () => request<HistoryInfo>("/api/history"),
+  versus: (withState = true) => request<Versus>(`/api/versus?state=${withState}`),
+  versusStart: (scenarioId: string, seed?: number) => request<Versus>("/api/versus/start", {
+    method: "POST", body: JSON.stringify({ scenario_id: scenarioId, seed: seed ?? null }),
+  }),
+  versusStop: () => request<Versus>("/api/versus/stop", { method: "POST" }),
+  versusHold: (trainId: string, minutes = 5) => request<{ ok: boolean; message: string }>("/api/versus/hold", {
+    method: "POST", body: JSON.stringify({ train_id: trainId, minutes }),
+  }),
+  historyAt: (t: number) => request<HistoryAt>(`/api/history/at?t=${t}`),
   traces: (since: number) => request<Traces>(`/api/traces?since=${since}`),
   index: (since?: number) => request<IndexHistory>(`/api/index${since != null ? `?since=${since}` : ""}`),
   decision: (cardId: string, action: "cancel" | "choose", variantId?: string) =>
@@ -57,6 +72,10 @@ export const api = {
     method: "POST",
   }),
   saturation: () => request<Saturation>("/api/saturation"),
+  settings: () => request<Settings>("/api/settings"),
+  saveSettings: (body: SettingsIn) => request<Settings>("/api/settings", {
+    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }),
   autonomy: (fullAuto: boolean) => request<Autonomy>("/api/autonomy", {
     method: "POST",
     body: JSON.stringify({ full_auto: fullAuto }),

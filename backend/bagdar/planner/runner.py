@@ -39,6 +39,7 @@ from bagdar.planner.forward import run_with_order
 from bagdar.planner.inputs import build_input
 from bagdar.planner.recovery import recovery
 from bagdar.planner.service import Candidate, Planner, PlanResult, Variant
+from bagdar.dto import plan_dto
 
 log = logging.getLogger("bagdar.planner")
 STALE_REQUESTS = ("прогноз конфликта", "отклонение от плана")
@@ -215,6 +216,7 @@ class PlannerRunner:
         eng = self.rt.engine
         self.previous, self.current = self.current, plan
         eng.apply_plan(plan)
+        self.rt.history.add_plan(eng.t, plan, plan_dto(plan))
         self.last_applied_t = eng.t
         self.conflicts = []
         # запросы «прогноз конфликта» и «отклонение» считались по прежнему плану — устарели;

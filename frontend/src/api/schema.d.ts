@@ -191,6 +191,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Журнал прогона: что записано и какой интервал доступен для перемотки */
+        get: operations["get_history_api_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/history/at": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Перемотка: состояние, план, лента, карточки и индекс на момент t */
+        get: operations["get_history_at_api_history_at_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/events.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** CSV: события прогона (из журнала) */
+        get: operations["export_events_api_export_events_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/plan.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** CSV: действующий план по поездам */
+        get: operations["export_plan_api_export_plan_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/report.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** PDF: период, показатели, инциденты, изменения плана, вывод */
+        get: operations["export_pdf_api_export_report_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/planner": {
         parameters: {
             query?: never;
@@ -328,6 +413,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/versus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Человек против Бағдара: счёт обеих сторон и состояние левой (без Бағдара) */
+        get: operations["get_versus_api_versus_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versus/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запустить сценарий дважды: слева «кто первый пришёл», справа Бағдар */
+        post: operations["start_versus_api_versus_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versus/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop Versus */
+        post: operations["stop_versus_api_versus_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versus/hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Решение человека слева: придержать поезд на станции */
+        post: operations["versus_hold_api_versus_hold_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Настройки, меняемые на лету: веса и пороги индекса, строгий ПТЭ, тарифы */
+        get: operations["get_settings_api_settings_get"];
+        /** Изменить веса и пороги индекса, строгий ПТЭ, тарифы (без перезапуска) */
+        put: operations["put_settings_api_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/config": {
         parameters: {
             query?: never;
@@ -388,6 +559,20 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** AdviceSummaryOut */
+        AdviceSummaryOut: {
+            /** Trains */
+            trains: number;
+            /**
+             * Slowed
+             * @description Скольким поездам советуется ехать медленнее лимита
+             */
+            slowed: number;
+            /** Stops Avoided */
+            stops_avoided: number;
+            /** Saving Kwh */
+            saving_kwh: number;
+        };
         /** AutonomyConfig */
         AutonomyConfig: {
             /**
@@ -442,6 +627,16 @@ export interface components {
              *     }
              */
             index: components["schemas"]["IndexConfig"];
+            /**
+             * @default {
+             *       "kwh": 0.05,
+             *       "loco_hour": 30,
+             *       "crew_hour": 15,
+             *       "delay_min_pax": 10,
+             *       "delay_min_freight": 2
+             *     }
+             */
+            tariffs: components["schemas"]["TariffConfig"];
             /** Priority */
             priority?: {
                 [key: string]: components["schemas"]["PriorityEntry"];
@@ -1030,6 +1225,68 @@ export interface components {
             run_id: string;
             /** World Version */
             world_version: number;
+        };
+        /** HistoryAtOut */
+        HistoryAtOut: {
+            /**
+             * T
+             * @description Время снимка (последний не позже запрошенного)
+             */
+            t: number;
+            state: components["schemas"]["StateOut"];
+            plan: components["schemas"]["PlanOut"] | null;
+            /** Events */
+            events: components["schemas"]["EventOut"][];
+            /** Cards */
+            cards: components["schemas"]["DecisionCardOut"][];
+            /** Index History */
+            index_history: components["schemas"]["IndexPointOut"][];
+        };
+        /** HistoryMarkOut */
+        HistoryMarkOut: {
+            /** T */
+            t: number;
+            /** Kind */
+            kind: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "debug" | "info" | "warn" | "critical";
+            /** Message */
+            message: string;
+        };
+        /** HistoryOut */
+        HistoryOut: {
+            /**
+             * Path
+             * @description Где лежит журнал SQLite (:memory: — в памяти процесса)
+             */
+            path: string;
+            /** Run Id */
+            run_id: string;
+            /** Events */
+            events: number;
+            /** Snapshots */
+            snapshots: number;
+            /** Plans */
+            plans: number;
+            /** Memory Snapshots */
+            memory_snapshots: number;
+            /** @description Интервал, доступный для перемотки, секунды модели */
+            window: components["schemas"]["HistoryWindowOut"] | null;
+            /**
+             * Marks
+             * @description Важные события для меток на шкале
+             */
+            marks: components["schemas"]["HistoryMarkOut"][];
+        };
+        /** HistoryWindowOut */
+        HistoryWindowOut: {
+            /** From */
+            from: number;
+            /** To */
+            to: number;
         };
         /** IncidentActiveOut */
         IncidentActiveOut: {
@@ -1724,6 +1981,15 @@ export interface components {
             /** Best */
             best: string | null;
         };
+        /** ScenarioEventOut */
+        ScenarioEventOut: {
+            /** At */
+            at: string;
+            /** Type */
+            type: string;
+            /** Label */
+            label: string;
+        };
         /** ScenarioOut */
         ScenarioOut: {
             /** Id */
@@ -1744,6 +2010,16 @@ export interface components {
             wave: number;
             /** Disruptions */
             disruptions: number;
+            /** Situation */
+            situation?: number | null;
+            /**
+             * Plain
+             * @description Что вы увидите — простыми словами
+             * @default
+             */
+            plain: string;
+            /** Events */
+            events?: components["schemas"]["ScenarioEventOut"][];
         };
         /** ScheduleStopOut */
         ScheduleStopOut: {
@@ -1815,6 +2091,31 @@ export interface components {
             occupants: string[];
             /** Dir */
             dir: number;
+        };
+        /**
+         * SettingsIn
+         * @description Всё необязательно: меняется только переданное. Индекс пересчитывается сразу.
+         */
+        SettingsIn: {
+            weights?: components["schemas"]["IndexWeights"] | null;
+            thresholds?: components["schemas"]["IndexThresholds"] | null;
+            /** Pte Strict */
+            pte_strict?: boolean | null;
+            tariffs?: components["schemas"]["TariffConfig"] | null;
+            /**
+             * Reset
+             * @description Вернуть значения из YAML-конфига
+             * @default false
+             */
+            reset: boolean;
+        };
+        /** SettingsOut */
+        SettingsOut: {
+            weights: components["schemas"]["IndexWeights"];
+            thresholds: components["schemas"]["IndexThresholds"];
+            /** Pte Strict */
+            pte_strict: boolean;
+            tariffs: components["schemas"]["TariffConfig"];
         };
         /** SignalOut */
         SignalOut: {
@@ -1993,6 +2294,50 @@ export interface components {
              */
             fallback: "greedy";
         };
+        /**
+         * SpeedAdviceOut
+         * @description Совет машинисту на ближайшем перегоне. Модель относительная, не тяговый расчёт.
+         */
+        SpeedAdviceOut: {
+            /**
+             * V Rec Kmh
+             * @description Рекомендуемая скорость, не выше лимита
+             */
+            v_rec_kmh: number;
+            /**
+             * V Full Kmh
+             * @description Полный ход — лимит перегона с учётом ограничений
+             */
+            v_full_kmh: number;
+            /** V Limit Kmh */
+            v_limit_kmh: number;
+            /**
+             * E Full Kwh
+             * @description Условный расход на полном ходу: ход + остановка у входного, кВт·ч
+             */
+            e_full_kwh: number;
+            /**
+             * E Rec Kwh
+             * @description Условный расход по совету, кВт·ч
+             */
+            e_rec_kwh: number;
+            /** Saving Kwh */
+            saving_kwh: number;
+            /** Saving Pct */
+            saving_pct: number;
+            /**
+             * Stop Avoided
+             * @description Совет избавляет от остановки у входного светофора
+             */
+            stop_avoided: boolean;
+            /**
+             * Wait Full S
+             * @description Сколько поезд простоял бы, придя на полном ходу
+             */
+            wait_full_s: number;
+            /** Text */
+            text: string;
+        };
         /** StateOut */
         StateOut: {
             /**
@@ -2017,6 +2362,8 @@ export interface components {
             speed: number;
             /** Trains */
             trains: components["schemas"]["TrainStateOut"][];
+            /** @description Советы скорости по всем поездам на перегонах */
+            advice?: components["schemas"]["AdviceSummaryOut"] | null;
             /** Sections */
             sections: components["schemas"]["SectionStateOut"][];
             /** Tracks */
@@ -2093,6 +2440,42 @@ export interface components {
             track_id: string;
             /** Number */
             number: number;
+        };
+        /**
+         * TariffConfig
+         * @description «Подставьте свой тариф»: цены для счётчиков денег. Все значения условные (у.е.).
+         */
+        TariffConfig: {
+            /**
+             * Kwh
+             * @description у.е. за кВт·ч
+             * @default 0.05
+             */
+            kwh: number;
+            /**
+             * Loco Hour
+             * @description у.е. за час простоя локомотива
+             * @default 30
+             */
+            loco_hour: number;
+            /**
+             * Crew Hour
+             * @description у.е. за час простоя бригады
+             * @default 15
+             */
+            crew_hour: number;
+            /**
+             * Delay Min Pax
+             * @description у.е. за минуту задержки пассажирского поезда
+             * @default 10
+             */
+            delay_min_pax: number;
+            /**
+             * Delay Min Freight
+             * @description у.е. за минуту задержки грузового поезда
+             * @default 2
+             */
+            delay_min_freight: number;
         };
         /** ThroatStateOut */
         ThroatStateOut: {
@@ -2202,6 +2585,8 @@ export interface components {
             unplanned_stops: number;
             /** Stop Energy Kwh */
             stop_energy_kwh: number;
+            /** @description Совет машинисту (только на перегоне) */
+            advice?: components["schemas"]["SpeedAdviceOut"] | null;
         };
         /** TrainStaticOut */
         TrainStaticOut: {
@@ -2293,6 +2678,117 @@ export interface components {
             late_pax: number;
             /** Note */
             note: string;
+        };
+        /** VersusHoldIn */
+        VersusHoldIn: {
+            /** Train Id */
+            train_id: string;
+            /**
+             * Minutes
+             * @default 5
+             */
+            minutes: number;
+        };
+        /** VersusOut */
+        VersusOut: {
+            /** Active */
+            active: boolean;
+            /** Scenario Id */
+            scenario_id?: string | null;
+            /** Scenario */
+            scenario?: string | null;
+            /** T */
+            t?: number | null;
+            /** Running */
+            running?: boolean | null;
+            /** Speed */
+            speed?: number | null;
+            left?: components["schemas"]["VersusSideOut"] | null;
+            right?: components["schemas"]["VersusSideOut"] | null;
+            /**
+             * Diff
+             * @description Разница в пользу Бағдара (слева минус справа)
+             */
+            diff?: {
+                [key: string]: number;
+            } | null;
+            /**
+             * Actions
+             * @description Решения человека-диспетчера слева
+             */
+            actions?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** VersusScoreOut */
+        VersusScoreOut: {
+            /** Delay Pax Min */
+            delay_pax_min: number;
+            /** Delay Freight Min */
+            delay_freight_min: number;
+            /**
+             * Delay Min
+             * @description Накопленная задержка, поездо-минуты
+             */
+            delay_min: number;
+            /**
+             * Late Trains
+             * @description Поездов с опозданием 5 мин и больше
+             */
+            late_trains: number;
+            /**
+             * Idle H
+             * @description Простой сверх графика, поездо-часы
+             */
+            idle_h: number;
+            /**
+             * Energy Kwh
+             * @description Энергия неплановых остановок, кВт·ч (условно)
+             */
+            energy_kwh: number;
+            /** Unplanned Stops */
+            unplanned_stops: number;
+            /**
+             * Frozen
+             * @description Поездов, которые стоят на месте час и дольше
+             */
+            frozen: number;
+            /** Frozen Numbers */
+            frozen_numbers: string[];
+            /**
+             * Passages
+             * @description Проследований станций с начала прогона
+             */
+            passages: number;
+            /** Finished */
+            finished: number;
+            /**
+             * Money
+             * @description Условные деньги по статьям, у.е.
+             */
+            money: {
+                [key: string]: number;
+            };
+            /** Money Total */
+            money_total: number;
+            /** Index */
+            index: number | null;
+            /** Index Status */
+            index_status: string | null;
+        };
+        /** VersusSideOut */
+        VersusSideOut: {
+            /** Title */
+            title: string;
+            score: components["schemas"]["VersusScoreOut"];
+            state?: components["schemas"]["StateOut"] | null;
+        };
+        /** VersusStartIn */
+        VersusStartIn: {
+            /** Scenario Id */
+            scenario_id?: string | null;
+            /** Seed */
+            seed?: number | null;
         };
         /** WorldMsg */
         WorldMsg: {
@@ -2644,6 +3140,8 @@ export interface operations {
                 which?: string;
                 t_from?: number | null;
                 t_to?: number | null;
+                /** @description Перемотка: показать занятость на момент at */
+                at?: number | null;
             };
             header?: never;
             path?: never;
@@ -2658,6 +3156,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OccupancyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_history_api_history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryOut"];
+                };
+            };
+        };
+    };
+    get_history_at_api_history_at_get: {
+        parameters: {
+            query: {
+                t: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryAtOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_events_api_export_events_csv_get: {
+        parameters: {
+            query?: {
+                t_from?: number | null;
+                t_to?: number | null;
+                last_min?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_plan_api_export_plan_csv_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    export_pdf_api_export_report_pdf_get: {
+        parameters: {
+            query?: {
+                t_from?: number | null;
+                t_to?: number | null;
+                last_min?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -2901,6 +3536,176 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_versus_api_versus_get: {
+        parameters: {
+            query?: {
+                state?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_versus_api_versus_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersusStartIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_versus_api_versus_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersusOut"];
+                };
+            };
+        };
+    };
+    versus_hold_api_versus_hold_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersusHoldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventAck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_api_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    put_settings_api_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
                 };
             };
             /** @description Validation Error */

@@ -12,6 +12,7 @@ from bagdar.models.plan import Plan
 from bagdar.models.train import Train
 from bagdar.models.world import World
 from bagdar.sim.engine import Engine, TrainRT
+from bagdar.energy import advise, fleet_summary
 
 
 def _r(x: float | None, nd: int = 1) -> float | None:
@@ -97,16 +98,19 @@ def train_state(eng: Engine, rt: TrainRT) -> dict:
         "dest_track": rt.dest_track, "through": rt.through, "next_station_id": next_station,
         "crew_left_s": round(tr.crew_shift_end - eng.t), "stops": rt.stops,
         "unplanned_stops": rt.unplanned_stops, "stop_energy_kwh": _r(rt.stop_energy_kwh),
+        "advice": advise(eng, rt),
     }
 
 
 def state_dto(eng: Engine, *, running: bool, speed: float, run_id: str, world_version: int,
               perf: dict) -> dict:
     il, now = eng.il, eng.t
+    trains = [train_state(eng, rt) for rt in eng.active()]
     return {
         "type": "state", "run_id": run_id, "world_version": world_version, "seq": eng.seq,
         "tick": eng.steps, "t": round(now, 1), "running": running, "speed": speed,
-        "trains": [train_state(eng, rt) for rt in eng.active()],
+        "trains": trains,
+        "advice": fleet_summary([t["advice"] for t in trains]),
         "sections": [{
             "id": sid, "status": s.status, "single": s.single, "restriction_kmh": s.restriction_kmh,
             "occupants": list(s.occupants),

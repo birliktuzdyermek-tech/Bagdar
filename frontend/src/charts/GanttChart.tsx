@@ -28,6 +28,7 @@ export function GanttChart() {
   const runId = useSim((s) => s.state?.run_id ?? "");
   const applied = useSim((s) => s.state?.planner.applied_version ?? 0);
   const running = useSim((s) => s.state?.running ?? false);
+  const pastT = useSim((s) => s.past?.t ?? null);
   const tNow = useSim((s) => Math.floor((s.state?.t ?? 0) / 30));
   const selectedTrain = useSim((s) => s.selectedTrain);
   const selectedStation = useSim((s) => s.selectedStation);
@@ -69,7 +70,7 @@ export function GanttChart() {
     if (!runId) return;
     const t = useSim.getState().state?.t ?? 0;
     let off = false;
-    api.occupancy(which, t - 1800, t + 9000)
+    api.occupancy(which, t - 1800, t + 9000, pastT ?? undefined)
       .then((d) => {
         if (!off) {
           setData(d);
@@ -80,7 +81,7 @@ export function GanttChart() {
     return () => {
       off = true;
     };
-  }, [runId, which, applied, running ? tNow : 0]);
+  }, [runId, which, applied, running ? tNow : 0, pastT]);
 
   const visibleRows = useMemo(() => {
     if (!data) return rows;

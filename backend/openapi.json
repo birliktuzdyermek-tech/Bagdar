@@ -428,6 +428,24 @@
        ],
        "title": "T To"
       }
+     },
+     {
+      "name": "at",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Перемотка: показать занятость на момент at",
+       "title": "At"
+      },
+      "description": "Перемотка: показать занятость на момент at"
      }
     ],
     "responses": {
@@ -438,6 +456,250 @@
         "schema": {
          "$ref": "#/components/schemas/OccupancyOut"
         }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/history": {
+   "get": {
+    "tags": [
+     "history"
+    ],
+    "summary": "Журнал прогона: что записано и какой интервал доступен для перемотки",
+    "operationId": "get_history_api_history_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HistoryOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/history/at": {
+   "get": {
+    "tags": [
+     "history"
+    ],
+    "summary": "Перемотка: состояние, план, лента, карточки и индекс на момент t",
+    "operationId": "get_history_at_api_history_at_get",
+    "parameters": [
+     {
+      "name": "t",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "number",
+       "title": "T"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HistoryAtOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/export/events.csv": {
+   "get": {
+    "tags": [
+     "export"
+    ],
+    "summary": "CSV: события прогона (из журнала)",
+    "operationId": "export_events_api_export_events_csv_get",
+    "parameters": [
+     {
+      "name": "t_from",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "T From"
+      }
+     },
+     {
+      "name": "t_to",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "T To"
+      }
+     },
+     {
+      "name": "last_min",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number",
+         "maximum": 1440,
+         "minimum": 1
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Last Min"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/export/plan.csv": {
+   "get": {
+    "tags": [
+     "export"
+    ],
+    "summary": "CSV: действующий план по поездам",
+    "operationId": "export_plan_api_export_plan_csv_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/export/report.pdf": {
+   "get": {
+    "tags": [
+     "export"
+    ],
+    "summary": "PDF: период, показатели, инциденты, изменения плана, вывод",
+    "operationId": "export_pdf_api_export_report_pdf_get",
+    "parameters": [
+     {
+      "name": "t_from",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "T From"
+      }
+     },
+     {
+      "name": "t_to",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "T To"
+      }
+     },
+     {
+      "name": "last_min",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number",
+         "maximum": 1440,
+         "minimum": 1
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Last Min"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
        }
       }
      },
@@ -777,6 +1039,212 @@
     }
    }
   },
+  "/api/versus": {
+   "get": {
+    "tags": [
+     "versus"
+    ],
+    "summary": "Человек против Бағдара: счёт обеих сторон и состояние левой (без Бағдара)",
+    "operationId": "get_versus_api_versus_get",
+    "parameters": [
+     {
+      "name": "state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "default": true,
+       "title": "State"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VersusOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/versus/start": {
+   "post": {
+    "tags": [
+     "versus"
+    ],
+    "summary": "Запустить сценарий дважды: слева «кто первый пришёл», справа Бағдар",
+    "operationId": "start_versus_api_versus_start_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/VersusStartIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VersusOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/versus/stop": {
+   "post": {
+    "tags": [
+     "versus"
+    ],
+    "summary": "Stop Versus",
+    "operationId": "stop_versus_api_versus_stop_post",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VersusOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/versus/hold": {
+   "post": {
+    "tags": [
+     "versus"
+    ],
+    "summary": "Решение человека слева: придержать поезд на станции",
+    "operationId": "versus_hold_api_versus_hold_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/VersusHoldIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventAck"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/settings": {
+   "get": {
+    "tags": [
+     "config"
+    ],
+    "summary": "Настройки, меняемые на лету: веса и пороги индекса, строгий ПТЭ, тарифы",
+    "operationId": "get_settings_api_settings_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SettingsOut"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "config"
+    ],
+    "summary": "Изменить веса и пороги индекса, строгий ПТЭ, тарифы (без перезапуска)",
+    "operationId": "put_settings_api_settings_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SettingsIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SettingsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/config": {
    "get": {
     "tags": [
@@ -875,6 +1343,35 @@
     ],
     "title": "ActionResultOut"
    },
+   "AdviceSummaryOut": {
+    "properties": {
+     "trains": {
+      "type": "integer",
+      "title": "Trains"
+     },
+     "slowed": {
+      "type": "integer",
+      "title": "Slowed",
+      "description": "Скольким поездам советуется ехать медленнее лимита"
+     },
+     "stops_avoided": {
+      "type": "integer",
+      "title": "Stops Avoided"
+     },
+     "saving_kwh": {
+      "type": "number",
+      "title": "Saving Kwh"
+     }
+    },
+    "type": "object",
+    "required": [
+     "trains",
+     "slowed",
+     "stops_avoided",
+     "saving_kwh"
+    ],
+    "title": "AdviceSummaryOut"
+   },
    "AutonomyConfig": {
     "properties": {
      "full_auto": {
@@ -941,6 +1438,16 @@
        },
        "punctuality_max_delay_min": 30.0,
        "conflicts_max": 10.0
+      }
+     },
+     "tariffs": {
+      "$ref": "#/components/schemas/TariffConfig",
+      "default": {
+       "kwh": 0.05,
+       "loco_hour": 30.0,
+       "crew_hour": 15.0,
+       "delay_min_pax": 10.0,
+       "delay_min_freight": 2.0
       }
      },
      "priority": {
@@ -2365,6 +2872,171 @@
      "world_version"
     ],
     "title": "HelloMsg"
+   },
+   "HistoryAtOut": {
+    "properties": {
+     "t": {
+      "type": "number",
+      "title": "T",
+      "description": "Время снимка (последний не позже запрошенного)"
+     },
+     "state": {
+      "$ref": "#/components/schemas/StateOut"
+     },
+     "plan": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PlanOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "events": {
+      "items": {
+       "$ref": "#/components/schemas/EventOut"
+      },
+      "type": "array",
+      "title": "Events"
+     },
+     "cards": {
+      "items": {
+       "$ref": "#/components/schemas/DecisionCardOut"
+      },
+      "type": "array",
+      "title": "Cards"
+     },
+     "index_history": {
+      "items": {
+       "$ref": "#/components/schemas/IndexPointOut"
+      },
+      "type": "array",
+      "title": "Index History"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "state",
+     "plan",
+     "events",
+     "cards",
+     "index_history"
+    ],
+    "title": "HistoryAtOut"
+   },
+   "HistoryMarkOut": {
+    "properties": {
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "kind": {
+      "type": "string",
+      "title": "Kind"
+     },
+     "severity": {
+      "type": "string",
+      "enum": [
+       "debug",
+       "info",
+       "warn",
+       "critical"
+      ],
+      "title": "Severity"
+     },
+     "message": {
+      "type": "string",
+      "title": "Message"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "kind",
+     "severity",
+     "message"
+    ],
+    "title": "HistoryMarkOut"
+   },
+   "HistoryOut": {
+    "properties": {
+     "path": {
+      "type": "string",
+      "title": "Path",
+      "description": "Где лежит журнал SQLite (:memory: — в памяти процесса)"
+     },
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "events": {
+      "type": "integer",
+      "title": "Events"
+     },
+     "snapshots": {
+      "type": "integer",
+      "title": "Snapshots"
+     },
+     "plans": {
+      "type": "integer",
+      "title": "Plans"
+     },
+     "memory_snapshots": {
+      "type": "integer",
+      "title": "Memory Snapshots"
+     },
+     "window": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/HistoryWindowOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Интервал, доступный для перемотки, секунды модели"
+     },
+     "marks": {
+      "items": {
+       "$ref": "#/components/schemas/HistoryMarkOut"
+      },
+      "type": "array",
+      "title": "Marks",
+      "description": "Важные события для меток на шкале"
+     }
+    },
+    "type": "object",
+    "required": [
+     "path",
+     "run_id",
+     "events",
+     "snapshots",
+     "plans",
+     "memory_snapshots",
+     "window",
+     "marks"
+    ],
+    "title": "HistoryOut"
+   },
+   "HistoryWindowOut": {
+    "properties": {
+     "from": {
+      "type": "number",
+      "title": "From"
+     },
+     "to": {
+      "type": "number",
+      "title": "To"
+     }
+    },
+    "type": "object",
+    "required": [
+     "from",
+     "to"
+    ],
+    "title": "HistoryWindowOut"
    },
    "IncidentActiveOut": {
     "properties": {
@@ -4222,6 +4894,29 @@
     ],
     "title": "SaturationOut"
    },
+   "ScenarioEventOut": {
+    "properties": {
+     "at": {
+      "type": "string",
+      "title": "At"
+     },
+     "type": {
+      "type": "string",
+      "title": "Type"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     }
+    },
+    "type": "object",
+    "required": [
+     "at",
+     "type",
+     "label"
+    ],
+    "title": "ScenarioEventOut"
+   },
    "ScenarioOut": {
     "properties": {
      "id": {
@@ -4259,6 +4954,30 @@
      "disruptions": {
       "type": "integer",
       "title": "Disruptions"
+     },
+     "situation": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Situation"
+     },
+     "plain": {
+      "type": "string",
+      "title": "Plain",
+      "description": "Что вы увидите — простыми словами",
+      "default": ""
+     },
+     "events": {
+      "items": {
+       "$ref": "#/components/schemas/ScenarioEventOut"
+      },
+      "type": "array",
+      "title": "Events"
      }
     },
     "type": "object",
@@ -4465,6 +5184,85 @@
      "dir"
     ],
     "title": "SectionStateOut"
+   },
+   "SettingsIn": {
+    "properties": {
+     "weights": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IndexWeights"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "thresholds": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IndexThresholds"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "pte_strict": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pte Strict"
+     },
+     "tariffs": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TariffConfig"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "reset": {
+      "type": "boolean",
+      "title": "Reset",
+      "description": "Вернуть значения из YAML-конфига",
+      "default": false
+     }
+    },
+    "type": "object",
+    "title": "SettingsIn",
+    "description": "Всё необязательно: меняется только переданное. Индекс пересчитывается сразу."
+   },
+   "SettingsOut": {
+    "properties": {
+     "weights": {
+      "$ref": "#/components/schemas/IndexWeights"
+     },
+     "thresholds": {
+      "$ref": "#/components/schemas/IndexThresholds"
+     },
+     "pte_strict": {
+      "type": "boolean",
+      "title": "Pte Strict"
+     },
+     "tariffs": {
+      "$ref": "#/components/schemas/TariffConfig"
+     }
+    },
+    "type": "object",
+    "required": [
+     "weights",
+     "thresholds",
+     "pte_strict",
+     "tariffs"
+    ],
+    "title": "SettingsOut"
    },
    "SignalOut": {
     "properties": {
@@ -4761,6 +5559,71 @@
     "type": "object",
     "title": "SolverConfig"
    },
+   "SpeedAdviceOut": {
+    "properties": {
+     "v_rec_kmh": {
+      "type": "integer",
+      "title": "V Rec Kmh",
+      "description": "Рекомендуемая скорость, не выше лимита"
+     },
+     "v_full_kmh": {
+      "type": "integer",
+      "title": "V Full Kmh",
+      "description": "Полный ход — лимит перегона с учётом ограничений"
+     },
+     "v_limit_kmh": {
+      "type": "integer",
+      "title": "V Limit Kmh"
+     },
+     "e_full_kwh": {
+      "type": "number",
+      "title": "E Full Kwh",
+      "description": "Условный расход на полном ходу: ход + остановка у входного, кВт·ч"
+     },
+     "e_rec_kwh": {
+      "type": "number",
+      "title": "E Rec Kwh",
+      "description": "Условный расход по совету, кВт·ч"
+     },
+     "saving_kwh": {
+      "type": "number",
+      "title": "Saving Kwh"
+     },
+     "saving_pct": {
+      "type": "number",
+      "title": "Saving Pct"
+     },
+     "stop_avoided": {
+      "type": "boolean",
+      "title": "Stop Avoided",
+      "description": "Совет избавляет от остановки у входного светофора"
+     },
+     "wait_full_s": {
+      "type": "integer",
+      "title": "Wait Full S",
+      "description": "Сколько поезд простоял бы, придя на полном ходу"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     }
+    },
+    "type": "object",
+    "required": [
+     "v_rec_kmh",
+     "v_full_kmh",
+     "v_limit_kmh",
+     "e_full_kwh",
+     "e_rec_kwh",
+     "saving_kwh",
+     "saving_pct",
+     "stop_avoided",
+     "wait_full_s",
+     "text"
+    ],
+    "title": "SpeedAdviceOut",
+    "description": "Совет машинисту на ближайшем перегоне. Модель относительная, не тяговый расчёт."
+   },
    "StateOut": {
     "properties": {
      "type": {
@@ -4803,6 +5666,17 @@
       },
       "type": "array",
       "title": "Trains"
+     },
+     "advice": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AdviceSummaryOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Советы скорости по всем поездам на перегонах"
      },
      "sections": {
       "items": {
@@ -5033,6 +5907,48 @@
      "number"
     ],
     "title": "SwitchOut"
+   },
+   "TariffConfig": {
+    "properties": {
+     "kwh": {
+      "type": "number",
+      "minimum": 0.0,
+      "title": "Kwh",
+      "description": "у.е. за кВт·ч",
+      "default": 0.05
+     },
+     "loco_hour": {
+      "type": "number",
+      "minimum": 0.0,
+      "title": "Loco Hour",
+      "description": "у.е. за час простоя локомотива",
+      "default": 30
+     },
+     "crew_hour": {
+      "type": "number",
+      "minimum": 0.0,
+      "title": "Crew Hour",
+      "description": "у.е. за час простоя бригады",
+      "default": 15
+     },
+     "delay_min_pax": {
+      "type": "number",
+      "minimum": 0.0,
+      "title": "Delay Min Pax",
+      "description": "у.е. за минуту задержки пассажирского поезда",
+      "default": 10
+     },
+     "delay_min_freight": {
+      "type": "number",
+      "minimum": 0.0,
+      "title": "Delay Min Freight",
+      "description": "у.е. за минуту задержки грузового поезда",
+      "default": 2
+     }
+    },
+    "type": "object",
+    "title": "TariffConfig",
+    "description": "«Подставьте свой тариф»: цены для счётчиков денег. Все значения условные (у.е.)."
    },
    "ThroatStateOut": {
     "properties": {
@@ -5352,6 +6268,17 @@
      "stop_energy_kwh": {
       "type": "number",
       "title": "Stop Energy Kwh"
+     },
+     "advice": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SpeedAdviceOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Совет машинисту (только на перегоне)"
      }
     },
     "type": "object",
@@ -5616,6 +6543,303 @@
      "note"
     ],
     "title": "VariantOut"
+   },
+   "VersusHoldIn": {
+    "properties": {
+     "train_id": {
+      "type": "string",
+      "title": "Train Id"
+     },
+     "minutes": {
+      "type": "number",
+      "maximum": 60.0,
+      "minimum": 1.0,
+      "title": "Minutes",
+      "default": 5
+     }
+    },
+    "type": "object",
+    "required": [
+     "train_id"
+    ],
+    "title": "VersusHoldIn"
+   },
+   "VersusOut": {
+    "properties": {
+     "active": {
+      "type": "boolean",
+      "title": "Active"
+     },
+     "scenario_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Scenario Id"
+     },
+     "scenario": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Scenario"
+     },
+     "t": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "T"
+     },
+     "running": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Running"
+     },
+     "speed": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Speed"
+     },
+     "left": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/VersusSideOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "right": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/VersusSideOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "diff": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "number"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Diff",
+      "description": "Разница в пользу Бағдара (слева минус справа)"
+     },
+     "actions": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Actions",
+      "description": "Решения человека-диспетчера слева"
+     }
+    },
+    "type": "object",
+    "required": [
+     "active"
+    ],
+    "title": "VersusOut"
+   },
+   "VersusScoreOut": {
+    "properties": {
+     "delay_pax_min": {
+      "type": "number",
+      "title": "Delay Pax Min"
+     },
+     "delay_freight_min": {
+      "type": "number",
+      "title": "Delay Freight Min"
+     },
+     "delay_min": {
+      "type": "number",
+      "title": "Delay Min",
+      "description": "Накопленная задержка, поездо-минуты"
+     },
+     "late_trains": {
+      "type": "integer",
+      "title": "Late Trains",
+      "description": "Поездов с опозданием 5 мин и больше"
+     },
+     "idle_h": {
+      "type": "number",
+      "title": "Idle H",
+      "description": "Простой сверх графика, поездо-часы"
+     },
+     "energy_kwh": {
+      "type": "number",
+      "title": "Energy Kwh",
+      "description": "Энергия неплановых остановок, кВт·ч (условно)"
+     },
+     "unplanned_stops": {
+      "type": "integer",
+      "title": "Unplanned Stops"
+     },
+     "frozen": {
+      "type": "integer",
+      "title": "Frozen",
+      "description": "Поездов, которые стоят на месте час и дольше"
+     },
+     "frozen_numbers": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Frozen Numbers"
+     },
+     "passages": {
+      "type": "integer",
+      "title": "Passages",
+      "description": "Проследований станций с начала прогона"
+     },
+     "finished": {
+      "type": "integer",
+      "title": "Finished"
+     },
+     "money": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Money",
+      "description": "Условные деньги по статьям, у.е."
+     },
+     "money_total": {
+      "type": "number",
+      "title": "Money Total"
+     },
+     "index": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index"
+     },
+     "index_status": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index Status"
+     }
+    },
+    "type": "object",
+    "required": [
+     "delay_pax_min",
+     "delay_freight_min",
+     "delay_min",
+     "late_trains",
+     "idle_h",
+     "energy_kwh",
+     "unplanned_stops",
+     "frozen",
+     "frozen_numbers",
+     "passages",
+     "finished",
+     "money",
+     "money_total",
+     "index",
+     "index_status"
+    ],
+    "title": "VersusScoreOut"
+   },
+   "VersusSideOut": {
+    "properties": {
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "score": {
+      "$ref": "#/components/schemas/VersusScoreOut"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/StateOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "title",
+     "score"
+    ],
+    "title": "VersusSideOut"
+   },
+   "VersusStartIn": {
+    "properties": {
+     "scenario_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Scenario Id"
+     },
+     "seed": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Seed"
+     }
+    },
+    "type": "object",
+    "title": "VersusStartIn"
    },
    "WorldMsg": {
     "properties": {

@@ -18,11 +18,12 @@ from dataclasses import dataclass, field, fields
 from typing import Any
 
 from bagdar import dto
-from bagdar.config import BagdarConfig, parse_hhmm
+from bagdar.config import BagdarConfig, load_config, parse_hhmm
 from bagdar.core.rules import TimingRules
 from bagdar.generator.timetable import TimetableBuilder
 from bagdar.generator.trains_gen import TrafficParams, generate_traffic
 from bagdar.generator.world_gen import CorridorParams, generate_world
+from bagdar.history import History
 from bagdar.incidents import IncidentManager
 from bagdar.index import IndexTracker
 from bagdar.models.plan import Plan
@@ -34,6 +35,7 @@ from bagdar.scenarios import Scenario
 from bagdar.sim.engine import Engine
 from bagdar.sim.events import SimEvent
 from bagdar.validator import validate_plan
+from bagdar.versus import Versus
 
 log = logging.getLogger("bagdar.runtime")
 
@@ -72,6 +74,9 @@ class SimulationRuntime:
         self.world_version = 0
         self.run_id = ""
         self.events: deque[SimEvent] = deque(maxlen=EVENT_BUFFER)
+        self.history = History()
+        self.versus = Versus(self)
+        self._versus_loading = False
         self.subscribers: set[Subscriber] = set()
         self._task: asyncio.Task | None = None
         self._acc = 0.0
@@ -85,6 +90,8 @@ class SimulationRuntime:
     # ------------------------------------------------------------ загрузка мира
     def load(self, scenario_id: str | None = None, seed: int | None = None) -> None:
         started = time.perf_counter()
+        if not self._versus_loading:
+            self.versus.stop()                 # другой мир — соревнование на старом больше не сравнимо
         sc = self.scenarios[scenario_id] if scenario_id else (self.scenario or self.scenarios["normal"])
         seed = sc.seed if seed is None else seed
         corridor = _apply_overrides(CorridorParams(), sc.world)
@@ -113,6 +120,8 @@ class SimulationRuntime:
                               f"Загружен сценарий «{sc.title}», seed {seed}: {len(tt.trains)} поездов в графике")
         log.info("load scenario=%s seed=%s trains=%d dropped=%d build_ms=%.0f total_ms=%.0f",
                  sc.id, seed, len(tt.trains), len(tt.dropped), tt.build_ms, self.perf["load_ms"])
+        self.history.start_run(self.run_id, sc.id, seed, self.engine.t)
+        self.history.add_plan(self.engine.t, tt.plan, dto.plan_dto(tt.plan))
         self.planner.reset(tt.plan)
         self.incidents.reset(sc)
         self.index.reset(self.engine)
@@ -196,6 +205,7 @@ class SimulationRuntime:
             self.planner.advance_windows(real_dt if self.running else 0.0)
             self.index.update(self.planner.conflicts)
             self._flush_events()
+            self.history.flush(force=False)
             hz = self.cfg.sim.broadcast_hz
             if (self.running or self._dirty) and now >= next_state:
                 self._broadcast_state()
@@ -205,10 +215,15 @@ class SimulationRuntime:
         assert self.engine is not None
         t0 = time.perf_counter()
         inc = self.incidents
+        hist = self.history
         for _ in range(steps):
             self.engine.step()
             if inc.timeline and self.engine.t >= inc.timeline[0][0]:
                 inc.tick()
+            if self.engine.t >= hist.next_t:
+                hist.maybe_snapshot(self.engine.t, self.state_payload)
+            if self.versus.active:
+                self.versus.step()
             if self.planner.sync:
                 self.planner.tick()
                 if self.engine.t >= self.index.next_sample:
@@ -251,15 +266,20 @@ class SimulationRuntime:
                 out.append({"train_id": tid, "points": pts})
         return {"t": round(eng.t, 1), "traces": out}
 
-    def occupancy(self, which: str, t_from: float | None, t_to: float | None) -> dict:
-        """Занятость путей и перегонов: факт до текущего момента, дальше — план (действующий или предыдущий)."""
+    def occupancy(self, which: str, t_from: float | None, t_to: float | None, at: float | None = None) -> dict:
+        """Занятость путей и перегонов: факт до текущего момента, дальше — план (действующий или предыдущий).
+        at — перемотка: «текущий момент» в прошлом, факт обрезается, план — тот, что действовал в at."""
         assert self.engine is not None
         eng = self.engine
-        now = eng.t
+        now = eng.t if at is None else min(at, eng.t)
         t_from = now - 1800 if t_from is None else t_from
         t_to = now + 9000 if t_to is None else t_to
-        plan = self.planner.current if which == "current" else self.planner.previous
-        other = self.planner.previous if which == "current" else self.planner.current
+        if at is None:
+            cur, prev = self.planner.current, self.planner.previous
+        else:
+            cur, prev, _ = self.history.plan_at(now)
+        plan = cur if which == "current" else prev
+        other = prev if which == "current" else cur
         items = [{"resource": b.resource, "train_id": b.train_id, "t0": round(max(b.t0, t_from), 1),
                   "t1": round(min(b.t1, now), 1), "kind": b.kind, "source": "fact", "changed": False}
                  for b in fact_occupancy(eng, t_from) if b.t0 < now]
@@ -276,14 +296,36 @@ class SimulationRuntime:
                     abs(o.t0 - b.t0) < 120 and abs(o.t1 - b.t1) < 120 for o in ref.get((b.resource, b.train_id), []))
                 items.append({"resource": b.resource, "train_id": b.train_id, "t0": round(max(b.t0, now), 1),
                               "t1": round(min(b.t1, t_to), 1), "kind": b.kind, "source": "plan", "changed": changed})
-        # действующие сбои — недоступный ресурс до восстановления (или до конца окна)
-        for inc in self.incidents.active():
+        # действующие (в момент now) сбои — недоступный ресурс до восстановления (или до конца окна)
+        for inc in self.incidents.items:
+            if inc.t > now or (inc.resolved_at is not None and inc.resolved_at <= now):
+                continue
             if inc.resource and inc.kind in ("section_closed", "track_unavailable", "switch_fault"):
                 items.append({"resource": inc.resource, "train_id": "", "t0": round(max(inc.t, t_from), 1),
                               "t1": round(min(inc.until if inc.until is not None else t_to, t_to), 1),
                               "kind": "blocked", "source": "fault", "changed": False})
         return {"which": which, "plan_version": None if plan is None else plan.version, "t": round(now, 1),
                 "items": items}
+
+    # ------------------------------------------------------------- журнал и перемотка
+    def history_payload(self) -> dict:
+        w = self.history.window()
+        marks = []
+        if w is not None:
+            marks = [{"t": e.t, "kind": e.kind, "severity": e.severity, "message": e.message}
+                     for e in self.events if e.severity in ("warn", "critical") and e.t >= w[0]][-200:]
+        return {**self.history.stats(), "marks": marks}
+
+    def history_at(self, t: float) -> dict:
+        snap = self.history.snapshot_at(t)
+        if snap is None:
+            raise ValueError("Журнал пуст: запустите симуляцию")
+        ts = snap["t"]
+        _, _, plan = self.history.plan_at(ts)
+        events = [e.to_dict() for e in self.events if e.t <= ts + 1e-6][-300:]
+        cards = [c for c in self.planner.cards if c.get("t", 0) <= ts + 1e-6][-60:]
+        return {"t": round(ts, 1), "state": snap["state"], "plan": plan, "events": events, "cards": cards,
+                "index_history": [p for p in self.index.history if p["t"] <= ts + 1e-6]}
 
     def saturation_payload(self) -> dict:
         from bagdar.planner.saturation import metering_options
@@ -302,6 +344,8 @@ class SimulationRuntime:
         assert self.engine is not None
         try:
             msg, _ = self.incidents.apply(kind, params, "dispatcher")
+            if self.versus.active:
+                self.versus.apply_event(kind, params)
         finally:
             self._flush_events()
         self._broadcast_state()
@@ -313,6 +357,8 @@ class SimulationRuntime:
         assert self.engine is not None
         try:
             msg = self.incidents.restore(inc_id)
+            if self.versus.active:
+                self.versus.restore(inc_id)
         finally:
             self._flush_events()
         self._broadcast_state()
@@ -361,6 +407,44 @@ class SimulationRuntime:
         self._broadcast_state()
         return msg
 
+    def settings_payload(self) -> dict:
+        c = self.cfg
+        return {"weights": c.index.weights, "thresholds": c.index.thresholds, "pte_strict": c.pte_strict,
+                "tariffs": c.tariffs}
+
+    def apply_settings(self, body) -> dict:
+        """Веса и пороги индекса, строгий ПТЭ, тарифы — на лету, без перезапуска."""
+        if body.reset:
+            base = load_config()
+            body.weights, body.thresholds = base.index.weights, base.index.thresholds
+            body.pte_strict, body.tariffs = base.pte_strict, base.tariffs
+        th = body.thresholds or self.cfg.index.thresholds
+        if not (0 <= th.warning < th.normal <= 100):
+            raise ValueError("Порог «Норма» должен быть выше порога «Внимание», оба от 0 до 100")
+        w = body.weights or self.cfg.index.weights
+        if sum(max(0.0, x) for x in w.model_dump().values()) <= 0:
+            raise ValueError("Хотя бы один вес индекса должен быть больше нуля")
+        changed = []
+        if body.weights is not None:
+            self.cfg.index.weights = body.weights
+            changed.append("веса индекса")
+        if body.thresholds is not None:
+            self.cfg.index.thresholds = body.thresholds
+            changed.append("пороги индекса")
+        if body.tariffs is not None:
+            self.cfg.tariffs = body.tariffs
+            changed.append("тарифы")
+        if body.pte_strict is not None and body.pte_strict != self.cfg.pte_strict:
+            self.cfg.pte_strict = body.pte_strict
+            changed.append("строгий ПТЭ " + ("включён" if body.pte_strict else "выключен"))
+            self.planner.request("настройки: изменён режим ПТЭ", urgent=True)
+        if self.engine is not None and changed:
+            self.index.update(self.planner.conflicts)
+            self.engine.emit("settings", "info", "Настройки изменены: " + ", ".join(changed))
+            self._flush_events()
+            self._broadcast_state()
+        return self.settings_payload()
+
     def set_autonomy(self, full_auto: bool) -> dict:
         assert self.engine is not None
         if self.cfg.autonomy.full_auto != full_auto:
@@ -394,6 +478,7 @@ class SimulationRuntime:
         if not evs:
             return
         self.events.extend(evs)
+        self.history.add_events(evs)
         for e in evs:
             if e.severity in ("warn", "critical"):
                 log.info("event %s t=%.0f %s", e.kind, e.t, e.message)

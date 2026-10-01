@@ -42,6 +42,13 @@ export type Incidents = S["IncidentsOut"];
 export type Radar = S["RadarOut"];
 export type Saturation = S["SaturationOut"];
 export type MeterOption = S["MeterOptionOut"];
+export type SpeedAdvice = S["SpeedAdviceOut"];
+export type HistoryInfo = S["HistoryOut"];
+export type HistoryAt = S["HistoryAtOut"];
+export type Versus = S["VersusOut"];
+export type VersusScore = S["VersusScoreOut"];
+export type Settings = S["SettingsOut"];
+export type SettingsIn = S["SettingsIn"];
 
 export type HelloMsg = S["HelloMsg"];
 export type StreamMsg =

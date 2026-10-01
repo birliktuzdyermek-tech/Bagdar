@@ -1,7 +1,7 @@
 """REST-эндпоинты. Команды идут через REST, обновления — через поток."""
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 
 from bagdar import __version__, dto
 from bagdar.api import schemas as S
@@ -92,8 +92,59 @@ def get_traces(request: Request, since: float = Query(0.0)) -> dict:
 @router.get("/occupancy", response_model=S.OccupancyOut, tags=["planner"],
             summary="Занятость путей и перегонов для Ганта: факт + действующий или предыдущий план")
 def get_occupancy(request: Request, which: str = Query("current", pattern="^(current|previous)$"),
-                  t_from: float | None = Query(None), t_to: float | None = Query(None)) -> dict:
-    return rt(request).occupancy(which, t_from, t_to)
+                  t_from: float | None = Query(None), t_to: float | None = Query(None),
+                  at: float | None = Query(None, description="Перемотка: показать занятость на момент at")) -> dict:
+    return rt(request).occupancy(which, t_from, t_to, at)
+
+
+@router.get("/history", response_model=S.HistoryOut, tags=["history"],
+            summary="Журнал прогона: что записано и какой интервал доступен для перемотки")
+def get_history(request: Request) -> dict:
+    return rt(request).history_payload()
+
+
+@router.get("/history/at", response_model=S.HistoryAtOut, tags=["history"],
+            summary="Перемотка: состояние, план, лента, карточки и индекс на момент t")
+def get_history_at(request: Request, t: float = Query(...)) -> dict:
+    try:
+        return rt(request).history_at(t)
+    except ValueError as e:
+        raise HTTPException(404, str(e)) from e
+
+
+def _range(t_from: float | None, t_to: float | None, last_min: float | None, now: float) -> tuple:
+    if last_min is not None:
+        return now - last_min * 60, now
+    return t_from, t_to
+
+
+@router.get("/export/events.csv", tags=["export"], summary="CSV: события прогона (из журнала)")
+def export_events(request: Request, t_from: float | None = None, t_to: float | None = None,
+                  last_min: float | None = Query(None, ge=1, le=1440)) -> Response:
+    from bagdar.export import csv_events
+    r = rt(request)
+    a, b = _range(t_from, t_to, last_min, r.engine.t)
+    return Response(csv_events(r, a, b), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="bagdar-events-{r.run_id}.csv"'})
+
+
+@router.get("/export/plan.csv", tags=["export"], summary="CSV: действующий план по поездам")
+def export_plan(request: Request) -> Response:
+    from bagdar.export import csv_plan
+    r = rt(request)
+    return Response(csv_plan(r), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="bagdar-plan-{r.run_id}.csv"'})
+
+
+@router.get("/export/report.pdf", tags=["export"],
+            summary="PDF: период, показатели, инциденты, изменения плана, вывод")
+def export_pdf(request: Request, t_from: float | None = None, t_to: float | None = None,
+               last_min: float | None = Query(None, ge=1, le=1440)) -> Response:
+    from bagdar.export import pdf_report
+    r = rt(request)
+    a, b = _range(t_from, t_to, last_min, r.engine.t)
+    return Response(pdf_report(r, a, b), media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="bagdar-report-{r.run_id}.pdf"'})
 
 
 @router.get("/planner", response_model=S.PlannerOut, tags=["planner"],
@@ -152,9 +203,12 @@ def get_events(request: Request, since: int = Query(0, ge=0), limit: int = Query
 
 @router.get("/scenarios", response_model=list[S.ScenarioOut], tags=["scenarios"])
 def get_scenarios(request: Request) -> list[dict]:
+    from bagdar.incidents import KINDS
     return [{"id": s.id, "title": s.title, "summary": s.summary.strip(), "mode": s.mode, "seed": s.seed,
              "start_time": s.start_time, "difficulty": s.difficulty, "wave": s.wave,
-             "disruptions": len(s.disruptions)} for s in rt(request).scenarios.values()]
+             "disruptions": len(s.disruptions), "situation": s.situation, "plain": s.plain.strip(),
+             "events": [{"at": d.at, "type": d.type, "label": KINDS.get(d.type, d.type)} for d in s.disruptions]}
+            for s in rt(request).scenarios.values()]
 
 
 @router.post("/sim/control", response_model=S.ControlOut, tags=["simulation"],
@@ -182,6 +236,53 @@ def sim_load(body: S.LoadIn, request: Request) -> dict:
     assert r.scenario is not None and r.engine is not None
     return {"world_version": r.world_version, "run_id": r.run_id, "scenario_id": r.scenario.id,
             "seed": r.engine.seed, "trains_total": len(r.trains), "load_ms": r.perf["load_ms"]}
+
+
+@router.get("/versus", response_model=S.VersusOut, tags=["versus"],
+            summary="Человек против Бағдара: счёт обеих сторон и состояние левой (без Бағдара)")
+def get_versus(request: Request, state: bool = True) -> dict:
+    return rt(request).versus.payload(with_state=state)
+
+
+@router.post("/versus/start", response_model=S.VersusOut, tags=["versus"],
+             summary="Запустить сценарий дважды: слева «кто первый пришёл», справа Бағдар")
+def start_versus(body: S.VersusStartIn, request: Request) -> dict:
+    r = rt(request)
+    if body.scenario_id and body.scenario_id not in r.scenarios:
+        raise HTTPException(404, f"Сценарий {body.scenario_id} не найден")
+    r.versus.start(body.scenario_id, body.seed)
+    return r.versus.payload(with_state=False)
+
+
+@router.post("/versus/stop", response_model=S.VersusOut, tags=["versus"])
+def stop_versus(request: Request) -> dict:
+    r = rt(request)
+    r.versus.stop()
+    return r.versus.payload()
+
+
+@router.post("/versus/hold", response_model=S.EventAck, tags=["versus"],
+             summary="Решение человека слева: придержать поезд на станции")
+def versus_hold(body: S.VersusHoldIn, request: Request) -> dict:
+    try:
+        return {"ok": True, "message": rt(request).versus.hold(body.train_id, body.minutes)}
+    except ValueError as e:
+        raise HTTPException(409, str(e)) from e
+
+
+@router.get("/settings", response_model=S.SettingsOut, tags=["config"],
+            summary="Настройки, меняемые на лету: веса и пороги индекса, строгий ПТЭ, тарифы")
+def get_settings(request: Request) -> dict:
+    return rt(request).settings_payload()
+
+
+@router.put("/settings", response_model=S.SettingsOut, tags=["config"],
+            summary="Изменить веса и пороги индекса, строгий ПТЭ, тарифы (без перезапуска)")
+def put_settings(body: S.SettingsIn, request: Request) -> dict:
+    try:
+        return rt(request).apply_settings(body)
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from e
 
 
 @router.get("/config", response_model=BagdarConfig, tags=["config"], summary="Веса, пороги, параметры")

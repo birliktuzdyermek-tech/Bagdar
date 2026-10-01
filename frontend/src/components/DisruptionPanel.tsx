@@ -28,6 +28,7 @@ export function DisruptionPanel() {
   const world = useSim((s) => s.world);
   const idx = useSim((s) => s.idx);
   const t = useSim((s) => s.state?.t ?? 0);
+  const past = useSim((s) => s.past !== null);
   const active = useSim((s) => s.state?.incidents ?? NO_INCIDENTS);
   const nextRaw = useSim((s) => s.state?.scenario_next ?? null);
   const next = nextRaw ? { t: Number(nextRaw.t), kind: String(nextRaw.kind) } : null;
@@ -177,7 +178,8 @@ export function DisruptionPanel() {
           {kind === "section_closed" && (
             <label className="field small"><input type="checkbox" checked={unknown} onChange={(e) => setUnknown(e.target.checked)} /> срок неизвестен</label>
           )}
-          <button className="btn btn-primary btn-small" onClick={apply} disabled={busy || !world}>Применить</button>
+          <button className="btn btn-primary btn-small" onClick={apply} disabled={busy || !world || past}
+            title={past ? "Идёт перемотка: вернитесь к текущему моменту, чтобы ломать" : undefined}>Применить</button>
         </div>
         {msg && <div className="muted small" role="status">{msg}</div>}
         {next && (

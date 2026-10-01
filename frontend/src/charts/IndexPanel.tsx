@@ -100,7 +100,9 @@ export function IndexPanel() {
   const t = useSim((s) => s.state?.t ?? 0);
   const alarms = useAlarms();
   const tokens = useTokens();
-  const [history, setHistory] = useState<IndexPoint[]>([]);
+  const [liveHistory, setHistory] = useState<IndexPoint[]>([]);
+  const past = useSim((s) => s.past);
+  const history = past ? past.indexHistory : liveHistory;
   const lastFetch = useRef(-Infinity);
   const { ref, chart } = useEChart();
 
@@ -111,18 +113,18 @@ export function IndexPanel() {
 
   // история: целиком при новом прогоне, дальше — только новые точки, не чаще раза в 5 с
   useEffect(() => {
-    if (!runId) return;
+    if (!runId || past) return;
     const now = performance.now();
     if (now - lastFetch.current < 5000) return;
     lastFetch.current = now;
-    const since = history.length ? history[history.length - 1].t : undefined;
+    const since = liveHistory.length ? liveHistory[liveHistory.length - 1].t : undefined;
     api.index(since).then((r) => {
       setHistory((h) => {
         const merged = since == null ? r.history : h.concat(r.history.filter((p) => p.t > since));
         return merged.slice(-1440);
       });
     }).catch(() => {});
-  }, [runId, t, history]);
+  }, [runId, t, liveHistory, past]);
 
   useEffect(() => {
     const c = chart.current;

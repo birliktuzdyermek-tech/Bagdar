@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import type { Scenario } from "../api/types";
 import { focusMostImportant } from "../lib/focus";
 import { useSim } from "../store/sim";
+import { RecordButton } from "./RecordButton";
 
 const SPEEDS = [1, 2, 5, 10, 30, 60, 100];
 
@@ -93,6 +94,7 @@ export function Toolbar({ theme, onTheme }: { theme: string; onTheme: () => void
         title="Показать самое важное прямо сейчас: решение, которое ждёт выбора, тревогу или ближайший конфликт (клавиша F)">
         ◎ Что важно сейчас
       </button>
+      <RecordButton />
       {focusMsg && (
         <span className="chip focus-msg" role="status" onClick={() => setFocusMsg(null)} title={`${focusMsg} — нажмите, чтобы скрыть`}>
           {focusMsg}

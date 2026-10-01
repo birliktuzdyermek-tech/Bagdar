@@ -10,6 +10,13 @@ import { Toolbar } from "./components/Toolbar";
 import { TopBar } from "./components/TopBar";
 import { TrainDetail } from "./components/TrainDetail";
 import { ViewsCard } from "./components/ViewsCard";
+import { NavBar } from "./components/NavBar";
+import { SettingsDialog } from "./components/SettingsDialog";
+import { useRoute } from "./lib/route";
+import { ScenariosPage } from "./pages/ScenariosPage";
+import { ReviewPage } from "./pages/ReviewPage";
+import { VersusPage } from "./pages/VersusPage";
+import { RewindBar } from "./components/RewindBar";
 import { usePlanSync } from "./store/plans";
 import { useSim } from "./store/sim";
 
@@ -37,6 +44,8 @@ export default function App() {
   const world = useSim((s) => s.world);
   const error = useSim((s) => s.error);
   const setError = useSim((s) => s.setError);
+  const route = useRoute();
+  const [settings, setSettings] = useState(false);
 
   usePlanSync();
   useEffect(() => {
@@ -53,10 +62,15 @@ export default function App() {
   }, [theme]);
 
   return (
-    <div className="app">
+    <div className={`app route-${route}`}>
       <TopBar />
-      <Toolbar theme={theme} onTheme={() => setTheme(theme === "dark" ? "light" : "dark")} />
-      <main className="main">
+      <NavBar route={route} onSettings={() => setSettings(true)} />
+      {route === "dispatcher" && <Toolbar theme={theme} onTheme={() => setTheme(theme === "dark" ? "light" : "dark")} />}
+      {route === "dispatcher" && <RewindBar />}
+      {route === "scenarios" && <ScenariosPage />}
+      {route === "review" && <ReviewPage />}
+      {route === "versus" && <VersusPage />}
+      {route === "dispatcher" && <main className="main">
         {conn === "closed" && (
           <div className="banner main-banner" role="alert">
             Нет связи с сервером симуляции — переподключение…
@@ -86,7 +100,8 @@ export default function App() {
           <IndexPanel />
           <DecisionsPanel />
         </aside>
-      </main>
+      </main>}
+      {settings && <SettingsDialog onClose={() => setSettings(false)} />}
       {error && (
         <div className="error-toast" role="alert">
           Ошибка: {error}{" "}

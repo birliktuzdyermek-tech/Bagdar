@@ -5,6 +5,7 @@ import { classGroup, GROUP_COLOR } from "../lib/palette";
 import { trainShape } from "../lib/geometry";
 import { useAlarms } from "../lib/alarms";
 import { useSim } from "../store/sim";
+import { AdviceBox } from "./AdviceBox";
 
 export function TrainDetail() {
   const id = useSim((s) => s.selectedTrain);
@@ -63,6 +64,7 @@ export function TrainDetail() {
           <span className="muted">допуск {Math.round(tol / 60)} мин · вес {cls?.weight ?? "—"}</span>
         </div>
         {ts?.wait_reason && <div className="wait">Ожидает: {ts.wait_reason}</div>}
+        {ts?.advice && <AdviceBox a={ts.advice} />}
         {ts && ts.display !== "terminated" && (
           <div className="inject" aria-label="Внешнее событие">
             <span className="muted">Задержать (событие для демо):</span>

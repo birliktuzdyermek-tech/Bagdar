@@ -28,6 +28,8 @@ class Scenario(BaseModel):
     start_time: str = "06:00"
     difficulty: int = 1
     wave: int = 0
+    situation: int | None = None   # номер ситуации из BAGDAR_PLAN.md, раздел 4
+    plain: str = ""                # «что вы увидите» простыми словами — для страницы сценариев
     world: dict[str, Any] = Field(default_factory=dict)
     traffic: dict[str, Any] = Field(default_factory=dict)
     disruptions: list[Disruption] = Field(default_factory=list)

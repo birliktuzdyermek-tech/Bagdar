@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Literal
 
 from pydantic import BaseModel, Field
+from bagdar.config import IndexThresholds, IndexWeights, TariffConfig
 
 Severity = Literal["debug", "info", "warn", "critical"]
 
@@ -142,6 +143,27 @@ TrainDisplay = Literal["ready", "dwell", "held", "terminated", "running", "braki
                        "pending", "finished"]
 
 
+class SpeedAdviceOut(BaseModel):
+    """Совет машинисту на ближайшем перегоне. Модель относительная, не тяговый расчёт."""
+    v_rec_kmh: int = Field(description="Рекомендуемая скорость, не выше лимита")
+    v_full_kmh: int = Field(description="Полный ход — лимит перегона с учётом ограничений")
+    v_limit_kmh: int
+    e_full_kwh: float = Field(description="Условный расход на полном ходу: ход + остановка у входного, кВт·ч")
+    e_rec_kwh: float = Field(description="Условный расход по совету, кВт·ч")
+    saving_kwh: float
+    saving_pct: float
+    stop_avoided: bool = Field(description="Совет избавляет от остановки у входного светофора")
+    wait_full_s: int = Field(description="Сколько поезд простоял бы, придя на полном ходу")
+    text: str
+
+
+class AdviceSummaryOut(BaseModel):
+    trains: int
+    slowed: int = Field(description="Скольким поездам советуется ехать медленнее лимита")
+    stops_avoided: int
+    saving_kwh: float
+
+
 class TrainStateOut(BaseModel):
     id: str
     status: TrainStatus
@@ -162,6 +184,7 @@ class TrainStateOut(BaseModel):
     stops: int
     unplanned_stops: int
     stop_energy_kwh: float
+    advice: SpeedAdviceOut | None = Field(None, description="Совет машинисту (только на перегоне)")
 
 
 class SectionStateOut(BaseModel):
@@ -308,6 +331,7 @@ class StateOut(BaseModel):
     running: bool
     speed: float
     trains: list[TrainStateOut]
+    advice: AdviceSummaryOut | None = Field(None, description="Советы скорости по всем поездам на перегонах")
     sections: list[SectionStateOut]
     tracks: list[TrackStateOut]
     throats: list[ThroatStateOut]
@@ -699,6 +723,12 @@ class LoadOut(BaseModel):
     load_ms: float
 
 
+class ScenarioEventOut(BaseModel):
+    at: str
+    type: str
+    label: str
+
+
 class ScenarioOut(BaseModel):
     id: str
     title: str
@@ -709,6 +739,9 @@ class ScenarioOut(BaseModel):
     difficulty: int
     wave: int
     disruptions: int
+    situation: int | None = None
+    plain: str = Field("", description="Что вы увидите — простыми словами")
+    events: list[ScenarioEventOut] = Field(default_factory=list)
 
 
 class HealthOut(BaseModel):
@@ -751,3 +784,104 @@ class StreamSchema(BaseModel):
     events: EventsMsg
     state: StateOut
     decisions: DecisionsMsg
+
+
+# ------------------------------------------------------------------ настройки
+class SettingsOut(BaseModel):
+    weights: IndexWeights
+    thresholds: IndexThresholds
+    pte_strict: bool
+    tariffs: TariffConfig
+
+
+class SettingsIn(BaseModel):
+    """Всё необязательно: меняется только переданное. Индекс пересчитывается сразу."""
+    weights: IndexWeights | None = None
+    thresholds: IndexThresholds | None = None
+    pte_strict: bool | None = None
+    tariffs: TariffConfig | None = None
+    reset: bool = Field(False, description="Вернуть значения из YAML-конфига")
+
+
+# ------------------------------------------------------------------ журнал и перемотка
+class HistoryMarkOut(BaseModel):
+    t: float
+    kind: str
+    severity: Severity
+    message: str
+
+
+class HistoryWindowOut(BaseModel):
+    from_: float = Field(alias="from")
+    to: float
+
+    model_config = {"populate_by_name": True}
+
+
+class HistoryOut(BaseModel):
+    path: str = Field(description="Где лежит журнал SQLite (:memory: — в памяти процесса)")
+    run_id: str
+    events: int
+    snapshots: int
+    plans: int
+    memory_snapshots: int
+    window: HistoryWindowOut | None = Field(description="Интервал, доступный для перемотки, секунды модели")
+    marks: list[HistoryMarkOut] = Field(description="Важные события для меток на шкале")
+
+
+class HistoryAtOut(BaseModel):
+    t: float = Field(description="Время снимка (последний не позже запрошенного)")
+    state: StateOut
+    plan: PlanOut | None
+    events: list[EventOut]
+    cards: list[DecisionCardOut]
+    index_history: list[IndexPointOut]
+
+
+# ------------------------------------------------------------------ человек против Бағдара
+class VersusStartIn(BaseModel):
+    scenario_id: str | None = None
+    seed: int | None = None
+
+
+class VersusHoldIn(BaseModel):
+    train_id: str
+    minutes: float = Field(5, ge=1, le=60)
+
+
+class VersusScoreOut(BaseModel):
+    delay_pax_min: float
+    delay_freight_min: float
+    delay_min: float = Field(description="Накопленная задержка, поездо-минуты")
+    late_trains: int = Field(description="Поездов с опозданием 5 мин и больше")
+    idle_h: float = Field(description="Простой сверх графика, поездо-часы")
+    energy_kwh: float = Field(description="Энергия неплановых остановок, кВт·ч (условно)")
+    unplanned_stops: int
+    frozen: int = Field(description="Поездов, которые стоят на месте час и дольше")
+    frozen_numbers: list[str]
+    passages: int = Field(description="Проследований станций с начала прогона")
+    finished: int
+    money: dict[str, float] = Field(description="Условные деньги по статьям, у.е.")
+    money_total: float
+    index: float | None
+    index_status: str | None
+
+
+class VersusSideOut(BaseModel):
+    title: str
+    score: VersusScoreOut
+    state: StateOut | None = None
+
+
+class VersusOut(BaseModel):
+    active: bool
+    scenario_id: str | None = None
+    scenario: str | None = None
+    t: float | None = None
+    running: bool | None = None
+    speed: float | None = None
+    left: VersusSideOut | None = None
+    right: VersusSideOut | None = None
+    diff: dict[str, float] | None = Field(None, description="Разница в пользу Бағдара (слева минус справа)")
+    actions: list[dict] = Field(default_factory=list, description="Решения человека-диспетчера слева")
+

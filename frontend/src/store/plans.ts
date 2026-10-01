@@ -34,6 +34,7 @@ export function usePlanSync(): void {
   const conflicts = useSim((s) => s.state?.planner.conflicts ?? 0);
   const t = useSim((s) => s.state?.t ?? 0);
   const running = useSim((s) => s.state?.running ?? false);
+  const past = useSim((s) => s.past);
   const tracing = useRef(false);
   const lastProj = useRef(-Infinity);
 
@@ -47,6 +48,11 @@ export function usePlanSync(): void {
   // действующий и предыдущий план — при смене версии
   useEffect(() => {
     if (!runId || applied < 0) return;
+    if (past) {
+      // перемотка: план, действовавший в выбранный момент (из журнала)
+      usePlans.getState().set({ current: past.plan, previous: null, projected: null });
+      return;
+    }
     let off = false;
     api.plan("current").then((p) => !off && usePlans.getState().set({ current: p })).catch(() => {});
     if (applied >= 1) {
@@ -59,11 +65,11 @@ export function usePlanSync(): void {
     return () => {
       off = true;
     };
-  }, [runId, applied]);
+  }, [runId, applied, past]);
 
   // прогнозный план (действующий, сдвинутый на отклонения) — пока есть прогнозные конфликты
   useEffect(() => {
-    if (!runId) return;
+    if (!runId || past) return;
     if (conflicts === 0) {
       if (usePlans.getState().projected) usePlans.getState().set({ projected: null });
       return;
@@ -72,11 +78,11 @@ export function usePlanSync(): void {
     if (now - lastProj.current < 2500) return;
     lastProj.current = now;
     api.plan("projected").then((p) => usePlans.getState().set({ projected: p })).catch(() => {});
-  }, [runId, conflicts, t]);
+  }, [runId, conflicts, t, past]);
 
   // факт — инкрементально, не чаще раза в 2 с, пока модель идёт
   useEffect(() => {
-    if (!runId || tracing.current) return;
+    if (!runId || tracing.current || past) return;
     const st = usePlans.getState();
     if (st.tracesT && (!running && t <= st.tracesT)) return;
     tracing.current = true;
@@ -95,5 +101,5 @@ export function usePlanSync(): void {
         tracing.current = false;
       }, 2000);
     });
-  }, [runId, t, running]);
+  }, [runId, t, running, past]);
 }

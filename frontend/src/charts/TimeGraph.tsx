@@ -70,7 +70,8 @@ function buildThreads(world: World, idx: Indexed, st: State, plans: ReturnType<t
     sched.set(tr.id, pts);
   }
   const fact = new Map<string, number[][]>();
-  for (const [tid, pts] of plans.traces) fact.set(tid, pts.slice());
+  // факт не позже «сейчас» на экране (при перемотке «сейчас» — момент в прошлом)
+  for (const [tid, pts] of plans.traces) fact.set(tid, pts.filter((p) => p[0] <= st.t + 1));
   for (const ts of st.trains) {
     const km = liveKm(idx, st, ts.id);
     if (km == null) continue;
