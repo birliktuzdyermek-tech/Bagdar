@@ -59,3 +59,5 @@ export type StreamMsg =
   | State
   | { type: "pong" };
 export type Dashboard = S["DashboardOut"];
+export type WindowPlan = S["WindowOut"];
+export type CrewRisks = S["CrewOut"];

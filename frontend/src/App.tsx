@@ -20,6 +20,7 @@ import { api } from "./api/client";
 import { useMoney } from "./store/money";
 import { VersusPage } from "./pages/VersusPage";
 import { GuidedTour } from "./components/GuidedTour";
+import { VoicePanel } from "./components/VoicePanel";
 import { go } from "./lib/route";
 import { RewindBar } from "./components/RewindBar";
 import { readStartHidden, StartHere } from "./components/StartHere";
@@ -103,6 +104,7 @@ export default function App() {
           <DecisionsPanel />
         </aside>
       </main>}
+      {route === "dispatcher" && <VoicePanel />}
       {settings && <SettingsDialog onClose={() => setSettings(false)} />}
       {tour && route === "dispatcher" && <GuidedTour onClose={() => setTour(false)} />}
       {error && (

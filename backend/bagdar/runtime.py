@@ -258,7 +258,7 @@ class SimulationRuntime:
         st["index"] = self.index.current
         st["incidents"] = self.incidents.active_payload()
         st["radar"] = self.index.radar
-        nxt = next(((t, k) for t, _, k, _, src in self.incidents.timeline if src == "scenario"), None)
+        nxt = next(((t, k) for t, _, k, _, _src in self.incidents.timeline if k != "restore"), None)
         st["scenario_next"] = None if nxt is None else {"t": nxt[0], "kind": nxt[1]}
         return st
 
@@ -340,6 +340,21 @@ class SimulationRuntime:
         out = metering_options(self.engine, self.cfg, self.planner.current)
         out["radar"] = self.index.radar
         return out
+
+    def schedule_window(self, section_id: str, start: float, minutes: int) -> str:
+        """Технологическое окно: закрытие перегона по расписанию, как событие сценария."""
+        assert self.engine is not None
+        w = self.engine.world
+        sec = w.sections[section_id]
+        self.incidents.schedule(start, "section_closed",
+                                {"section_id": section_id, "minutes": minutes, "reason": "технологическое окно"}, "dispatcher")
+        label = f"{w.stations[sec.a].name} — {w.stations[sec.b].name}"
+        hh = int(start) % 86400
+        msg = f"Окно {minutes} мин на перегоне {label} запланировано на {hh // 3600:02d}:{hh % 3600 // 60:02d}"
+        self.engine.emit("window_planned", "warn", msg, data={"section_id": section_id, "start": start, "minutes": minutes})
+        self._flush_events()
+        self._broadcast_state()
+        return msg
 
     def dashboard_payload(self) -> dict:
         from bagdar.dashboard import dashboard_payload

@@ -72,6 +72,12 @@ export function IncidentReport({ report }: { report: Report }) {
         В момент сбоя: индекс {v(b.index)}, прогноз на час {v(b.forecast)}, конфликтов в действующем плане {b.conflicts ?? 0}
         {b.first_conflict ? ` (${b.first_conflict})` : ""}
       </div>
+      {(report.no_change?.deadlock || report.fifo?.deadlock) && !report.plan?.deadlock && (
+        <div className="inc-deadlock">
+          🔒 Без вмешательства — <b>замок</b>: {report.no_change?.deadlock ? "если ничего не менять" : "при правиле «кто первый пришёл»"} поезда
+          встали бы навстречу друг другу без свободного пути. Бағдар увидел это в плане заранее и выбрал другой порядок.
+        </div>
+      )}
       <table className="inc-table">
         <thead>
           <tr><th />{cols.map((c) => <th key={c.key} className={c.key === "plan" ? "hl" : ""}>{c.label}</th>)}</tr>

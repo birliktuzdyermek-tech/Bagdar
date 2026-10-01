@@ -157,6 +157,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/window": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Подбор времени технологического окна: когда закрыть перегон на N минут, чтобы потерять меньше */
+        get: operations["get_window_api_window_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/window/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запланировать окно: закрытие перегона случится само в указанное время модели */
+        post: operations["post_window_schedule_api_window_schedule_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Рабочее время бригад: кто по плану не доедет до пункта смены до конца смены */
+        get: operations["get_crew_api_crew_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/traces": {
         parameters: {
             query?: never;
@@ -901,6 +952,45 @@ export interface components {
              */
             c_shift: number;
         };
+        /** CrewOut */
+        CrewOut: {
+            /** T */
+            t: number;
+            /** Risks */
+            risks: components["schemas"]["CrewRiskOut"][];
+        };
+        /** CrewRiskOut */
+        CrewRiskOut: {
+            /** Train Id */
+            train_id: string;
+            /** Number */
+            number: string;
+            /** Cls */
+            cls: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "warning" | "critical";
+            /** Left S */
+            left_s: number;
+            /** Shift End */
+            shift_end: number;
+            /** Target Station Id */
+            target_station_id: string;
+            /** Target Station */
+            target_station: string;
+            /** Target Crew Change */
+            target_crew_change: boolean;
+            /** Arr */
+            arr: number;
+            /** Margin S */
+            margin_s: number;
+            /** Text */
+            text: string;
+            /** Hint */
+            hint: string;
+        };
         /** DashboardDelayedOut */
         DashboardDelayedOut: {
             /** Id */
@@ -1266,10 +1356,10 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin";
+            type: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin" | "crew_short";
             /**
              * Train Id
-             * @description train_delay: поезд
+             * @description train_delay, crew_short: поезд
              */
             train_id?: string | null;
             /**
@@ -1506,7 +1596,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin";
+            kind: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin" | "crew_short";
             /**
              * Level
              * @enum {string}
@@ -1547,7 +1637,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin";
+            kind: "train_delay" | "section_closed" | "signal_fault" | "track_unavailable" | "switch_fault" | "speed_restriction" | "add_trains" | "extra_train" | "hold_at_origin" | "crew_short";
             /**
              * Level
              * @enum {string}
@@ -3300,6 +3390,79 @@ export interface components {
             /** Seed */
             seed?: number | null;
         };
+        /** WindowOptionOut */
+        WindowOptionOut: {
+            /** Id */
+            id: string;
+            /** Start */
+            start: number;
+            /** End */
+            end: number;
+            /** J */
+            J: number;
+            /** J Lex */
+            J_lex: number;
+            /**
+             * Delta J
+             * @description Насколько план с окном дороже базового, у.е.
+             */
+            delta_J: number;
+            /**
+             * Affected
+             * @description Поездов, у которых опоздание выросло больше чем на минуту
+             */
+            affected: number;
+            /** Numbers */
+            numbers: string[];
+            /** Delay Add Min */
+            delay_add_min: number;
+            /** Late Trains */
+            late_trains: number;
+            /** Stuck */
+            stuck: number;
+            /** Pte */
+            pte: number;
+            /** Valid */
+            valid: boolean;
+        };
+        /** WindowOut */
+        WindowOut: {
+            /** Section Id */
+            section_id: string;
+            /** Section */
+            section: string;
+            /** Minutes */
+            minutes: number;
+            /** T */
+            t: number;
+            /** Horizon Min */
+            horizon_min: number;
+            /** Baseline */
+            baseline: {
+                [key: string]: number;
+            };
+            /** Options */
+            options: components["schemas"]["WindowOptionOut"][];
+            /** Best */
+            best: string | null;
+            /** Worst */
+            worst: string | null;
+        };
+        /** WindowScheduleIn */
+        WindowScheduleIn: {
+            /** Section Id */
+            section_id: string;
+            /**
+             * Start
+             * @description Начало окна, секунды модели
+             */
+            start: number;
+            /**
+             * Minutes
+             * @default 60
+             */
+            minutes: number;
+        };
         /** WorldMsg */
         WorldMsg: {
             /**
@@ -3609,6 +3772,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SaturationOut"];
+                };
+            };
+        };
+    };
+    get_window_api_window_get: {
+        parameters: {
+            query: {
+                section_id: string;
+                minutes?: number;
+                horizon_min?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WindowOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_window_schedule_api_window_schedule_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WindowScheduleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventAck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_crew_api_crew_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CrewOut"];
                 };
             };
         };

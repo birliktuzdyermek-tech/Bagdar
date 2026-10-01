@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { num } from "../lib/format";
 import { useCountUp } from "../lib/motion";
 import type { RunInfo } from "../replay/types";
-import { BgReplay } from "./BgReplay";
+import { IntroVideo } from "./IntroVideo";
 
 // Число пар поездов, которые нужно развести между собой: n·(n−1)/2.
 const SCALE = [
@@ -55,22 +55,6 @@ const STARTS = [
     text: "Приоритеты, индекс участка и архитектура — простыми словами, без формул." },
 ];
 
-/** Видео-заставка: диспетчерский зал. Если видео не загрузилось — фон из записи прогона. */
-function HeroVideo({ fallback }: { fallback: RunInfo | null }) {
-  const [failed, setFailed] = useState(false);
-  const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  if (failed) return <BgReplay run={fallback} />;
-  return (
-    <div className="hero-video" aria-hidden>
-      <video poster="./intro-poster.jpg" muted loop playsInline autoPlay={!reduce} preload="metadata">
-        <source src="./intro.webm" type="video/webm" />
-        <source src="./intro.mp4" type="video/mp4" onError={() => setFailed(true)} />
-      </video>
-      <span className="bg-caption">видео — художественная иллюстрация, не реальный диспетчерский зал</span>
-    </div>
-  );
-}
-
 export function Home({ runs }: { runs: RunInfo[] }) {
   const [ref, seen] = useInView<HTMLUListElement>();
   const main = runs.find((r) => r.mode === "light" && !(r.injected ?? []).length) ?? runs[0] ?? null;
@@ -113,7 +97,7 @@ export function Home({ runs }: { runs: RunInfo[] }) {
         </ul>
       </section>
       <section className="hero" aria-labelledby="hero-title">
-        <HeroVideo fallback={main} />
+        <IntroVideo fallback={main} />
         <div className="hero-body">
           <p className="hero-kicker">Бағдар — по-казахски «курс, ориентир»</p>
           <h1 id="hero-title" className="hero-title">

@@ -9,6 +9,7 @@ import { clock, num } from "../lib/format";
 import { useTokens } from "../lib/theme";
 import { money } from "../store/money";
 import { useSim } from "../store/sim";
+import { CrewBox } from "../components/CrewBox";
 
 export const INDEX_STATUS: Record<string, { icon: string; cls: string }> = {
   norm: { icon: "✓", cls: "badge-good" },
@@ -193,6 +194,7 @@ export function IndexPanel() {
           </div>
         </div>
         <RadarBox />
+        <CrewBox />
         {index && index.reasons.length > 0 ? (
           <ul className="reasons" aria-label="Что тянет индекс вниз">
             {index.reasons.slice(0, 2).map((r) => <li key={r} title={r}>{r}</li>)}

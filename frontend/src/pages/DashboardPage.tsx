@@ -10,6 +10,8 @@ import { useTokens } from "../lib/theme";
 import { money, rate, useMoney } from "../store/money";
 import { useSim } from "../store/sim";
 
+const CO2_KG_PER_KWH = 0.62;   // средний коэффициент выбросов энергосистемы, условно
+
 const MONEY_ROWS: { key: string; label: string; what: string; color: string }[] = [
   { key: "delay_pax", label: "Опоздания пассажирских", what: "минуты задержки × тариф минуты пассажирского", color: "#4b8fe8" },
   { key: "delay_freight", label: "Опоздания грузовых", what: "минуты задержки × тариф минуты грузового", color: "#c9a227" },
@@ -143,8 +145,8 @@ export function DashboardPage() {
           hint="Сумма опозданий всех поездов, поездо-минуты" />
         <Kpi label="Потери по тарифам" value={money(d.money.total)} sub={`≈ ${money(perHour)} в час модели`} tone={lossTone}
           hint="Опоздания, лишние остановки и простой, переведённые в деньги по тарифам из настроек. Условные цифры" />
-        <Kpi label="Лишние остановки" value={String(t.unplanned_stops)} sub={`${num(t.energy_kwh)} кВт·ч потеряно · простой ${num(t.idle_h, 1)} ч`}
-          hint="Остановки, которых не было в графике: каждая — потерянная энергия на торможение и разгон" />
+        <Kpi label="Лишние остановки" value={String(t.unplanned_stops)} sub={`${num(t.energy_kwh)} кВт·ч потеряно ≈ ${num(t.energy_kwh * CO2_KG_PER_KWH)} кг CO₂ · простой ${num(t.idle_h, 1)} ч`}
+          hint="Остановки, которых не было в графике: каждая — потерянная энергия на торможение и разгон. CO₂ — по среднему коэффициенту сети 0,62 кг/кВт·ч, условно" />
         <Kpi label="План пересчитан" value={`${d.planner.plans} раз`}
           sub={d.planner.replan_avg_s != null ? `в среднем за ${num(d.planner.replan_avg_s, 1)} с, максимум ${num(d.planner.replan_max_s ?? 0, 1)} с` : "ещё не пересчитывался"}
           hint="Каждый пересчёт — новый план для всех поездов на 3 часа вперёд, проверенный на конфликты" />

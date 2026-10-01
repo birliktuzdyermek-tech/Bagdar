@@ -7,6 +7,8 @@ import { useAlarms } from "../lib/alarms";
 import { money } from "../store/money";
 import { useSim } from "../store/sim";
 import { AdviceBox } from "./AdviceBox";
+import { driverMessage, paAnnouncement } from "../lib/announce";
+import { canSpeak, speak } from "../lib/voice";
 
 export function TrainDetail() {
   const id = useSim((s) => s.selectedTrain);
@@ -17,6 +19,7 @@ export function TrainDetail() {
   const setError = useSim((s) => s.setError);
   const alarms = useAlarms();
   const [sent, setSent] = useState<string | null>(null);
+  const [pa, setPa] = useState<{ kk: string; ru: string } | null>(null);
 
   const tr = id && idx ? idx.trains.get(id) : undefined;
   const ts = id && state ? state.trains.find((t) => t.id === id) : undefined;
@@ -65,7 +68,30 @@ export function TrainDetail() {
           <span className="muted" title="Допуск — на сколько минут поезд этого класса может опоздать без нарушения ПТЭ. Вес — цена минуты его задержки, у.е.">допуск опоздания {Math.round(tol / 60)} мин · минута опоздания стоит {cls ? money(cls.weight) : "—"}</span>
         </div>
         {ts?.wait_reason && <div className="wait">Ожидает: {ts.wait_reason}</div>}
-        {ts?.advice && <AdviceBox a={ts.advice} />}
+        {ts?.advice && (
+          <>
+            <AdviceBox a={ts.advice} />
+            {canSpeak() && (
+              <button className="btn btn-small" style={{ marginTop: -4, marginBottom: 6 }} onClick={() => speak(driverMessage(tr, ts.advice!))}
+                title="Прочитать совет вслух — как по радиосвязи машинисту">🔊 Передать машинисту</button>
+            )}
+          </>
+        )}
+        {tr.passengers > 0 && ts && ts.display !== "terminated" && (
+          <div className="pa-box">
+            <button className="btn btn-small" onClick={() => setPa(pa ? null : paAnnouncement(tr, ts, idx))}
+              title="Бағдар сам готовит объявление по вокзальной трансляции — на казахском и русском">
+              📢 {pa ? "Скрыть объявление" : "Объявление пассажирам"}
+            </button>
+            {pa && (
+              <div className="pa-text">
+                <div><b>ҚАЗ</b> {pa.kk}</div>
+                <div><b>РУС</b> {pa.ru}</div>
+                {canSpeak() && <button className="btn btn-small" onClick={() => speak(pa.ru)}>🔊 Прочитать</button>}
+              </div>
+            )}
+          </div>
+        )}
         {ts && ts.display !== "terminated" && (
           <div className="inject" aria-label="Внешнее событие">
             <span className="muted">Задержать этот поезд:</span>

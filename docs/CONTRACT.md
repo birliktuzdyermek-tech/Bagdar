@@ -38,7 +38,7 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | GET | `/api/occupancy?which=current\|previous&t_from=&t_to=&at=` | Занятость путей и перегонов для Ганта: факт до текущего момента, дальше план; `changed` — отличается в другом плане; `at` — на момент перемотки (`OccupancyOut`) |
 | GET | `/api/planner` | Статус планировщика и история пересчётов: время, решатель, кандидаты, J |
 | POST | `/api/plan/replan` | Пересчитать план сейчас |
-| POST | `/api/events` | Внешнее событие или сбой (`EventIn`): `{type, ...}` — `train_delay`, `section_closed`, `signal_fault`, `track_unavailable`, `switch_fault`, `speed_restriction`, `add_trains`, `extra_train`, `hold_at_origin`; параметры — в [`INCIDENTS.md`](INCIDENTS.md). 422 — событие нельзя применить (нет перегона, путь уже выключен) |
+| POST | `/api/events` | Внешнее событие или сбой (`EventIn`): `{type, ...}` — `train_delay`, `section_closed`, `signal_fault`, `track_unavailable`, `switch_fault`, `speed_restriction`, `add_trains`, `extra_train`, `hold_at_origin`, `crew_short` (у бригады поезда осталось N мин смены); параметры — в [`INCIDENTS.md`](INCIDENTS.md). 422 — событие нельзя применить (нет перегона, путь уже выключен) |
 | GET | `/api/incidents` | Сбои текущего прогона с отчётом «до / после» и очередь событий сценария (`IncidentsOut`) |
 | POST | `/api/incidents/{id}/restore` | Снять действующий сбой вручную; 409 — сбой уже снят или разовый |
 | GET | `/api/saturation` | Радар насыщения и варианты придержания грузовых на 4 ч (`SaturationOut`) |
@@ -55,6 +55,9 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | GET | `/api/export/plan.csv` | CSV действующего плана по поездам |
 | GET | `/api/export/report.pdf?t_from=&t_to=&last_min=` | PDF-отчёт: период, показатели, график индекса, инциденты, изменения плана, вывод |
 | POST | `/api/meet` | «Кто первым?»: пассажирский и грузовой навстречу на однопутном перегоне (`MeetIn`: класс, пассажиры, масса, груз, опоздание, запас, стоянка, подъём, длина перегона, кто раньше, `pte_strict?`). Ответ `MeetOut`: оба порядка — движение по отрезкам, ожидание, цена по статьям, нарушение ПТЭ, победитель |
+| GET | `/api/window?section_id=&minutes=&horizon_min=` | Подбор времени технологического окна: старты каждые 15 мин, для каждого — план с окном против базового: задето, добавленная задержка, цена, застрявшие; `best`/`worst` (`WindowOut`) |
+| POST | `/api/window/schedule` | `{section_id, start, minutes}` — запланировать окно: закрытие перегона случится само в момент `start` (как событие сценария) |
+| GET | `/api/crew` | Рабочее время бригад: кто по плану придёт на пункт смены позже конца смены (`CrewOut`) |
 | GET | `/api/dashboard` | Сводка прогона (`DashboardOut`): индекс (текущий, минимум, средний, история), движение, деньги по тарифам (статьи, в час, валюта и курс показа), планировщик, сбои, самые опоздавшие, соревнование |
 | GET | `/api/settings` | Веса и пороги индекса, строгий ПТЭ, тарифы с валютой показа и курсом `tenge_per_unit` (`SettingsOut`) |
 | PUT | `/api/settings` | Изменить их на лету, без перезапуска (`SettingsIn`); 422 — недопустимые значения |

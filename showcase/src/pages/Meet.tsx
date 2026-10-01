@@ -27,7 +27,7 @@ function yieldStory(r: MeetResult, o: MeetOption): Reason[] {
     const f = o.freight;
     const tr = r.trains.freight;
     if (f.stopped) {
-      out.push({ icon: "⚡", text: `Грузовой ${nf0.format(tr.mass_t)} т тормозит до нуля и снова разгоняется: теряется ${nf0.format(o.kwh.freight)} кВт·ч энергии (E = m·v²/2)${p.freight.uphill ? ", а на подъёме трогать тяжёлый состав вчетверо дороже" : ""} — ${money(o.cost.stop_freight)}` });
+      out.push({ icon: "⚡", text: `Грузовой ${nf0.format(tr.mass_t)} т тормозит до нуля и снова разгоняется: теряется ${nf0.format(o.kwh.freight)} кВт·ч энергии (E = m·v²/2), это ≈ ${nf0.format(o.kwh.freight * 0.62)} кг CO₂${p.freight.uphill ? ", а на подъёме трогать тяжёлый состав вчетверо дороже" : ""} — ${money(o.cost.stop_freight)}` });
       out.push({ icon: "⏸", text: `Стоит ${mins(f.wait_s)}, к следующей станции приходит позже на ${mins(f.extra_s)}: простой локомотива и бригады — ${money(o.cost.idle_freight)}` });
       out.push(f.late_s > 0
         ? { icon: "📦", text: `Запаса по графику не хватает: опоздание на конечной ${mins(f.late_s)} × ${perMin(tr.weight)} = ${money(o.cost.delay_freight)}` }
@@ -41,7 +41,7 @@ function yieldStory(r: MeetResult, o: MeetOption): Reason[] {
         ? { icon: "🚉", text: `У пассажирского и так стоянка ${nf0.format(p.pax.dwell_min)} мин по графику. Сверх неё он ждёт ${mins(s.wait_s)}.` }
         : { icon: "🚉", tone: "good", text: `У пассажирского и так стоянка ${nf0.format(p.pax.dwell_min)} мин по графику — грузовой проходит, пока идёт посадка. Ждать сверх графика не нужно.` });
     } else if (s.stopped) {
-      out.push({ icon: "👥", text: `Пассажирский останавливается на ${mins(s.wait_s)} и разгоняется заново: ${nf0.format(o.pax_person_min)} человеко-минут ожидания, ${nf0.format(o.kwh.pax)} кВт·ч на остановку.` });
+      out.push({ icon: "👥", text: `Пассажирский останавливается на ${mins(s.wait_s)} и разгоняется заново: ${nf0.format(o.pax_person_min)} человеко-минут ожидания, ${nf0.format(o.kwh.pax)} кВт·ч на остановку (≈ ${nf0.format(o.kwh.pax * 0.62)} кг CO₂).` });
     } else out.push({ icon: "✓", tone: "good", text: "Пассажирский подходит, когда перегон уже свободен, — ждать не приходится." });
     if (s.late_s > 0) out.push({ icon: "⏰", text: `Опоздание на конечной ${mins(s.late_s)} × ${perMin(tr.weight)} (цена минуты этого поезда) = ${money(o.cost.delay_pax)}` });
     else if (s.extra_s > 0) out.push({ icon: "🛟", tone: "good", text: `Запас по графику ${nf0.format(p.pax.slack_min)} мин покрывает задержку — к конечной поезд успевает.` });

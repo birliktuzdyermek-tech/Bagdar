@@ -335,6 +335,134 @@
     }
    }
   },
+  "/api/window": {
+   "get": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Подбор времени технологического окна: когда закрыть перегон на N минут, чтобы потерять меньше",
+    "operationId": "get_window_api_window_get",
+    "parameters": [
+     {
+      "name": "section_id",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Section Id"
+      }
+     },
+     {
+      "name": "minutes",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 480,
+       "minimum": 5,
+       "default": 60,
+       "title": "Minutes"
+      }
+     },
+     {
+      "name": "horizon_min",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 360,
+       "minimum": 60,
+       "default": 180,
+       "title": "Horizon Min"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/WindowOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/window/schedule": {
+   "post": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Запланировать окно: закрытие перегона случится само в указанное время модели",
+    "operationId": "post_window_schedule_api_window_schedule_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/WindowScheduleIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventAck"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/crew": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Рабочее время бригад: кто по плану не доедет до пункта смены до конца смены",
+    "operationId": "get_crew_api_crew_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CrewOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/traces": {
    "get": {
     "tags": [
@@ -2009,6 +2137,104 @@
     "type": "object",
     "title": "CostConfig"
    },
+   "CrewOut": {
+    "properties": {
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "risks": {
+      "items": {
+       "$ref": "#/components/schemas/CrewRiskOut"
+      },
+      "type": "array",
+      "title": "Risks"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "risks"
+    ],
+    "title": "CrewOut"
+   },
+   "CrewRiskOut": {
+    "properties": {
+     "train_id": {
+      "type": "string",
+      "title": "Train Id"
+     },
+     "number": {
+      "type": "string",
+      "title": "Number"
+     },
+     "cls": {
+      "type": "string",
+      "title": "Cls"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "warning",
+       "critical"
+      ],
+      "title": "Status"
+     },
+     "left_s": {
+      "type": "integer",
+      "title": "Left S"
+     },
+     "shift_end": {
+      "type": "number",
+      "title": "Shift End"
+     },
+     "target_station_id": {
+      "type": "string",
+      "title": "Target Station Id"
+     },
+     "target_station": {
+      "type": "string",
+      "title": "Target Station"
+     },
+     "target_crew_change": {
+      "type": "boolean",
+      "title": "Target Crew Change"
+     },
+     "arr": {
+      "type": "number",
+      "title": "Arr"
+     },
+     "margin_s": {
+      "type": "integer",
+      "title": "Margin S"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     },
+     "hint": {
+      "type": "string",
+      "title": "Hint"
+     }
+    },
+    "type": "object",
+    "required": [
+     "train_id",
+     "number",
+     "cls",
+     "status",
+     "left_s",
+     "shift_end",
+     "target_station_id",
+     "target_station",
+     "target_crew_change",
+     "arr",
+     "margin_s",
+     "text",
+     "hint"
+    ],
+    "title": "CrewRiskOut"
+   },
    "DashboardDelayedOut": {
     "properties": {
      "id": {
@@ -3017,7 +3243,8 @@
        "speed_restriction",
        "add_trains",
        "extra_train",
-       "hold_at_origin"
+       "hold_at_origin",
+       "crew_short"
       ],
       "title": "Type"
      },
@@ -3031,7 +3258,7 @@
        }
       ],
       "title": "Train Id",
-      "description": "train_delay: поезд"
+      "description": "train_delay, crew_short: поезд"
      },
      "train_class": {
       "anyOf": [
@@ -3651,7 +3878,8 @@
        "speed_restriction",
        "add_trains",
        "extra_train",
-       "hold_at_origin"
+       "hold_at_origin",
+       "crew_short"
       ],
       "title": "Kind"
      },
@@ -3805,7 +4033,8 @@
        "speed_restriction",
        "add_trains",
        "extra_train",
-       "hold_at_origin"
+       "hold_at_origin",
+       "crew_short"
       ],
       "title": "Kind"
      },
@@ -8005,6 +8234,183 @@
     },
     "type": "object",
     "title": "VersusStartIn"
+   },
+   "WindowOptionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "start": {
+      "type": "number",
+      "title": "Start"
+     },
+     "end": {
+      "type": "number",
+      "title": "End"
+     },
+     "J": {
+      "type": "number",
+      "title": "J"
+     },
+     "J_lex": {
+      "type": "number",
+      "title": "J Lex"
+     },
+     "delta_J": {
+      "type": "number",
+      "title": "Delta J",
+      "description": "Насколько план с окном дороже базового, у.е."
+     },
+     "affected": {
+      "type": "integer",
+      "title": "Affected",
+      "description": "Поездов, у которых опоздание выросло больше чем на минуту"
+     },
+     "numbers": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Numbers"
+     },
+     "delay_add_min": {
+      "type": "number",
+      "title": "Delay Add Min"
+     },
+     "late_trains": {
+      "type": "integer",
+      "title": "Late Trains"
+     },
+     "stuck": {
+      "type": "integer",
+      "title": "Stuck"
+     },
+     "pte": {
+      "type": "integer",
+      "title": "Pte"
+     },
+     "valid": {
+      "type": "boolean",
+      "title": "Valid"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "start",
+     "end",
+     "J",
+     "J_lex",
+     "delta_J",
+     "affected",
+     "numbers",
+     "delay_add_min",
+     "late_trains",
+     "stuck",
+     "pte",
+     "valid"
+    ],
+    "title": "WindowOptionOut"
+   },
+   "WindowOut": {
+    "properties": {
+     "section_id": {
+      "type": "string",
+      "title": "Section Id"
+     },
+     "section": {
+      "type": "string",
+      "title": "Section"
+     },
+     "minutes": {
+      "type": "integer",
+      "title": "Minutes"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "horizon_min": {
+      "type": "integer",
+      "title": "Horizon Min"
+     },
+     "baseline": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Baseline"
+     },
+     "options": {
+      "items": {
+       "$ref": "#/components/schemas/WindowOptionOut"
+      },
+      "type": "array",
+      "title": "Options"
+     },
+     "best": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Best"
+     },
+     "worst": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Worst"
+     }
+    },
+    "type": "object",
+    "required": [
+     "section_id",
+     "section",
+     "minutes",
+     "t",
+     "horizon_min",
+     "baseline",
+     "options",
+     "best",
+     "worst"
+    ],
+    "title": "WindowOut"
+   },
+   "WindowScheduleIn": {
+    "properties": {
+     "section_id": {
+      "type": "string",
+      "title": "Section Id"
+     },
+     "start": {
+      "type": "number",
+      "title": "Start",
+      "description": "Начало окна, секунды модели"
+     },
+     "minutes": {
+      "type": "integer",
+      "maximum": 480.0,
+      "minimum": 5.0,
+      "title": "Minutes",
+      "default": 60
+     }
+    },
+    "type": "object",
+    "required": [
+     "section_id",
+     "start"
+    ],
+    "title": "WindowScheduleIn"
    },
    "WorldMsg": {
     "properties": {

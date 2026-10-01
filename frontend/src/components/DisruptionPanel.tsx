@@ -6,6 +6,7 @@ import { api } from "../api/client";
 import type { EventIn, IncidentActive } from "../api/types";
 import { clock } from "../lib/format";
 import { useSim } from "../store/sim";
+import { WindowPlanner } from "./WindowPlanner";
 
 const NO_INCIDENTS: IncidentActive[] = [];   // стабильная ссылка: новый [] в селекторе zustand зацикливает рендер
 
@@ -20,6 +21,7 @@ const KINDS: { key: Kind; label: string; hint: string }[] = [
   { key: "train_delay", label: "Задержать поезд", hint: "Выбранный на схеме поезд опоздает на столько минут" },
   { key: "add_trains", label: "Рост потока", hint: "Лишние грузовые поезда, которых не было в графике" },
   { key: "extra_train", label: "Внеочередной поезд", hint: "Восстановительный поезд — идёт первым, все остальные его пропускают" },
+  { key: "crew_short", label: "Бригада на исходе", hint: "У бригады выбранного поезда остаётся столько минут смены. Бағдар проверит по плану, доедет ли она до смены, и поднимет приоритет поезда" },
 ];
 
 const KIND_LABEL: Record<string, string> = Object.fromEntries(KINDS.map((k) => [k.key, k.label]));
@@ -73,6 +75,8 @@ export function DisruptionPanel() {
         return trk ? { type: kind, track_id: trk, minutes: m } : null;
       case "train_delay":
         return selectedTrain ? { type: kind, train_id: selectedTrain, minutes: Number(minutes) || 10 } : null;
+      case "crew_short":
+        return selectedTrain ? { type: kind, train_id: selectedTrain, minutes: Number(minutes) || 40 } : null;
       case "add_trains":
         return { type: kind, count: Number(count) || 4, within_min: Number(minutes) || 30 };
       case "extra_train":
@@ -85,7 +89,7 @@ export function DisruptionPanel() {
   const apply = async () => {
     const b = body();
     if (!b) {
-      setError(kind === "train_delay" ? "Выберите поезд на схеме или графике" : "Выберите станцию на схеме");
+      setError(kind === "train_delay" || kind === "crew_short" ? "Выберите поезд на схеме или графике" : "Выберите станцию на схеме");
       return;
     }
     setBusy(true);
@@ -111,7 +115,8 @@ export function DisruptionPanel() {
 
   const needsSection = kind === "section_closed" || kind === "signal_fault" || kind === "speed_restriction";
   const needsDuration = kind !== "extra_train";
-  const durLabel = kind === "train_delay" ? "мин задержки" : kind === "add_trains" ? "за мин" : "мин";
+  const durLabel = kind === "train_delay" ? "мин задержки" : kind === "add_trains" ? "за мин" : kind === "crew_short" ? "мин до конца смены" : "мин";
+  const [windowOpen, setWindowOpen] = useState(false);
 
   return (
     <section className="card disrupt-card" aria-label="Сбои и сценарий">
@@ -151,7 +156,7 @@ export function DisruptionPanel() {
               </select>
             </label>
           )}
-          {kind === "train_delay" && (
+          {(kind === "train_delay" || kind === "crew_short") && (
             <span className="field">{train ? `Поезд ${train.number} · ${train.cls_label}` : "Выберите поезд на схеме"}</span>
           )}
           {kind === "speed_restriction" && (
@@ -182,9 +187,16 @@ export function DisruptionPanel() {
             title={past ? "Идёт перемотка: вернитесь к текущему моменту, чтобы ломать" : "Устроить этот сбой прямо сейчас"}>💥 Применить</button>
         </div>
         {msg && <div className="muted small" role="status">{msg}</div>}
+        <div className="window-toggle">
+          <button className={`btn btn-small ${windowOpen ? "on" : ""}`} onClick={() => setWindowOpen((o) => !o)}
+            title="Задача путейцев: закрыть перегон на час. Бағдар подберёт время, когда это дешевле всего">
+            🛠 {windowOpen ? "Скрыть подбор окна" : "Окно на ремонт — подобрать время"}
+          </button>
+        </div>
+        {windowOpen && <WindowPlanner sections={sections} defaultSection={sec} />}
         {next && (
           <div className="scenario-next small">
-            По сценарию в {clock(next.t, false)} (через {Math.max(0, Math.round((next.t - t) / 60))} мин) случится само: {KIND_LABEL[next.kind] ?? next.kind}
+            В {clock(next.t, false)} (через {Math.max(0, Math.round((next.t - t) / 60))} мин) случится само: {KIND_LABEL[next.kind] ?? next.kind}
           </div>
         )}
         <div className="incidents-head">Действуют сейчас</div>

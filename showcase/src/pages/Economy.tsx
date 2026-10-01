@@ -58,7 +58,7 @@ export function Economy() {
           <article>
             <span className="eco-ico" aria-hidden>⚡</span>
             <h3>Энергия</h3>
-            <p>Остановить поезд и снова разогнать — выбросить его кинетическую энергию. Грузовой {nf.format(fr.mass_t)} т на {fr.v_kmh} км/ч теряет <b>{nf.format(stopKwh)} кВт·ч</b> за одну неплановую остановку.</p>
+            <p>Остановить поезд и снова разогнать — выбросить его кинетическую энергию. Грузовой {nf.format(fr.mass_t)} т на {fr.v_kmh} км/ч теряет <b>{nf.format(stopKwh)} кВт·ч</b> за одну неплановую остановку — это ≈ <b>{nf.format(stopKwh * 0.62)} кг CO₂</b> по среднему коэффициенту сети. Бағдар считает и это: меньше лишних остановок — меньше выбросов.</p>
           </article>
           <article>
             <span className="eco-ico" aria-hidden>👷</span>

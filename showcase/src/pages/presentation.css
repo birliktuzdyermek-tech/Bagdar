@@ -310,3 +310,18 @@ html.projector .pres-content { font-size: clamp(26px, 2.2vw, 34px); }
 .pres-meet-row .win span { color: #7fd18a; }
 .pres-meet-row .lose span { color: #ff8a7a; }
 @media (max-width: 900px) { .pres-meet-row { grid-template-columns: 1fr 1fr; } }
+
+/* слайд «Чего не ждали» */
+.pres-surprise > div { background: color-mix(in srgb, var(--accent) 10%, var(--surface-1)); }
+.pres-surprise span { font-size: 0.82em; line-height: 1.4; }
+.pres-stage .hero-video video { opacity: 0.6; }
+/* появление содержимого слайда — каскадом */
+.pres-content > * { animation: pres-enter 600ms var(--ease) both; }
+.pres-content > :nth-child(2) { animation-delay: 90ms; }
+.pres-content > :nth-child(3) { animation-delay: 180ms; }
+.pres-content > :nth-child(4) { animation-delay: 270ms; }
+.pres-steps4 > div { animation: pres-enter 600ms var(--ease) both; }
+.pres-steps4 > div:nth-child(2) { animation-delay: 120ms; }
+.pres-steps4 > div:nth-child(3) { animation-delay: 240ms; }
+.pres-steps4 > div:nth-child(4) { animation-delay: 360ms; }
+@media (prefers-reduced-motion: reduce) { .pres-content > *, .pres-steps4 > div { animation: none; } }

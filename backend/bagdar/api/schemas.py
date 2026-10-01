@@ -531,7 +531,7 @@ class PlannerOut(BaseModel):
 
 
 EventKind = Literal["train_delay", "section_closed", "signal_fault", "track_unavailable", "switch_fault",
-                    "speed_restriction", "add_trains", "extra_train", "hold_at_origin"]
+                    "speed_restriction", "add_trains", "extra_train", "hold_at_origin", "crew_short"]
 
 
 class NewTrainIn(BaseModel):
@@ -548,7 +548,7 @@ class NewTrainIn(BaseModel):
 class EventIn(BaseModel):
     """Внешнее событие или сбой. Какие поля нужны — зависит от type."""
     type: EventKind
-    train_id: str | None = Field(None, description="train_delay: поезд")
+    train_id: str | None = Field(None, description="train_delay, crew_short: поезд")
     train_class: str | None = Field(None, description="train_delay: или класс поезда (выбирается первый на участке)")
     minutes: float | None = Field(None, ge=1, le=1440, description="Задержка или длительность сбоя; нет — неизвестно")
     section_id: str | None = Field(None, description="section_closed, signal_fault, speed_restriction")
@@ -1078,3 +1078,59 @@ class DashboardOut(BaseModel):
     incidents: list[DashboardIncidentOut]
     top_delayed: list[DashboardDelayedOut]
     versus: DashboardVersusOut | None
+
+
+# ------------------------------------------------------------------ окно на ремонт и бригады
+class WindowOptionOut(BaseModel):
+    id: str
+    start: float
+    end: float
+    J: float
+    J_lex: float
+    delta_J: float = Field(description="Насколько план с окном дороже базового, у.е.")
+    affected: int = Field(description="Поездов, у которых опоздание выросло больше чем на минуту")
+    numbers: list[str]
+    delay_add_min: float
+    late_trains: int
+    stuck: int
+    pte: int
+    valid: bool
+
+
+class WindowOut(BaseModel):
+    section_id: str
+    section: str
+    minutes: int
+    t: float
+    horizon_min: int
+    baseline: dict[str, float]
+    options: list[WindowOptionOut]
+    best: str | None
+    worst: str | None
+
+
+class WindowScheduleIn(BaseModel):
+    section_id: str
+    start: float = Field(description="Начало окна, секунды модели")
+    minutes: int = Field(60, ge=5, le=480)
+
+
+class CrewRiskOut(BaseModel):
+    train_id: str
+    number: str
+    cls: str
+    status: Literal["warning", "critical"]
+    left_s: int
+    shift_end: float
+    target_station_id: str
+    target_station: str
+    target_crew_change: bool
+    arr: float
+    margin_s: int
+    text: str
+    hint: str
+
+
+class CrewOut(BaseModel):
+    t: float
+    risks: list[CrewRiskOut]

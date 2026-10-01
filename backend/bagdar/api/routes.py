@@ -83,6 +83,35 @@ def get_saturation(request: Request) -> dict:
     return rt(request).saturation_payload()
 
 
+@router.get("/window", response_model=S.WindowOut, tags=["planner"],
+            summary="Подбор времени технологического окна: когда закрыть перегон на N минут, чтобы потерять меньше")
+def get_window(request: Request, section_id: str = Query(...), minutes: int = Query(60, ge=5, le=480),
+               horizon_min: int = Query(180, ge=60, le=360)) -> dict:
+    r = rt(request)
+    if section_id not in r.engine.world.sections:
+        raise HTTPException(404, f"Перегон {section_id} не найден")
+    from bagdar.planner.window import window_options
+    return window_options(r.engine, r.cfg, r.planner.current, section_id, minutes, horizon_min)
+
+
+@router.post("/window/schedule", response_model=S.EventAck, tags=["planner"],
+             summary="Запланировать окно: закрытие перегона случится само в указанное время модели")
+def post_window_schedule(body: S.WindowScheduleIn, request: Request) -> dict:
+    r = rt(request)
+    if body.section_id not in r.engine.world.sections:
+        raise HTTPException(404, f"Перегон {body.section_id} не найден")
+    if body.start <= r.engine.t:
+        raise HTTPException(422, "Начало окна должно быть позже текущего момента модели")
+    return {"ok": True, "message": r.schedule_window(body.section_id, body.start, body.minutes)}
+
+
+@router.get("/crew", response_model=S.CrewOut, tags=["state"],
+            summary="Рабочее время бригад: кто по плану не доедет до пункта смены до конца смены")
+def get_crew(request: Request) -> dict:
+    from bagdar.crew import crew_risks
+    return crew_risks(rt(request))
+
+
 @router.get("/traces", response_model=S.TracesOut, tags=["state"],
             summary="Факт движения для графика: точки [t, км] по поездам после since")
 def get_traces(request: Request, since: float = Query(0.0)) -> dict:

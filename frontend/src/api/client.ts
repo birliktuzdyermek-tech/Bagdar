@@ -16,7 +16,7 @@ import type {
   Versus,
   Settings,
   SettingsIn,
-  Traces, Dashboard } from "./types";
+  Traces, Dashboard, WindowPlan, CrewRisks } from "./types";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -73,6 +73,11 @@ export const api = {
   saturation: () => request<Saturation>("/api/saturation"),
   settings: () => request<Settings>("/api/settings"),
   dashboard: () => request<Dashboard>("/api/dashboard"),
+  window: (sectionId: string, minutes: number) => request<WindowPlan>(`/api/window?section_id=${encodeURIComponent(sectionId)}&minutes=${minutes}`),
+  windowSchedule: (sectionId: string, start: number, minutes: number) => request<{ ok: boolean; message: string }>("/api/window/schedule", {
+    method: "POST", body: JSON.stringify({ section_id: sectionId, start, minutes }),
+  }),
+  crew: () => request<CrewRisks>("/api/crew"),
   saveSettings: (body: SettingsIn) => request<Settings>("/api/settings", {
     method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   }),

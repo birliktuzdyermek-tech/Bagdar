@@ -35,6 +35,7 @@ log = logging.getLogger("bagdar.incidents")
 
 KINDS = {
     "train_delay": "Опоздание поезда",
+    "crew_short": "Бригада на исходе",
     "section_closed": "Закрытие перегона",
     "signal_fault": "Неисправность светофора",
     "track_unavailable": "Путь недоступен",
@@ -206,6 +207,17 @@ class IncidentManager:
             inc = self._new(kind, "A" if m <= 10 else "B", f"Опоздание поезда {num} на {round(m)} мин", params,
                             source, resource=tid, train_ids=[tid])
             msg = f"Поезд {num}: {where}"
+        elif kind == "crew_short":
+            tid = self._pick_train(params)
+            m = float(params.get("minutes", 40))
+            if not (5 <= m <= 600):
+                raise ValueError("Остаток смены — от 5 до 600 мин")
+            tr = eng.trains[tid]
+            tr.crew_shift_end = now + m * 60
+            inc = self._new(kind, "B", f"Бригаде поезда {tr.number} осталось {round(m)} мин смены", params, source,
+                            resource=tid, train_ids=[tid])
+            msg = (f"Поезд {tr.number}: у бригады осталось {round(m)} мин. Бағдар проверит по плану, доедет ли она "
+                   f"до пункта смены, и поднимет приоритет поезда")
         elif kind == "section_closed":
             sid = self._section(params)
             if eng.il.sections[sid].status == "closed":
