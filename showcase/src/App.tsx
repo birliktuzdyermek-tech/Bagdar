@@ -7,6 +7,7 @@ import { Gallery } from "./pages/Gallery";
 import { Home } from "./pages/Home";
 import { HowItWorks } from "./pages/HowItWorks";
 import { Meet } from "./pages/Meet";
+import { Economy } from "./pages/Economy";
 import { Presentation } from "./pages/Presentation";
 import { Header } from "./ui/Header";
 import { ShowcaseTour } from "./ui/ShowcaseTour";
@@ -63,10 +64,11 @@ export function App() {
   }, []);
 
   const isMeet = route.startsWith("#/meet");
+  const isEco = route.startsWith("#/economy");
   const playId = isMeet ? null : /^#\/play\/([\w-]+)/.exec(route)?.[1] ?? null;
   useEffect(() => {
     if (playId) return;
-    if (route.startsWith("#/meet")) {
+    if (route.startsWith("#/meet") || route.startsWith("#/economy")) {
       window.scrollTo(0, 0);
       return;
     }
@@ -79,14 +81,15 @@ export function App() {
       <Header projector={projector} onProjector={toggleProjector} route={route} />
       <main className="main" id="main">
         {isMeet && <Meet />}
-        {!isMeet && error && <p className="error">⚠ {error}</p>}
-        {!isMeet && !runs && !error && <p className="muted">Загружаю список записей…</p>}
+        {isEco && <Economy />}
+        {!isMeet && !isEco && error && <p className="error">⚠ {error}</p>}
+        {!isMeet && !isEco && !runs && !error && <p className="muted">Загружаю список записей…</p>}
         {runs && playId && <PlayRoute key={playId} runs={runs} id={playId} projector={projector} />}
         {runs && !playId && route.startsWith("#/runs") && <RunList runs={runs} />}
         {runs && !playId && route.startsWith("#/gallery") && <Gallery runs={runs} />}
         {runs && !playId && route.startsWith("#/presentation") && <Presentation runs={runs} />}
         {runs && !playId && route.startsWith("#/how") && <HowItWorks />}
-        {runs && !playId && !isMeet && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && !route.startsWith("#/presentation") && !route.startsWith("#/how") && <Home runs={runs} />}
+        {runs && !playId && !isMeet && !isEco && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && !route.startsWith("#/presentation") && !route.startsWith("#/how") && <Home runs={runs} />}
       </main>
       <footer className="footer">
         <span>Консультативный прототип — не система управления движением.</span>

@@ -16,8 +16,7 @@ import type {
   Versus,
   Settings,
   SettingsIn,
-  Traces,
-} from "./types";
+  Traces, Dashboard } from "./types";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -73,6 +72,7 @@ export const api = {
   }),
   saturation: () => request<Saturation>("/api/saturation"),
   settings: () => request<Settings>("/api/settings"),
+  dashboard: () => request<Dashboard>("/api/dashboard"),
   saveSettings: (body: SettingsIn) => request<Settings>("/api/settings", {
     method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   }),

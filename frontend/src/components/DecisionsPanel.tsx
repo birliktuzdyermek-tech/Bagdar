@@ -4,6 +4,7 @@ import type { DecisionCard, PlannerInfo, Variant } from "../api/types";
 import { useAlarms } from "../lib/alarms";
 import { IncidentReport } from "./IncidentReport";
 import { clock, num } from "../lib/format";
+import { money, useMoney } from "../store/money";
 import { useSim } from "../store/sim";
 
 const LEVEL: Record<string, { label: string; cls: string; hint: string }> = {
@@ -88,8 +89,8 @@ function VariantRow({ v, card, left, chosen }: { v: Variant; card: DecisionCard;
         {v.title}
       </div>
       <div className="variant-meta muted tabular">
-        цена {num(v.J)} у.е.
-        {v.delta_money != null && v.delta_money > 0.5 && <> · дороже на {num(v.delta_money)}</>}
+        цена {money(v.J)}
+        {v.delta_money != null && v.delta_money > 0.5 && <> · дороже на {money(v.delta_money)}</>}
         {" · "}пассажирских сверх допуска: {v.late_pax}
         {v.pte_violations > 0 && <> · нарушений ПТЭ: {v.pte_violations}</>}
         {!v.valid && <> · недопустим: {v.note}</>}
@@ -113,7 +114,7 @@ function Card({ c, left }: { c: DecisionCard; left: number | null | undefined })
   const { busy, run } = useAction();
   const lv = LEVEL[c.level] ?? LEVEL.B;
   const st = STATUS[c.status] ?? STATUS.applied;
-  const money = c.delta_money;
+  const dm = c.delta_money;
   const im = c.impact;
   return (
     <li
@@ -135,9 +136,9 @@ function Card({ c, left }: { c: DecisionCard; left: number | null | undefined })
       {c.type !== "incident" && <div className="decision-row"><span className="muted">Почему:</span> {c.reason}</div>}
       <div className="decision-row" hidden={c.type === "incident"}>
         <span className="muted">Альтернатива:</span> {c.alternative}
-        {c.alt_feasible && money != null && (
+        {c.alt_feasible && dm != null && (
           <span className="badge badge-neutral" style={{ marginLeft: 6 }}>
-            {money >= 0 ? `дороже на ${num(money)} у.е.` : `дешевле на ${num(-money)} у.е.`}
+            {dm >= 0 ? `дороже на ${money(dm)}` : `дешевле на ${money(-dm)}`}
           </span>
         )}
         {(c.alt_pte_violations ?? 0) > 0 && <span className="badge badge-warning" style={{ marginLeft: 6 }}>нарушает ПТЭ</span>}
@@ -220,6 +221,7 @@ export function DecisionsPanel() {
     return urgent.concat(recent.filter((c) => c.status !== "pending"));
   }, [cards]);
   const alarms = useAlarms();
+  useMoney();
   const st0 = planner?.status ? PLAN_STATUS[planner.status] : null;
   const st = st0 && planner?.status === "infeasible" && !alarms.red.has("plan") ? { ...st0, cls: "badge-serious" } : st0;
   const fullAuto = planner?.full_auto ?? true;
@@ -247,7 +249,7 @@ export function DecisionsPanel() {
             <div className="muted" style={{ fontSize: 12.5 }}>
               Составлен за {planner.compute_ms != null ? `${(planner.compute_ms / 1000).toFixed(1).replace(".", ",")} с` : "—"}
               {" · "}{SOLVER[planner.solver ?? ""] ?? planner.solver}
-              {planner.J != null && <> · цена плана {num(planner.J)} у.е.</>}
+              {planner.J != null && <> · цена плана {money(planner.J)}</>}
               {compare?.bestHeur != null && compare.cp != null && compare.bestHeur > 0 && compare.bestHeur > compare.cp * 1.01 && (
                 <> — на {Math.max(1, Math.round((1 - compare.cp / compare.bestHeur) * 100))} % дешевле простого перебора</>
               )}
@@ -270,7 +272,7 @@ export function DecisionsPanel() {
           <ul className="decisions">{shown.map((c) => <Card key={c.id} c={c} left={left.get(c.id)} />)}</ul>
         )}
         <div className="muted small" style={{ marginTop: 8 }}>
-          Уровни: <b>A</b> — мелочь, сделано само · <b>B</b> — сделано, 30 с на отмену · <b>C</b> — ждёт вашего выбора. Цены — условные единицы (у.е.).
+          Уровни: <b>A</b> — мелочь, сделано само · <b>B</b> — сделано, 30 с на отмену · <b>C</b> — ждёт вашего выбора. Суммы — по условным тарифам (⚙ Настройки).
         </div>
       </div>
     </section>

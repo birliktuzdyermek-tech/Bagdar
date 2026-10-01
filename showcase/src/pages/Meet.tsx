@@ -3,6 +3,7 @@ import { MeetScene } from "../meet/MeetScene";
 import { withDefaults, type Cargo, type FreightClass, type MeetOption, type MeetParams, type MeetParamsPatch, type MeetResult, type OptionId, type PaxClass } from "../meet/model";
 import presetsRaw from "../meet/presets.json";
 import { useMeet } from "../meet/useMeet";
+import { money, perMin } from "../lib/money";
 import "./meet.css";
 
 interface Preset { id: string; title: string; story: string; params: MeetParamsPatch }
@@ -14,7 +15,6 @@ const CARGO: [Cargo, string][] = [["urgent", "срочный"], ["perishable", "
 
 const nf1 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 });
 const nf0 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
-const money = (x: number) => `${nf0.format(Math.round(x))} у.е.`;
 const mins = (s: number) => `${nf1.format(Math.round(s / 6) / 10)} мин`;
 const opt = (r: MeetResult, id: OptionId) => r.options.find((o) => o.id === id)!;
 
@@ -30,7 +30,7 @@ function yieldStory(r: MeetResult, o: MeetOption): Reason[] {
       out.push({ icon: "⚡", text: `Грузовой ${nf0.format(tr.mass_t)} т тормозит до нуля и снова разгоняется: теряется ${nf0.format(o.kwh.freight)} кВт·ч энергии (E = m·v²/2)${p.freight.uphill ? ", а на подъёме трогать тяжёлый состав вчетверо дороже" : ""} — ${money(o.cost.stop_freight)}` });
       out.push({ icon: "⏸", text: `Стоит ${mins(f.wait_s)}, к следующей станции приходит позже на ${mins(f.extra_s)}: простой локомотива и бригады — ${money(o.cost.idle_freight)}` });
       out.push(f.late_s > 0
-        ? { icon: "📦", text: `Запаса по графику не хватает: опоздание на конечной ${mins(f.late_s)} × ${nf1.format(tr.weight)} у.е./мин = ${money(o.cost.delay_freight)}` }
+        ? { icon: "📦", text: `Запаса по графику не хватает: опоздание на конечной ${mins(f.late_s)} × ${perMin(tr.weight)} = ${money(o.cost.delay_freight)}` }
         : { icon: "🛟", tone: "good", text: `У грузового запас ${nf0.format(p.freight.slack_min)} мин по графику — к конечной он всё равно успеет, опоздания нет.` });
     } else out.push({ icon: "✓", tone: "good", text: "Грузовой подходит, когда перегон уже свободен, — ждать не приходится." });
   } else {
@@ -43,7 +43,7 @@ function yieldStory(r: MeetResult, o: MeetOption): Reason[] {
     } else if (s.stopped) {
       out.push({ icon: "👥", text: `Пассажирский останавливается на ${mins(s.wait_s)} и разгоняется заново: ${nf0.format(o.pax_person_min)} человеко-минут ожидания, ${nf0.format(o.kwh.pax)} кВт·ч на остановку.` });
     } else out.push({ icon: "✓", tone: "good", text: "Пассажирский подходит, когда перегон уже свободен, — ждать не приходится." });
-    if (s.late_s > 0) out.push({ icon: "⏰", text: `Опоздание на конечной ${mins(s.late_s)} × ${nf1.format(tr.weight)} у.е./мин (вес минуты этого поезда) = ${money(o.cost.delay_pax)}` });
+    if (s.late_s > 0) out.push({ icon: "⏰", text: `Опоздание на конечной ${mins(s.late_s)} × ${perMin(tr.weight)} (цена минуты этого поезда) = ${money(o.cost.delay_pax)}` });
     else if (s.extra_s > 0) out.push({ icon: "🛟", tone: "good", text: `Запас по графику ${nf0.format(p.pax.slack_min)} мин покрывает задержку — к конечной поезд успевает.` });
     if (o.pte_excess_min > 0) {
       out.push({ icon: "⚠", tone: "rule", text: `По ПТЭ пассажирский старше. Задержать его ради грузового можно не больше чем на ${nf1.format(tr.tolerance_min)} мин, а здесь задержка ${mins(s.extra_s)} — превышение ${nf1.format(o.pte_excess_min)} мин. Такой план Бағдар отбрасывает при любой экономии.` });
@@ -117,8 +117,8 @@ function Verdict({ r, guess, score }: { r: MeetResult; guess: OptionId | null; s
       </div>
 
       <p className="meet-weights small">
-        <b>Цена минуты</b>: пассажирский — {nf1.format(r.trains.pax.weight)} у.е./мин ({nf0.format(r.trains.pax.base_weight)} за класс{fp ? `; ${fp}` : ""}),
-        грузовой — {nf1.format(r.trains.freight.weight)} у.е./мин ({nf0.format(r.trains.freight.base_weight)} за класс{ff ? `; ${ff}` : ""}).
+        <b>Цена минуты</b>: пассажирский — {perMin(r.trains.pax.weight)} ({money(r.trains.pax.base_weight, { short: false })} за класс{fp ? `; ${fp}` : ""}),
+        грузовой — {perMin(r.trains.freight.weight)} ({money(r.trains.freight.base_weight, { short: false })} за класс{ff ? `; ${ff}` : ""}).
       </p>
 
       <div className="meet-scale">
@@ -131,7 +131,7 @@ function Verdict({ r, guess, score }: { r: MeetResult; guess: OptionId | null; s
         ) : (
           <p>соблюдение ПТЭ стоит <b>{money(-econDiff * perDay)}</b> в сутки. Это цена пунктуальности пассажиров — Бағдар её платит, а не экономит на людях.</p>
         )}
-        <p className="small muted">Условные единицы, «в нашей модели». Веса и тарифы — в настройках симулятора.</p>
+        <p className="small muted">Суммы в тенге по условным тарифам «нашей модели» (1 у.е. = 1 000 ₸); реальных расценок перевозчика здесь нет, тарифы меняются в настройках симулятора.</p>
       </div>
     </section>
   );
@@ -205,15 +205,15 @@ function Explainer({ r }: { r: MeetResult }) {
       <p className="muted">Те же слагаемые Бағдар считает для каждого поезда участка, когда строит план, — только пар не одна, а сотни.</p>
       <div className="meet-cards">
         <article><span className="meet-card-ico" aria-hidden>⏱</span><h3>Минута людей дороже минуты груза</h3>
-          <p>Скоростной — 100 у.е./мин, скорый — 70, пассажирский — 50, ещё × (пассажиров / 500). Грузовой — 10, срочный груз ×1,5, кончается срок доставки ×2.</p></article>
+          <p>Скоростной — {perMin(100)}, скорый — {perMin(70)}, пассажирский — {perMin(50)}, ещё × (пассажиров / 500). Грузовой — {perMin(10)}, срочный груз ×1,5, кончается срок доставки ×2.</p></article>
         <article><span className="meet-card-ico" aria-hidden>⚡</span><h3>Остановить тяжёлый поезд — выбросить энергию</h3>
           <p>E = m·v²/2. Грузовой {nf0.format(f.mass_t)} т на {f.v_kmh} км/ч теряет {nf0.format(f.stop_kwh)} кВт·ч, пассажирский — {nf0.format(pz.stop_kwh)}. Тормозит грузовой {f.brake_s} с, разгоняется {f.accel_s} с. На подъёме остановка ×4.</p></article>
         <article><span className="meet-card-ico" aria-hidden>🛟</span><h3>Запас по графику</h3>
           <p>В графике есть резерв. Ожидание в пределах запаса — не опоздание. Поэтому иногда грузовому постоять почти бесплатно, а иногда нет.</p></article>
         <article><span className="meet-card-ico" aria-hidden>📜</span><h3>Правила выше денег</h3>
-          <p>По ПТЭ пассажирский старше. Задержать его ради грузового можно лишь в пределах допуска: скоростной 2 мин, скорый 3, пассажирский 5. Сверх допуска — 5 000 у.е. за минуту, такой план не проходит.</p></article>
+          <p>По ПТЭ пассажирский старше. Задержать его ради грузового можно лишь в пределах допуска: скоростной 2 мин, скорый 3, пассажирский 5. Сверх допуска — штраф {perMin(5000)}, такой план не проходит ни при какой экономии.</p></article>
         <article><span className="meet-card-ico" aria-hidden>👷</span><h3>Простой и бригада</h3>
-          <p>Локомотив с бригадой стоит {r.constants.c_idle} у.е. в минуту. Если смена бригады вот-вот кончится, минута задержки грузового стоит вдвое дороже.</p></article>
+          <p>Локомотив с бригадой стоит {perMin(r.constants.c_idle)} простоя. Если смена бригады вот-вот кончится, минута задержки грузового стоит вдвое дороже.</p></article>
         <article><span className="meet-card-ico" aria-hidden>🧭</span><h3>Бағдар выбирает минимум</h3>
           <p>Сначала безопасность и ПТЭ, потом деньги. Из всех порядков — самый дешёвый допустимый. И показывает почему, как здесь.</p></article>
       </div>

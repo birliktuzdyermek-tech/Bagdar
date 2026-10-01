@@ -4,6 +4,7 @@ import { CARGO_LABEL, delayLabel, DISPLAY_LABEL, duration, hhmm, num } from "../
 import { classGroup, GROUP_COLOR } from "../lib/palette";
 import { trainShape } from "../lib/geometry";
 import { useAlarms } from "../lib/alarms";
+import { money } from "../store/money";
 import { useSim } from "../store/sim";
 import { AdviceBox } from "./AdviceBox";
 
@@ -61,7 +62,7 @@ export function TrainDetail() {
         <div className="status-line">
           <span className={`badge ${delayBadge}`}>{delay < 60 ? "✓" : "⚠"} {delayLabel(delay)}</span>
           <span className="badge badge-neutral">{ts ? DISPLAY_LABEL[ts.display] ?? ts.display : "не на участке"}</span>
-          <span className="muted" title="Допуск — на сколько минут поезд этого класса может опоздать без нарушения ПТЭ. Вес — цена минуты его задержки, у.е.">допуск опоздания {Math.round(tol / 60)} мин · минута стоит {cls?.weight ?? "—"} у.е.</span>
+          <span className="muted" title="Допуск — на сколько минут поезд этого класса может опоздать без нарушения ПТЭ. Вес — цена минуты его задержки, у.е.">допуск опоздания {Math.round(tol / 60)} мин · минута опоздания стоит {cls ? money(cls.weight) : "—"}</span>
         </div>
         {ts?.wait_reason && <div className="wait">Ожидает: {ts.wait_reason}</div>}
         {ts?.advice && <AdviceBox a={ts.advice} />}

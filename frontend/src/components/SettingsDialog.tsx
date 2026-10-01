@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { Settings } from "../api/types";
+import { useMoney } from "../store/money";
 import { useSim } from "../store/sim";
 
 const FACTORS: [keyof Settings["weights"], string][] = [
@@ -10,12 +11,13 @@ const FACTORS: [keyof Settings["weights"], string][] = [
   ["resource_idle", "Простой локомотивов и бригад"],
   ["conflicts", "Конфликты маршрутов"],
 ];
-const TARIFFS: [keyof Settings["tariffs"], string][] = [
-  ["kwh", "кВт·ч электроэнергии"],
-  ["loco_hour", "час простоя локомотива"],
-  ["crew_hour", "час простоя бригады"],
-  ["delay_min_pax", "минута задержки пассажирского"],
-  ["delay_min_freight", "минута задержки грузового"],
+type TariffKey = "kwh" | "loco_hour" | "crew_hour" | "delay_min_pax" | "delay_min_freight";
+const TARIFFS: [TariffKey, string, string][] = [
+  ["delay_min_pax", "минута опоздания пассажирского поезда", "время людей, компенсации, сорванные пересадки"],
+  ["delay_min_freight", "минута опоздания грузового поезда", "штрафы по договору, срыв сроков доставки"],
+  ["kwh", "кВт·ч энергии", "каждая лишняя остановка — энергия на торможение и разгон"],
+  ["loco_hour", "час простоя локомотива", "локомотив стоит и не везёт"],
+  ["crew_hour", "час простоя бригады", "машинист с помощником ждут, смена уходит"],
 ];
 
 /** Настройки на лету: веса и пороги индекса, строгий ПТЭ, «подставьте свой тариф». */
@@ -34,10 +36,14 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
 
   if (!s) return null;
   const wsum = FACTORS.reduce((a, [k]) => a + Math.max(0, s.weights[k]), 0) || 1;
+  const cur = s.tariffs.currency ?? "₸";
+  const k = cur === "₸" ? (s.tariffs.tenge_per_unit ?? 1000) : 1;   // тарифы редактируются в валюте показа
+  const setTariff = (key: TariffKey, shown: number) => setS({ ...s, tariffs: { ...s.tariffs, [key]: shown / k } });
   const save = async (body: Parameters<typeof api.saveSettings>[0]) => {
     try {
       const out = await api.saveSettings(body);
       setS(out);
+      useMoney.getState().set(out.tariffs.currency ?? "₸", out.tariffs.tenge_per_unit ?? 1000);
       setMsg(body.reset ? "Вернули значения из конфига" : "Применено — индекс пересчитан");
       setError(null);
     } catch (e) {
@@ -79,16 +85,39 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
             </label>
           </section>
           <section>
-            <h3>Подставьте свой тариф</h3>
-            <p className="muted small">Цены для счётчиков денег в режиме «Человек против Бағдара». Все цифры условные (у.е.).</p>
-            {TARIFFS.map(([k, label]) => (
-              <label key={k} className="slider-row">
-                <span>{label}</span>
-                <input className="input input-num" type="number" min={0} step="any" value={s.tariffs[k]}
-                  onChange={(e) => setS({ ...s, tariffs: { ...s.tariffs, [k]: Number(e.target.value) } })} />
-                <span className="muted small">у.е.</span>
+            <h3>Деньги: откуда берутся суммы</h3>
+            <p className="muted small">
+              Модель не знает настоящих расценок. Она считает минуты опозданий, кВт·ч лишних остановок и часы простоя
+              и умножает их на тарифы ниже. Подставьте свои — все суммы в «Сводке», «Человек против Бағдара» и в карточках пересчитаются.
+            </p>
+            <div className="row-fields">
+              <label className="field">Показывать в
+                <select className="input" value={cur} onChange={(e) => setS({ ...s, tariffs: { ...s.tariffs, currency: e.target.value as "₸" | "у.е." } })}>
+                  <option value="₸">тенге (₸)</option>
+                  <option value="у.е.">условных единицах (у.е.)</option>
+                </select>
+              </label>
+              {cur === "₸" && (
+                <label className="field" title="Внутри модели всё в условных единицах; это курс для показа">1 у.е. =
+                  <input className="input input-num" type="number" min={1} step="any" value={s.tariffs.tenge_per_unit ?? 1000}
+                    onChange={(e) => setS({ ...s, tariffs: { ...s.tariffs, tenge_per_unit: Math.max(1, Number(e.target.value) || 1) } })} /> ₸
+                </label>
+              )}
+            </div>
+            {TARIFFS.map(([key, label, why]) => (
+              <label key={key} className="slider-row" title={why}>
+                <span>{label}<br /><span className="muted small">{why}</span></span>
+                <input className="input input-num" type="number" min={0} step="any" value={Math.round((s.tariffs[key] ?? 0) * k * 100) / 100}
+                  onChange={(e) => setTariff(key, Number(e.target.value) || 0)} />
+                <span className="muted small">{cur}</span>
               </label>
             ))}
+            <div className="settings-money">
+              <b>Как читать цифры.</b> Карточки решений и «Кто первым?» считают цену варианта по весам планировщика:
+              минута пассажирского поезда — 50–100 у.е. в зависимости от класса, × пассажиров/500; грузового — 5–30 у.е.,
+              × 1,5 за срочный груз, × 2 за истекающий срок доставки или усталую бригаду; остановка — 0,5 у.е. за кВт·ч, простой — 2 у.е. в минуту.
+              Нарушение ПТЭ не покупается ни за какие деньги. Тарифы выше — упрощённая «бухгалтерия» для счётчиков потерь.
+            </div>
             {index && (
               <div className="settings-index">
                 Индекс сейчас: <b className="tabular">{index.value == null ? "—" : Math.round(index.value)}</b> · {index.status_label}

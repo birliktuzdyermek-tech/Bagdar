@@ -3,6 +3,7 @@
 // пришёл, тот первый едет». Для опоздания — дерево распространения задержки.
 import { useState } from "react";
 import { num } from "../lib/format";
+import { money } from "../store/money";
 import { useSim } from "../store/sim";
 
 interface Summary {
@@ -97,9 +98,9 @@ export function IncidentReport({ report }: { report: Report }) {
             </td>)}
           </tr>
           <tr>
-            <th>Цена, у.е.</th>
+            <th>Цена плана</th>
             {cols.map((c) => <td key={c.key} className={c.key === "plan" ? "hl" : ""}>
-              {c.s ? (c.s.valid === false ? "недопустим" : v(c.s.J_lex)) : "—"}
+              {c.s ? (c.s.valid === false ? "недопустим" : money(c.s.J_lex)) : "—"}
             </td>)}
           </tr>
           <tr>
@@ -117,7 +118,7 @@ export function IncidentReport({ report }: { report: Report }) {
           {showTree && <ul className="delay-tree"><Tree n={tree.tree} depth={0} /></ul>}
         </div>
       )}
-      <div className="muted small">Цена — J с учётом нарушений ПТЭ и застрявших поездов, у.е. условные.</div>
+      <div className="muted small">Цена плана — задержки, остановки и простой по весам планировщика, со штрафами за нарушения ПТЭ и застрявшие поезда. Суммы условные.</div>
     </div>
   );
 }

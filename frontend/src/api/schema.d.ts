@@ -191,6 +191,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Сводка прогона: индекс, движение, деньги по тарифам, планировщик, сбои, самые опоздавшие */
+        get: operations["get_dashboard_api_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/history": {
         parameters: {
             query?: never;
@@ -650,7 +667,9 @@ export interface components {
              *       "loco_hour": 30,
              *       "crew_hour": 15,
              *       "delay_min_pax": 10,
-             *       "delay_min_freight": 2
+             *       "delay_min_freight": 2,
+             *       "currency": "₸",
+             *       "tenge_per_unit": 1000
              *     }
              */
             tariffs: components["schemas"]["TariffConfig"];
@@ -881,6 +900,180 @@ export interface components {
              * @default 0.5
              */
             c_shift: number;
+        };
+        /** DashboardDelayedOut */
+        DashboardDelayedOut: {
+            /** Id */
+            id: string;
+            /** Number */
+            number: string;
+            /** Cls */
+            cls: string;
+            /** Delay Min */
+            delay_min: number;
+            /** Passengers */
+            passengers: number;
+        };
+        /** DashboardIncidentOut */
+        DashboardIncidentOut: {
+            /** T */
+            t: number;
+            /** Level */
+            level: string;
+            /** Title */
+            title: string;
+            /** Status */
+            status: string;
+            /** Affected */
+            affected: number | null;
+            /** Recovery At */
+            recovery_at: number | null;
+        };
+        /** DashboardIndexOut */
+        DashboardIndexOut: {
+            /** Value */
+            value: number | null;
+            /** Status Label */
+            status_label: string | null;
+            /** Min */
+            min: number | null;
+            /** Avg */
+            avg: number | null;
+            /** History */
+            history: [
+                number,
+                number
+            ][];
+        };
+        /** DashboardMoneyOut */
+        DashboardMoneyOut: {
+            /**
+             * By
+             * @description delay_pax, delay_freight, energy, idle — в условных единицах
+             */
+            by: {
+                [key: string]: number;
+            };
+            /** Total */
+            total: number;
+            /** Per Hour */
+            per_hour: {
+                [key: string]: number;
+            };
+            /** Currency */
+            currency: string;
+            /**
+             * Per Unit
+             * @description Курс показа: сколько единиц валюты в одной условной единице
+             */
+            per_unit: number;
+            /** Tariffs */
+            tariffs: {
+                [key: string]: number;
+            };
+        };
+        /** DashboardOut */
+        DashboardOut: {
+            run: components["schemas"]["DashboardRunOut"];
+            index: components["schemas"]["DashboardIndexOut"];
+            traffic: components["schemas"]["DashboardTrafficOut"];
+            money: components["schemas"]["DashboardMoneyOut"];
+            planner: components["schemas"]["DashboardPlannerOut"];
+            /** Incidents */
+            incidents: components["schemas"]["DashboardIncidentOut"][];
+            /** Top Delayed */
+            top_delayed: components["schemas"]["DashboardDelayedOut"][];
+            versus: components["schemas"]["DashboardVersusOut"] | null;
+        };
+        /** DashboardPlannerOut */
+        DashboardPlannerOut: {
+            /** Plans */
+            plans: number;
+            /** Replan Avg S */
+            replan_avg_s: number | null;
+            /** Replan Max S */
+            replan_max_s: number | null;
+            /** Cards */
+            cards: number;
+            /** Levels */
+            levels: {
+                [key: string]: number;
+            };
+            /** By Type */
+            by_type: {
+                [key: string]: number;
+            };
+            /** Cpsat Share */
+            cpsat_share: number | null;
+            /** Overrides */
+            overrides: number;
+        };
+        /** DashboardRunOut */
+        DashboardRunOut: {
+            /** Run Id */
+            run_id: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /** Scenario */
+            scenario: string;
+            /** Seed */
+            seed: number;
+            /** Start T */
+            start_t: number;
+            /** T */
+            t: number;
+            /** Hours */
+            hours: number;
+            /** Trains Total */
+            trains_total: number;
+            /** Running */
+            running: boolean;
+            /** Speed */
+            speed: number;
+        };
+        /** DashboardTrafficOut */
+        DashboardTrafficOut: {
+            /** Active */
+            active: number | null;
+            /** Finished */
+            finished: number;
+            /** Passages */
+            passages: number;
+            /** On Time Share */
+            on_time_share: number | null;
+            /** Avg Delay Min */
+            avg_delay_min: number;
+            /** Max Delay Min */
+            max_delay_min: number;
+            /** Late Trains */
+            late_trains: number;
+            /** Frozen */
+            frozen: number;
+            /** Frozen Numbers */
+            frozen_numbers: string[];
+            /** Delay Pax Min */
+            delay_pax_min: number;
+            /** Delay Freight Min */
+            delay_freight_min: number;
+            /** Unplanned Stops */
+            unplanned_stops: number;
+            /** Energy Kwh */
+            energy_kwh: number;
+            /** Idle H */
+            idle_h: number;
+        };
+        /** DashboardVersusOut */
+        DashboardVersusOut: {
+            /** Left Total */
+            left_total: number;
+            /** Right Total */
+            right_total: number;
+            /** Diff */
+            diff: {
+                [key: string]: number;
+            } | null;
+            left: components["schemas"]["VersusScoreOut"];
+            right: components["schemas"]["VersusScoreOut"];
         };
         /** DecisionActionIn */
         DecisionActionIn: {
@@ -2780,6 +2973,19 @@ export interface components {
              * @default 2
              */
             delay_min_freight: number;
+            /**
+             * Currency
+             * @description В чём показывать суммы на экране
+             * @default ₸
+             * @enum {string}
+             */
+            currency: "₸" | "у.е.";
+            /**
+             * Tenge Per Unit
+             * @description Сколько тенге в одной условной единице (курс для показа)
+             * @default 1000
+             */
+            tenge_per_unit: number;
         };
         /** ThroatStateOut */
         ThroatStateOut: {
@@ -3469,6 +3675,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dashboard_api_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardOut"];
                 };
             };
         };

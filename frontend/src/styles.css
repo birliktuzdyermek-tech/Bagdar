@@ -623,3 +623,45 @@ a.nav-site:hover, .nav-link:hover { color: var(--text-primary); background: var(
 .tour-note { color: var(--good); font-size: 15px !important; }
 .tour-actions { display: flex; gap: 8px; align-items: center; }
 @media (prefers-reduced-motion: reduce) { .tour-spot, .tour-call { transition: none; } }
+
+/* ---------- сводка (дашборд) ---------- */
+.dash-head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.dash-head > div:first-child { flex: 1; min-width: 320px; }
+.dash-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 6px; }
+.dash-actions .btn { text-decoration: none; }
+.dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 1300px) { .dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dash-kpi {
+  display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 12px;
+  background: var(--surface-1); border: 1px solid var(--border); border-left: 4px solid var(--border-strong); min-width: 0;
+}
+.dash-kpi.good { border-left-color: var(--good); }
+.dash-kpi.warn { border-left-color: var(--warning); }
+.dash-kpi.bad { border-left-color: var(--critical); }
+.dash-kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.dash-kpi-value { font-size: 28px; font-weight: 700; line-height: 1.1; }
+.dash-kpi-sub { font-size: 12.5px; color: var(--text-secondary); line-height: 1.35; }
+.dash-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
+.dash-chart { height: 240px; }
+.dash-money { display: flex; flex-direction: column; gap: 10px; }
+.dash-money-row { display: grid; grid-template-columns: 220px minmax(0, 1fr) 120px; gap: 10px; align-items: center; }
+.dash-money-label { font-size: 13.5px; }
+.dash-money-bar { height: 18px; background: var(--surface-3); border-radius: 5px; overflow: hidden; }
+.dash-money-bar span { display: block; height: 100%; border-radius: 5px; transition: width 600ms ease; }
+.dash-money-val { text-align: right; font-weight: 700; }
+.dash-money-what { grid-column: 1 / -1; font-size: 11.5px; color: var(--text-muted); margin-top: -6px; }
+.dash-tariffs { margin-top: 12px; line-height: 1.4; }
+.dash-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.dash-table th { text-align: left; font-weight: 500; color: var(--text-muted); font-size: 12px; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+.dash-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.dash-table tr.clickable { cursor: pointer; }
+.dash-table tr.clickable:hover td { background: var(--surface-2); }
+.dash-versus { grid-column: 1 / -1; }
+.dash-versus-body { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.dash-versus-body > div { display: flex; flex-direction: column; }
+.dash-versus-body b { font-size: 22px; }
+.dash-versus-body .good { color: var(--good); }
+.settings-grid .input-num { width: 104px; }
+.settings-money { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 13px; line-height: 1.45; }
+.settings-money b { color: var(--text-primary); }

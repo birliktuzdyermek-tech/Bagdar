@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import type { Scenario, State, Versus, VersusScore } from "../api/types";
 import { LineScheme, type SchemeSource } from "../components/LineScheme";
 import { hhmm, num } from "../lib/format";
+import { money, useMoney } from "../store/money";
 import { useSim } from "../store/sim";
 
 // кадры левой (теневой) модели для плавной интерполяции на схеме
@@ -10,7 +11,7 @@ const left: SchemeSource = { state: null, prev: null, recvAt: 0, prevRecvAt: 0 }
 const leftSource = () => left;
 
 const ROWS: { key: keyof VersusScore; label: string; unit: string; better: "less" | "more"; hint: string }[] = [
-  { key: "money_total", label: "Цена сбоев и задержек", unit: "у.е.", better: "less", hint: "Задержки + энергия + простой по тарифам из настроек" },
+  { key: "money_total", label: "Потери по тарифам", unit: "money", better: "less", hint: "Опоздания + энергия лишних остановок + простой, умноженные на тарифы из настроек" },
   { key: "delay_min", label: "Задержка поездов", unit: "поездо-мин", better: "less", hint: "Сумма опозданий всех поездов" },
   { key: "frozen", label: "Стоят на месте больше часа", unit: "п.", better: "less", hint: "Признак «замка» — никто не может двинуться" },
   { key: "late_trains", label: "Опаздывают на 5+ мин", unit: "п.", better: "less", hint: "" },
@@ -21,6 +22,7 @@ const ROWS: { key: keyof VersusScore; label: string; unit: string; better: "less
 
 function fmt(v: number | null | undefined, unit: string): string {
   if (v == null) return "—";
+  if (unit === "money") return money(v);
   const n = Math.abs(v) >= 100 ? num(Math.round(v)) : (Math.round(v * 10) / 10).toString().replace(".", ",");
   return unit ? `${n} ${unit}` : n;
 }
@@ -34,6 +36,7 @@ export function VersusPage() {
   const right = useSim((s) => s.state);
   const setError = useSim((s) => s.setError);
   const timer = useRef<number | undefined>(undefined);
+  useMoney();
 
   useEffect(() => {
     api.scenarios().then(setScenarios).catch(() => {});
@@ -155,7 +158,7 @@ export function VersusPage() {
         <>
           <div className={`versus-verdict ${ahead ? "is-ahead" : ""}`} role="status">
             {ahead ? (
-              <>Бағдар впереди на <b>{fmt(d!.money, "у.е.")}</b>
+              <>Бағдар впереди на <b>{money(d!.money)}</b>
                 {d!.delay_min > 0 && <> и <b>{fmt(d!.delay_min, "поездо-мин")}</b> задержки</>}
                 {d!.frozen > 0 && <>; без него стоят намертво ещё <b>{d!.frozen} п.</b></>}</>
             ) : <>Пока примерно поровну — разница появляется при сбоях и плотном потоке</>}

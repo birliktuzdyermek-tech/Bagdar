@@ -15,6 +15,9 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { useRoute } from "./lib/route";
 import { ScenariosPage } from "./pages/ScenariosPage";
 import { ReviewPage } from "./pages/ReviewPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { api } from "./api/client";
+import { useMoney } from "./store/money";
 import { VersusPage } from "./pages/VersusPage";
 import { GuidedTour } from "./components/GuidedTour";
 import { go } from "./lib/route";
@@ -45,6 +48,8 @@ export default function App() {
   usePlanSync();
   useEffect(() => {
     connectStream();
+    // курс показа денег — из настроек сервера
+    api.settings().then((st) => useMoney.getState().set(st.tariffs.currency ?? "₸", st.tariffs.tenge_per_unit ?? 1000)).catch(() => {});
     return () => disconnectStream();
   }, []);
   useEffect(() => {
@@ -65,6 +70,7 @@ export default function App() {
       {route === "dispatcher" && <RewindBar />}
       {route === "scenarios" && <ScenariosPage />}
       {route === "review" && <ReviewPage />}
+      {route === "dashboard" && <DashboardPage />}
       {route === "versus" && <VersusPage />}
       {route === "dispatcher" && <main className={`main ${startHidden ? "" : "has-start"}`}>
         {conn === "closed" && (

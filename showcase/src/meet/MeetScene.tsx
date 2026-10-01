@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { money } from "../lib/money";
 import type { MeetOption, MeetResult } from "./model";
 import { posAt } from "./model";
 import {
-  type Layout, type TrainDraw, costAt, drawBackground, drawForeground, drawSignal, drawTrain, fmtClock, fmtDur,
+  type Layout, type TrainDraw, costAt, drawBackground, drawForeground, drawSignal, drawSky, drawTrain, fmtClock, fmtDur,
   freightCars, makeLayout, paxCars, pill, sectionOwner, visibleWindow,
 } from "./scene";
 
@@ -31,9 +32,7 @@ function laneTitle(o: MeetOption): [string, string] {
     : ["Первым едет грузовой", "пассажирский ждёт на станции А"];
 }
 
-function money(x: number): string {
-  return `${Math.round(x).toLocaleString("ru-RU")} у.е.`;
-}
+
 
 export function MeetScene({ res, runKey, compact = false, autoplay = true, loop = false, paused = false, onReveal, revealed = false }: SceneProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -123,6 +122,7 @@ export function MeetScene({ res, runKey, compact = false, autoplay = true, loop 
       const ctx = cv.getContext("2d")!;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.drawImage(layers.bg, 0, 0, width, H);
+      drawSky(ctx, lay, now);
       const yieldKey = o.yield;
       const firstKey = yieldKey === "pax" ? "freight" : "pax";
       const side = o[yieldKey];
@@ -131,8 +131,8 @@ export function MeetScene({ res, runKey, compact = false, autoplay = true, loop 
         const { x } = posAt(o.motion[key], t);
         return key === "pax" ? x > sx : x < sx;
       };
-      drawSignal(ctx, lay, lay.sigA, owner === "pax" && !passed("pax", lay.sigA), now);
-      drawSignal(ctx, lay, lay.sigB, owner === "freight" && !passed("freight", lay.sigB), now);
+      drawSignal(ctx, lay, lay.sigA, owner === "pax" && !passed("pax", lay.sigA), now, `${runKey}:${li}:A`);
+      drawSignal(ctx, lay, lay.sigB, owner === "freight" && !passed("freight", lay.sigB), now, `${runKey}:${li}:B`);
       const drawn = trains[li].map((tr) => drawTrain(ctx, lay, tr, t, now));
       ctx.drawImage(layers.fg, 0, 0, width, H);
       const ui = lay.ui;
@@ -184,13 +184,13 @@ export function MeetScene({ res, runKey, compact = false, autoplay = true, loop 
           if (playing && key === o.yield && !planned && minute > lastMin.current[li] && o.econ > 0) {
             lastMin.current[li] = minute;
             const per = o.econ / Math.max(1, (s.dep - s.arr) / 60 + 2);
-            particles.current.push({ lane: li, x: mx + (Math.random() - 0.5) * 40 * ui, y: top - (key === "pax" && o.pte_excess_min > 0 ? 74 : 50) * ui, text: `−${Math.max(1, Math.round(per))} у.е.`, born: now });
+            particles.current.push({ lane: li, x: mx + (Math.random() - 0.5) * 40 * ui, y: top - (key === "pax" && o.pte_excess_min > 0 ? 74 : 50) * ui, text: `−${money(Math.max(1, per))}`, born: now });
           }
         } else if (Math.abs(d.v) > 1 && !compact) {
           pill(ctx, d.head[0] - (key === "pax" ? 40 : -40) * ui, d.head[1] - 22 * ui, `${Math.round(Math.abs(d.v) * 3.6)} км/ч`, "rgba(20,22,30,0.75)", "#e9e7df", ui * 0.85, width);
         }
       });
-      // всплывающие «−N у.е.»
+      // всплывающие «−N ₸»
       particles.current = particles.current.filter((p) => now - p.born < 1600);
       for (const p of particles.current) {
         if (p.lane !== li) continue;
@@ -205,7 +205,7 @@ export function MeetScene({ res, runKey, compact = false, autoplay = true, loop 
       const tk = tickers.current[li];
       if (tk) tk.textContent = money(costAt(res, o, t));
     });
-  }, [res, width, H, dpr, layers, lay, trains, playing, compact]);
+  }, [res, width, H, dpr, layers, lay, trains, playing, compact, runKey]);
 
   // цикл анимации
   useEffect(() => {
@@ -266,7 +266,7 @@ export function MeetScene({ res, runKey, compact = false, autoplay = true, loop 
               {showWin && win && <span className="meet-badge win">✓ Бағдар выбирает это</span>}
               {showWin && !win && o.pte_excess_min > 0 && <span className="meet-badge pte">⚠ нарушение ПТЭ</span>}
               <span className="meet-ticker" title="Условная цена варианта: копится, пока уступающий поезд тормозит, стоит и разгоняется">
-                потери <span ref={(el) => { tickers.current[li] = el; }}>0 у.е.</span>
+                потери <span ref={(el) => { tickers.current[li] = el; }}>{money(0)}</span>
               </span>
             </header>
             <canvas

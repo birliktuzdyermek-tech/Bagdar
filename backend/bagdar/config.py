@@ -116,6 +116,8 @@ class TariffConfig(BaseModel):
     crew_hour: float = Field(15, ge=0, description="у.е. за час простоя бригады")
     delay_min_pax: float = Field(10, ge=0, description="у.е. за минуту задержки пассажирского поезда")
     delay_min_freight: float = Field(2, ge=0, description="у.е. за минуту задержки грузового поезда")
+    currency: Literal["₸", "у.е."] = Field("₸", description="В чём показывать суммы на экране")
+    tenge_per_unit: float = Field(1000, gt=0, description="Сколько тенге в одной условной единице (курс для показа)")
 
 
 class BagdarConfig(BaseModel):

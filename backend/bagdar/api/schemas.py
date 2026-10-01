@@ -983,3 +983,98 @@ class MeetOut(BaseModel):
     saving: float
     econ_saving: float
     constants: dict[str, float | bool]
+
+
+# ------------------------------------------------------------------ дашборд
+class DashboardRunOut(BaseModel):
+    run_id: str
+    scenario_id: str
+    scenario: str
+    seed: int
+    start_t: float
+    t: float
+    hours: float
+    trains_total: int
+    running: bool
+    speed: float
+
+
+class DashboardIndexOut(BaseModel):
+    value: float | None
+    status_label: str | None
+    min: float | None
+    avg: float | None
+    history: list[tuple[float, float]]
+
+
+class DashboardTrafficOut(BaseModel):
+    active: int | None
+    finished: int
+    passages: int
+    on_time_share: float | None
+    avg_delay_min: float
+    max_delay_min: float
+    late_trains: int
+    frozen: int
+    frozen_numbers: list[str]
+    delay_pax_min: float
+    delay_freight_min: float
+    unplanned_stops: int
+    energy_kwh: float
+    idle_h: float
+
+
+class DashboardMoneyOut(BaseModel):
+    by: dict[str, float] = Field(description="delay_pax, delay_freight, energy, idle — в условных единицах")
+    total: float
+    per_hour: dict[str, float]
+    currency: str
+    per_unit: float = Field(description="Курс показа: сколько единиц валюты в одной условной единице")
+    tariffs: dict[str, float]
+
+
+class DashboardPlannerOut(BaseModel):
+    plans: int
+    replan_avg_s: float | None
+    replan_max_s: float | None
+    cards: int
+    levels: dict[str, int]
+    by_type: dict[str, int]
+    cpsat_share: float | None
+    overrides: int
+
+
+class DashboardIncidentOut(BaseModel):
+    t: float
+    level: str
+    title: str
+    status: str
+    affected: int | None
+    recovery_at: float | None
+
+
+class DashboardDelayedOut(BaseModel):
+    id: str
+    number: str
+    cls: str
+    delay_min: float
+    passengers: int
+
+
+class DashboardVersusOut(BaseModel):
+    left_total: float
+    right_total: float
+    diff: dict[str, float] | None
+    left: VersusScoreOut
+    right: VersusScoreOut
+
+
+class DashboardOut(BaseModel):
+    run: DashboardRunOut
+    index: DashboardIndexOut
+    traffic: DashboardTrafficOut
+    money: DashboardMoneyOut
+    planner: DashboardPlannerOut
+    incidents: list[DashboardIncidentOut]
+    top_delayed: list[DashboardDelayedOut]
+    versus: DashboardVersusOut | None

@@ -1,0 +1,38 @@
+.eco-page { display: flex; flex-direction: column; gap: 22px; max-width: 1100px; width: 100%; margin: 0 auto; }
+.eco-hero { padding-top: 8px; }
+.eco-kicker { margin: 0 0 6px; color: var(--accent); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.8rem; }
+.eco-hero h1 { font-size: clamp(1.9rem, 3.6vw, 3rem); line-height: 1.05; margin-bottom: 10px; }
+.eco-hero .lead { max-width: 70ch; }
+.eco-block { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+.eco-block h2 { font-size: 1.35rem; margin-bottom: 8px; }
+.eco-block > .muted { margin: 0 0 12px; line-height: 1.45; }
+.eco-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 800px) { .eco-three { grid-template-columns: 1fr; } }
+.eco-three article { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; }
+.eco-three h3 { margin: 4px 0 6px; }
+.eco-three p { margin: 0; color: var(--text-secondary); line-height: 1.45; }
+.eco-ico { font-size: 1.8rem; }
+.eco-table { width: 100%; border-collapse: collapse; }
+.eco-table th { text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; padding: 6px 8px; border-bottom: 1px solid var(--border-strong); }
+.eco-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.4; }
+.nowrap { white-space: nowrap; }
+.tabular { font-variant-numeric: tabular-nums; }
+.eco-weights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+@media (max-width: 700px) { .eco-weights { grid-template-columns: 1fr 1fr; } }
+.eco-weights div { display: flex; flex-direction: column; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); }
+.eco-weights span { color: var(--text-secondary); font-size: 0.9rem; }
+.eco-weights b { font-size: 1.1rem; }
+.eco-mult { margin: 8px 0 0; padding-left: 20px; line-height: 1.55; }
+.eco-calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 800px) { .eco-calc-grid { grid-template-columns: 1fr; } }
+.eco-calc-card { background: var(--surface-2); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.eco-calc-card h3 { margin: 0; }
+.eco-calc-card label { display: flex; flex-direction: column; gap: 2px; font-size: 0.95rem; }
+.eco-calc-card label b { float: right; }
+.eco-calc-card input { accent-color: var(--accent); }
+.eco-calc-card dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 6px 0 0; }
+.eco-calc-card dt { color: var(--text-secondary); }
+.eco-calc-card dd { margin: 0; }
+.eco-total { font-size: 1.3rem; font-weight: 800; color: #7fd18a; }
+.eco-where { padding-left: 20px; line-height: 1.6; }
+.eco-where a { color: var(--accent); }

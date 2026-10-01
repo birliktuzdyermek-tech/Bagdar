@@ -97,6 +97,12 @@ def get_occupancy(request: Request, which: str = Query("current", pattern="^(cur
     return rt(request).occupancy(which, t_from, t_to, at)
 
 
+@router.get("/dashboard", response_model=S.DashboardOut, tags=["state"],
+            summary="Сводка прогона: индекс, движение, деньги по тарифам, планировщик, сбои, самые опоздавшие")
+def get_dashboard(request: Request) -> dict:
+    return rt(request).dashboard_payload()
+
+
 @router.get("/history", response_model=S.HistoryOut, tags=["history"],
             summary="Журнал прогона: что записано и какой интервал доступен для перемотки")
 def get_history(request: Request) -> dict:

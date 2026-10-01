@@ -244,7 +244,7 @@ html.projector .metric-value { font-size: 1.25rem; }
 
 /* с чего начать */
 .starts h2 { font-size: 1.4rem; margin-bottom: 10px; }
-.start-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.start-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 1200px) { .start-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .start-cards { grid-template-columns: 1fr; } }
 .start-card {

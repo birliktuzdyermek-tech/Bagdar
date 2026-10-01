@@ -16,6 +16,7 @@ const ITEMS: { key: keyof SiteConfig; label: string; hint: string }[] = [
 const SECTIONS = [
   { href: "#/", label: "С чего начать", match: (r: string) => r === "#/" || r === "" || r === "#" },
   { href: "#/meet", label: "Кто первым?", match: (r: string) => r.startsWith("#/meet") },
+  { href: "#/economy", label: "Деньги", match: (r: string) => r.startsWith("#/economy") },
   { href: "#/presentation", label: "Слайды", match: (r: string) => r.startsWith("#/presentation") },
   { href: "#/runs", label: "Записи прогонов", match: (r: string) => r.startsWith("#/runs") || r.startsWith("#/play") || r.startsWith("#/gallery") },
   { href: "#/how", label: "Как это работает", match: (r: string) => r.startsWith("#/how") },

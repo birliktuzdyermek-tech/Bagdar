@@ -35,7 +35,7 @@ from bagdar.scenarios import Scenario
 from bagdar.sim.engine import Engine
 from bagdar.sim.events import SimEvent
 from bagdar.validator import validate_plan
-from bagdar.versus import Versus
+from bagdar.versus import POS_EVERY_S, Versus, remember_positions
 
 log = logging.getLogger("bagdar.runtime")
 
@@ -76,6 +76,8 @@ class SimulationRuntime:
         self.events: deque[SimEvent] = deque(maxlen=EVENT_BUFFER)
         self.history = History()
         self.versus = Versus(self)
+        self._dash_pos: dict = {}          # когда каждый поезд последний раз сдвигался — для «стоит намертво»
+        self._dash_next = 0.0
         self._versus_loading = False
         self.subscribers: set[Subscriber] = set()
         self._task: asyncio.Task | None = None
@@ -111,6 +113,8 @@ class SimulationRuntime:
                            "build_ms": round(tt.build_ms, 1), "validated": True}
         self.world_version += 1
         self.run_id = uuid.uuid4().hex[:12]
+        self._dash_pos = {}
+        self._dash_next = 0.0
         self.events.clear()
         self.running = False
         self._acc = 0.0
@@ -224,6 +228,9 @@ class SimulationRuntime:
                 hist.maybe_snapshot(self.engine.t, self.state_payload)
             if self.versus.active:
                 self.versus.step()
+            if self.engine.t >= self._dash_next:
+                self._dash_next = self.engine.t + POS_EVERY_S
+                remember_positions(self._dash_pos, self.engine)
             if self.planner.sync:
                 self.planner.tick()
                 if self.engine.t >= self.index.next_sample:
@@ -333,6 +340,10 @@ class SimulationRuntime:
         out = metering_options(self.engine, self.cfg, self.planner.current)
         out["radar"] = self.index.radar
         return out
+
+    def dashboard_payload(self) -> dict:
+        from bagdar.dashboard import dashboard_payload
+        return dashboard_payload(self, self._dash_pos)
 
     def index_payload(self, since: float | None) -> dict:
         return {"current": self.index.current, "forecast": self.planner.forecast,

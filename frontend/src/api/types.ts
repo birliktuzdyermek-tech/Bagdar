@@ -58,3 +58,4 @@ export type StreamMsg =
   | { type: "decisions"; reset: boolean; cards: DecisionCard[] }
   | State
   | { type: "pong" };
+export type Dashboard = S["DashboardOut"];

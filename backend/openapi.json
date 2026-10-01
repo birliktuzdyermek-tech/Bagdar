@@ -472,6 +472,27 @@
     }
    }
   },
+  "/api/dashboard": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Сводка прогона: индекс, движение, деньги по тарифам, планировщик, сбои, самые опоздавшие",
+    "operationId": "get_dashboard_api_dashboard_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DashboardOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/history": {
    "get": {
     "tags": [
@@ -1488,7 +1509,9 @@
        "loco_hour": 30.0,
        "crew_hour": 15.0,
        "delay_min_pax": 10.0,
-       "delay_min_freight": 2.0
+       "delay_min_freight": 2.0,
+       "currency": "₸",
+       "tenge_per_unit": 1000.0
       }
      },
      "priority": {
@@ -1985,6 +2008,538 @@
     },
     "type": "object",
     "title": "CostConfig"
+   },
+   "DashboardDelayedOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "number": {
+      "type": "string",
+      "title": "Number"
+     },
+     "cls": {
+      "type": "string",
+      "title": "Cls"
+     },
+     "delay_min": {
+      "type": "number",
+      "title": "Delay Min"
+     },
+     "passengers": {
+      "type": "integer",
+      "title": "Passengers"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "number",
+     "cls",
+     "delay_min",
+     "passengers"
+    ],
+    "title": "DashboardDelayedOut"
+   },
+   "DashboardIncidentOut": {
+    "properties": {
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "level": {
+      "type": "string",
+      "title": "Level"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "affected": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Affected"
+     },
+     "recovery_at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "level",
+     "title",
+     "status",
+     "affected",
+     "recovery_at"
+    ],
+    "title": "DashboardIncidentOut"
+   },
+   "DashboardIndexOut": {
+    "properties": {
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     },
+     "status_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status Label"
+     },
+     "min": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Min"
+     },
+     "avg": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg"
+     },
+     "history": {
+      "items": {
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "type": "array",
+       "maxItems": 2,
+       "minItems": 2
+      },
+      "type": "array",
+      "title": "History"
+     }
+    },
+    "type": "object",
+    "required": [
+     "value",
+     "status_label",
+     "min",
+     "avg",
+     "history"
+    ],
+    "title": "DashboardIndexOut"
+   },
+   "DashboardMoneyOut": {
+    "properties": {
+     "by": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "By",
+      "description": "delay_pax, delay_freight, energy, idle — в условных единицах"
+     },
+     "total": {
+      "type": "number",
+      "title": "Total"
+     },
+     "per_hour": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Per Hour"
+     },
+     "currency": {
+      "type": "string",
+      "title": "Currency"
+     },
+     "per_unit": {
+      "type": "number",
+      "title": "Per Unit",
+      "description": "Курс показа: сколько единиц валюты в одной условной единице"
+     },
+     "tariffs": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Tariffs"
+     }
+    },
+    "type": "object",
+    "required": [
+     "by",
+     "total",
+     "per_hour",
+     "currency",
+     "per_unit",
+     "tariffs"
+    ],
+    "title": "DashboardMoneyOut"
+   },
+   "DashboardOut": {
+    "properties": {
+     "run": {
+      "$ref": "#/components/schemas/DashboardRunOut"
+     },
+     "index": {
+      "$ref": "#/components/schemas/DashboardIndexOut"
+     },
+     "traffic": {
+      "$ref": "#/components/schemas/DashboardTrafficOut"
+     },
+     "money": {
+      "$ref": "#/components/schemas/DashboardMoneyOut"
+     },
+     "planner": {
+      "$ref": "#/components/schemas/DashboardPlannerOut"
+     },
+     "incidents": {
+      "items": {
+       "$ref": "#/components/schemas/DashboardIncidentOut"
+      },
+      "type": "array",
+      "title": "Incidents"
+     },
+     "top_delayed": {
+      "items": {
+       "$ref": "#/components/schemas/DashboardDelayedOut"
+      },
+      "type": "array",
+      "title": "Top Delayed"
+     },
+     "versus": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DashboardVersusOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "run",
+     "index",
+     "traffic",
+     "money",
+     "planner",
+     "incidents",
+     "top_delayed",
+     "versus"
+    ],
+    "title": "DashboardOut"
+   },
+   "DashboardPlannerOut": {
+    "properties": {
+     "plans": {
+      "type": "integer",
+      "title": "Plans"
+     },
+     "replan_avg_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Replan Avg S"
+     },
+     "replan_max_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Replan Max S"
+     },
+     "cards": {
+      "type": "integer",
+      "title": "Cards"
+     },
+     "levels": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "type": "object",
+      "title": "Levels"
+     },
+     "by_type": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "type": "object",
+      "title": "By Type"
+     },
+     "cpsat_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cpsat Share"
+     },
+     "overrides": {
+      "type": "integer",
+      "title": "Overrides"
+     }
+    },
+    "type": "object",
+    "required": [
+     "plans",
+     "replan_avg_s",
+     "replan_max_s",
+     "cards",
+     "levels",
+     "by_type",
+     "cpsat_share",
+     "overrides"
+    ],
+    "title": "DashboardPlannerOut"
+   },
+   "DashboardRunOut": {
+    "properties": {
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "scenario_id": {
+      "type": "string",
+      "title": "Scenario Id"
+     },
+     "scenario": {
+      "type": "string",
+      "title": "Scenario"
+     },
+     "seed": {
+      "type": "integer",
+      "title": "Seed"
+     },
+     "start_t": {
+      "type": "number",
+      "title": "Start T"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "hours": {
+      "type": "number",
+      "title": "Hours"
+     },
+     "trains_total": {
+      "type": "integer",
+      "title": "Trains Total"
+     },
+     "running": {
+      "type": "boolean",
+      "title": "Running"
+     },
+     "speed": {
+      "type": "number",
+      "title": "Speed"
+     }
+    },
+    "type": "object",
+    "required": [
+     "run_id",
+     "scenario_id",
+     "scenario",
+     "seed",
+     "start_t",
+     "t",
+     "hours",
+     "trains_total",
+     "running",
+     "speed"
+    ],
+    "title": "DashboardRunOut"
+   },
+   "DashboardTrafficOut": {
+    "properties": {
+     "active": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Active"
+     },
+     "finished": {
+      "type": "integer",
+      "title": "Finished"
+     },
+     "passages": {
+      "type": "integer",
+      "title": "Passages"
+     },
+     "on_time_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On Time Share"
+     },
+     "avg_delay_min": {
+      "type": "number",
+      "title": "Avg Delay Min"
+     },
+     "max_delay_min": {
+      "type": "number",
+      "title": "Max Delay Min"
+     },
+     "late_trains": {
+      "type": "integer",
+      "title": "Late Trains"
+     },
+     "frozen": {
+      "type": "integer",
+      "title": "Frozen"
+     },
+     "frozen_numbers": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Frozen Numbers"
+     },
+     "delay_pax_min": {
+      "type": "number",
+      "title": "Delay Pax Min"
+     },
+     "delay_freight_min": {
+      "type": "number",
+      "title": "Delay Freight Min"
+     },
+     "unplanned_stops": {
+      "type": "integer",
+      "title": "Unplanned Stops"
+     },
+     "energy_kwh": {
+      "type": "number",
+      "title": "Energy Kwh"
+     },
+     "idle_h": {
+      "type": "number",
+      "title": "Idle H"
+     }
+    },
+    "type": "object",
+    "required": [
+     "active",
+     "finished",
+     "passages",
+     "on_time_share",
+     "avg_delay_min",
+     "max_delay_min",
+     "late_trains",
+     "frozen",
+     "frozen_numbers",
+     "delay_pax_min",
+     "delay_freight_min",
+     "unplanned_stops",
+     "energy_kwh",
+     "idle_h"
+    ],
+    "title": "DashboardTrafficOut"
+   },
+   "DashboardVersusOut": {
+    "properties": {
+     "left_total": {
+      "type": "number",
+      "title": "Left Total"
+     },
+     "right_total": {
+      "type": "number",
+      "title": "Right Total"
+     },
+     "diff": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "number"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Diff"
+     },
+     "left": {
+      "$ref": "#/components/schemas/VersusScoreOut"
+     },
+     "right": {
+      "$ref": "#/components/schemas/VersusScoreOut"
+     }
+    },
+    "type": "object",
+    "required": [
+     "left_total",
+     "right_total",
+     "diff",
+     "left",
+     "right"
+    ],
+    "title": "DashboardVersusOut"
    },
    "DecisionActionIn": {
     "properties": {
@@ -6537,6 +7092,23 @@
       "title": "Delay Min Freight",
       "description": "у.е. за минуту задержки грузового поезда",
       "default": 2
+     },
+     "currency": {
+      "type": "string",
+      "enum": [
+       "₸",
+       "у.е."
+      ],
+      "title": "Currency",
+      "description": "В чём показывать суммы на экране",
+      "default": "₸"
+     },
+     "tenge_per_unit": {
+      "type": "number",
+      "exclusiveMinimum": 0.0,
+      "title": "Tenge Per Unit",
+      "description": "Сколько тенге в одной условной единице (курс для показа)",
+      "default": 1000
      }
     },
     "type": "object",

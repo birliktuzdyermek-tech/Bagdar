@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 /** Экраны сайта. Адрес — hash, чтобы работать и из dev-сервера, и из сборки на одном порту. */
-export type Route = "dispatcher" | "scenarios" | "versus" | "review";
-const ROUTES: Route[] = ["dispatcher", "scenarios", "versus", "review"];
+export type Route = "dispatcher" | "scenarios" | "dashboard" | "versus" | "review";
+const ROUTES: Route[] = ["dispatcher", "scenarios", "dashboard", "versus", "review"];
 
 function parse(): Route {
   const h = window.location.hash.replace(/^#\/?/, "").split("?")[0];

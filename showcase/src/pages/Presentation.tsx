@@ -9,6 +9,7 @@ import type { DecisionCard, IncidentSummary, RunInfo } from "../replay/types";
 import { MeetScene } from "../meet/MeetScene";
 import { withDefaults } from "../meet/model";
 import { useMeet } from "../meet/useMeet";
+import { money as fmtMoney, perMin } from "../lib/money";
 import { BgReplay } from "./BgReplay";
 import "./presentation.css";
 
@@ -209,13 +210,14 @@ function PairTotals({ a, b }: { a: ReplayModel | null; b: ReplayModel | null }) 
     ["Задержка поездов", A.delay_min, B.delay_min, "поездо-мин", "less"],
     ["Простой сверх графика", A.idle_h, B.idle_h, "поездо-ч", "less"],
     ["Проследований станций", A.passages, B.passages, "", "more"],
-    ["Цена задержек и простоя", A.money_total, B.money_total, "у. е.", "less"],
+    ["Потери по тарифам", A.money_total, B.money_total, "money", "less"],
   ];
   return <table className="pres-totals"><thead><tr><th>Итог 4 часов модели</th><th className="pair-bad">Без Бағдара</th><th className="pair-good">С Бағдаром</th></tr></thead>
     <tbody>{rows.map(([label, x, y, unit, better]) => {
       const win = x === y ? "" : (better === "less" ? y < x : y > x) ? "b" : "a";
-      return <tr key={label}><th>{label}</th><td className={win === "a" ? "win" : ""}>{num(x, x < 100 && x % 1 ? 1 : 0)} {unit}</td>
-        <td className={win === "b" ? "win" : ""}>{num(y, y < 100 && y % 1 ? 1 : 0)} {unit}</td></tr>;
+      const f = (v: number) => (unit === "money" ? fmtMoney(v) : `${num(v, v < 100 && v % 1 ? 1 : 0)} ${unit}`);
+      return <tr key={label}><th>{label}</th><td className={win === "a" ? "win" : ""}>{f(x)}</td>
+        <td className={win === "b" ? "win" : ""}>{f(y)}</td></tr>;
     })}</tbody></table>;
 }
 
@@ -237,7 +239,7 @@ function CardView({ card }: { card: DecisionCard | null }) {
     <div className="pres-dcard-row"><span>Что сделано</span><b>{card.action}</b></div>
     <div className="pres-dcard-row"><span>Почему</span><p>{reason}</p></div>
     <div className="pres-dcard-row"><span>Альтернатива</span><p>{card.alternative}</p></div>
-    {card.delta_money != null && <div className="pres-dcard-price">Альтернатива дороже на <b>{num(card.delta_money)} у. е.</b></div>}
+    {card.delta_money != null && <div className="pres-dcard-price">Альтернатива дороже на <b>{fmtMoney(card.delta_money)}</b></div>}
   </div>;
 }
 
@@ -262,7 +264,7 @@ function IncidentView({ model }: { model: ReplayModel | null }) {
       <tbody>
         <tr><th>Задето волной</th>{cols.map(([n, s]) => <td key={n}>{s ? `${s.affected} п.` : "—"}</td>)}</tr>
         <tr><th>Нарушений ПТЭ</th>{cols.map(([n, s]) => <td key={n}>{s ? s.pte : "—"}</td>)}</tr>
-        <tr><th>Цена, у. е.</th>{cols.map(([n, s]) => <td key={n} className={n === "Бағдар" ? "win" : ""}>{s?.J_lex != null ? num(s.J_lex) : "—"}</td>)}</tr>
+        <tr><th>Цена плана</th>{cols.map(([n, s]) => <td key={n} className={n === "Бағдар" ? "win" : ""}>{s?.J_lex != null ? fmtMoney(s.J_lex) : "—"}</td>)}</tr>
       </tbody></table>
     {card && <p className="pres-small">{card.action}</p>}
   </div>;
@@ -309,8 +311,8 @@ function WeightEditor() {
 }
 
 function TariffEconomy({ a, b }: { a: ReplayModel | null; b: ReplayModel | null }) {
-  const [delay, setDelay] = useState("5");
-  const [hour, setHour] = useState("45");
+  const [delay, setDelay] = useState("5000");
+  const [hour, setHour] = useState("45000");
   const A = a?.r.summary;
   const B = b?.r.summary;
   if (!A || !B) return <p className="pres-empty">Парные записи загружаются…</p>;
@@ -321,9 +323,9 @@ function TariffEconomy({ a, b }: { a: ReplayModel | null; b: ReplayModel | null 
   const total = ok ? dDelay * r1 + dIdle * r2 : null;
   return <div className="pres-tariff">
     <p className="pres-small">Разница двух записей «Замка» (4 ч модели): задержка {num(dDelay, 0)} поездо-мин, простой {num(dIdle, 1)} поездо-ч.</p>
-    <label>Минута задержки поезда, у. е. <input type="number" min="0" step="0.5" value={delay} onChange={(e) => setDelay(e.target.value)} /></label>
-    <label>Час простоя локомотива и бригады, у. е. <input type="number" min="0" step="1" value={hour} onChange={(e) => setHour(e.target.value)} /></label>
-    <strong>{total != null ? `${total >= 0 ? "Бағдар экономит" : "Бағдар дороже на"} ${num(Math.abs(total))} у. е. за 4 часа` : "Введите неотрицательные тарифы"}</strong>
+    <label>Минута задержки поезда, ₸ <input type="number" min="0" step="500" value={delay} onChange={(e) => setDelay(e.target.value)} /></label>
+    <label>Час простоя локомотива и бригады, ₸ <input type="number" min="0" step="1000" value={hour} onChange={(e) => setHour(e.target.value)} /></label>
+    <strong>{total != null ? `${total >= 0 ? "Бағдар экономит" : "Бағдар дороже на"} ${num(Math.abs(total))} ₸ за 4 часа` : "Введите неотрицательные тарифы"}</strong>
     <span>В нашей модели, на одном сценарии. Не обещание реальной экономии.</span>
   </div>;
 }
@@ -343,12 +345,12 @@ function MeetSlide() {
   const { res } = useMeet(MEET_PARAMS, true);
   const a = res.options.find((o) => o.id === "pax_first")!;
   const b = res.options.find((o) => o.id === "freight_first")!;
-  const money = (x: number) => `${num(Math.round(x))} у.е.`;
+  const money = (x: number) => fmtMoney(x);
   return <div className="pres-meet">
     <MeetScene res={res} runKey="pres" compact autoplay loop />
     <div className="pres-meet-row">
-      <div><b className="pax">Минута 600 пассажиров</b><span>{num(res.trains.pax.weight)} у.е.</span></div>
-      <div><b className="fr">Минута грузового</b><span>{num(res.trains.freight.weight)} у.е.</span></div>
+      <div><b className="pax">Минута 600 пассажиров</b><span>{perMin(res.trains.pax.weight)}</span></div>
+      <div><b className="fr">Минута грузового</b><span>{perMin(res.trains.freight.weight)}</span></div>
       <div><b>Остановить 5 000 т</b><span>{num(res.trains.freight.stop_kwh)} кВт·ч</span></div>
       <div className="win"><b>1. Первым пассажирский</b><span>{money(a.econ)}</span></div>
       <div className="lose"><b>2. Первым грузовой</b><span>{money(b.econ)} + ПТЭ ✕</span></div>
@@ -406,7 +408,7 @@ function SlideBody({ index: raw, m }: { index: number; m: Models }) {
         <li><b>0 · Безопасность</b><span>Никогда два поезда на одном пути навстречу; длинный не ставится на короткий путь</span></li>
         <li><b>1 · Внеочередные</b><span>Восстановительные и пожарные поезда идут первыми</span></li>
         <li><b>2 · Класс поезда</b><span>Старший не опаздывает сверх допуска ради младшего (строгий режим ПТЭ)</span></li>
-        <li><b>3 · Экономика</b><span>Среди допустимых — самый дешёвый: задержки, остановки, простой, у. е.</span></li>
+        <li><b>3 · Экономика</b><span>Среди допустимых — самый дешёвый: задержки, остановки, простой — в тенге по условным тарифам</span></li>
       </ol>
     </>;
     case 7: return <div className="pres-two-col pres-two-col-index">

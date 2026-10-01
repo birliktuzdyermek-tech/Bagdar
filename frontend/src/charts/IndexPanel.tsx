@@ -7,6 +7,7 @@ import { useAlarms } from "../lib/alarms";
 import { useEChart } from "../lib/echarts";
 import { clock, num } from "../lib/format";
 import { useTokens } from "../lib/theme";
+import { money } from "../store/money";
 import { useSim } from "../store/sim";
 
 export const INDEX_STATUS: Record<string, { icon: string; cls: string }> = {
@@ -82,7 +83,7 @@ function RadarBox() {
               <span>{o.id === sat.best ? "✓ " : ""}{o.title}{o.numbers.length ? ` (${o.numbers.join(", ")})` : ""}</span>
               {o.hold > 0 && <button className="btn btn-small" onClick={() => applyOpt(o.train_ids, o.minutes)}>Применить</button>}
               <span className="muted small">
-                на {sat.horizon_h} ч: ср. опоздание {num(o.avg_late_min, 1)} мин, цена {num(o.J_lex)} у.е.{o.stuck ? `, застряло ${o.stuck}` : ""}
+                на {sat.horizon_h} ч: ср. опоздание {num(o.avg_late_min, 1)} мин, цена {money(o.J_lex)}{o.stuck ? `, застряло ${o.stuck}` : ""}
               </span>
             </li>
           ))}
