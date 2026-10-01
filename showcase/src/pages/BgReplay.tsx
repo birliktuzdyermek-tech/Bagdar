@@ -10,12 +10,13 @@ const SPEED = 120;
 /** Живой фон главной: проигрывание настоящей записи, а не нарисованная анимация. */
 export function BgReplay({ run }: { run: RunInfo | null }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
-  const [model, setModel] = useState<ReplayModel | null>(null);
+  const [loaded, setLoaded] = useState<{ runId: string; model: ReplayModel } | null>(null);
+  const model = run && loaded?.runId === run.id ? loaded.model : null;
 
   useEffect(() => {
     if (!run) return;
     let alive = true;
-    loadReplay(run.file).then((r) => alive && setModel(new ReplayModel(r)), () => undefined);
+    loadReplay(run.file).then((r) => alive && setLoaded({ runId: run.id, model: new ReplayModel(r) }), () => undefined);
     return () => {
       alive = false;
     };

@@ -5,6 +5,7 @@ import { ReplayModel } from "./replay/model";
 import type { RunInfo } from "./replay/types";
 import { Gallery } from "./pages/Gallery";
 import { Home } from "./pages/Home";
+import { Presentation } from "./pages/Presentation";
 import { Header } from "./ui/Header";
 
 function useHashRoute(): string {
@@ -58,7 +59,7 @@ export function App() {
   const playId = /^#\/play\/([\w-]+)/.exec(route)?.[1] ?? null;
   useEffect(() => {
     if (playId) return;
-    document.title = route.startsWith("#/gallery") ? "Ситуации — Бағдар" : route.startsWith("#/runs") ? "Записи — Бағдар" : "Бағдар — Витрина";
+    document.title = route.startsWith("#/presentation") ? "Режим показа — Бағдар" : route.startsWith("#/gallery") ? "Ситуации — Бағдар" : route.startsWith("#/runs") ? "Записи — Бағдар" : "Бағдар — Витрина";
     window.scrollTo(0, 0);
   }, [route, playId]);
 
@@ -71,7 +72,8 @@ export function App() {
         {runs && playId && <PlayRoute runs={runs} id={playId} projector={projector} />}
         {runs && !playId && route.startsWith("#/runs") && <RunList runs={runs} />}
         {runs && !playId && route.startsWith("#/gallery") && <Gallery runs={runs} />}
-        {runs && !playId && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && <Home runs={runs} />}
+        {runs && !playId && route.startsWith("#/presentation") && <Presentation runs={runs} />}
+        {runs && !playId && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && !route.startsWith("#/presentation") && <Home runs={runs} />}
       </main>
       <footer className="footer">
         <span>Консультативный прототип — не система управления движением.</span>
