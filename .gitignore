@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+backend/data/
+*.sqlite
+*.sqlite3
+
+# Node
+node_modules/
+frontend/dist/
+
+# Env / IDE
+.env
+.DS_Store
+.idea/
+.vscode/
+*.tsbuildinfo
