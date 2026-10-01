@@ -11,7 +11,11 @@ function probeServer(): Promise<boolean> {
     const ctl = new AbortController();
     const timer = window.setTimeout(() => ctl.abort(), 2500);
     serverProbe = fetch("../api/health", { signal: ctl.signal, cache: "no-store" })
-      .then(async (r) => r.ok && typeof (await r.json())?.status === "string")
+      .then(async (r) => {
+        if (!r.ok) return false;
+        const j = await r.json();
+        return j?.status === "ok" && "world_loaded" in j;   // именно сервер Бағдара, а не чужой /api/health
+      })
       .catch(() => false)
       .finally(() => window.clearTimeout(timer));
   }

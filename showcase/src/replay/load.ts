@@ -8,7 +8,7 @@ export async function loadRunList(): Promise<RunInfo[]> {
   return (await res.json()) as RunInfo[];
 }
 
-/** Читает запись: .json или .json.gz. Если хостинг сам распаковал gzip, берём как есть. */
+/** Читает запись: .json, .json.gz или gzip в base64 (.txt). Если хостинг сам распаковал gzip, берём как есть. */
 export async function loadReplay(file: string, onProgress?: (share: number) => void): Promise<Replay> {
   const res = await fetch(`./runs/${file}`);
   if (!res.ok || !res.body) throw new Error(`Запись ${file} недоступна: ${res.status}`);
@@ -24,6 +24,11 @@ export async function loadReplay(file: string, onProgress?: (share: number) => v
     if (total && onProgress) onProgress(Math.min(1, got / total));
   }
   let bytes = concat(chunks, got);
+  // хостинг, который отдаёт только текст: тот же gzip в base64 («H4sI» — заголовок gzip в base64)
+  if (bytes[0] === 0x48 && bytes[1] === 0x34 && bytes[2] === 0x73 && bytes[3] === 0x49) {
+    const bin = atob(new TextDecoder("ascii").decode(bytes).trim());
+    bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  }
   if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
     const stream = new Blob([bytes as BlobPart]).stream().pipeThrough(new DecompressionStream("gzip"));
     bytes = new Uint8Array(await new Response(stream).arrayBuffer());

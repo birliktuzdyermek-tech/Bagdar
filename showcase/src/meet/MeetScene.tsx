@@ -63,7 +63,7 @@ export function MeetScene({ res, runKey, compact = false, autoplay = true, loop 
   const [t0, t1] = useMemo(() => visibleWindow(res, lay), [res, lay]);
   const revealT = useMemo(() => {
     const deps = res.options.map((o) => (o.yield === "pax" ? o.pax.dep : o.freight.dep));
-    return Math.min(t1, Math.max(...deps) + 45);
+    return Math.min(t1, Math.max(...deps) + 20);
   }, [res, t1]);
 
   // фон и передний план — один раз на размер и пример

@@ -11,10 +11,13 @@ import { Presentation } from "./pages/Presentation";
 import { Header } from "./ui/Header";
 import { ShowcaseTour } from "./ui/ShowcaseTour";
 
+// «#meet» = «#/meet»: из внешней ссылки (например, опубликованной страницы) доходят только простые якоря
+const normHash = (h: string) => (/^#[a-z][\w-]*$/i.test(h) ? `#/${h.slice(1)}` : h || "#/");
+
 function useHashRoute(): string {
-  const [hash, setHash] = useState(() => window.location.hash || "#/");
+  const [hash, setHash] = useState(() => normHash(window.location.hash));
   useEffect(() => {
-    const on = () => setHash(window.location.hash || "#/");
+    const on = () => setHash(normHash(window.location.hash));
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);
