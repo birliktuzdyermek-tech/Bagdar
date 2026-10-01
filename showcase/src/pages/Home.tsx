@@ -55,6 +55,20 @@ const STARTS = [
     text: "Приоритеты, индекс участка и архитектура — простыми словами, без формул." },
 ];
 
+/** Видео-заставка: диспетчерский зал. Если видео не загрузилось — фон из записи прогона. */
+function HeroVideo({ fallback }: { fallback: RunInfo | null }) {
+  const [failed, setFailed] = useState(false);
+  const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (failed) return <BgReplay run={fallback} />;
+  return (
+    <div className="hero-video" aria-hidden>
+      <video src="./intro.mp4" poster="./intro-poster.jpg" muted loop playsInline autoPlay={!reduce} preload="metadata"
+        onError={() => setFailed(true)} />
+      <span className="bg-caption">видео — художественная иллюстрация, не реальный диспетчерский зал</span>
+    </div>
+  );
+}
+
 export function Home({ runs }: { runs: RunInfo[] }) {
   const [ref, seen] = useInView<HTMLUListElement>();
   const main = runs.find((r) => r.mode === "light" && !(r.injected ?? []).length) ?? runs[0] ?? null;
@@ -97,7 +111,7 @@ export function Home({ runs }: { runs: RunInfo[] }) {
         </ul>
       </section>
       <section className="hero" aria-labelledby="hero-title">
-        <BgReplay run={main} />
+        <HeroVideo fallback={main} />
         <div className="hero-body">
           <p className="hero-kicker">Бағдар — по-казахски «курс, ориентир»</p>
           <h1 id="hero-title" className="hero-title">

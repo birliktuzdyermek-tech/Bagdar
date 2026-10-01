@@ -228,6 +228,14 @@ html.projector .metric-value { font-size: 1.25rem; }
   min-height: min(78vh, 760px); display: flex; align-items: flex-end; padding-top: 104px;
 }
 .bg-replay { position: absolute; inset: 0; pointer-events: none; }
+.hero-video { position: absolute; inset: 0; pointer-events: none; }
+.hero-video video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hero-video::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,28,0.25) 0%, rgba(10,14,28,0.35) 45%, rgba(10,14,28,0.88) 100%),
+    linear-gradient(90deg, rgba(10,14,28,0.55) 0%, rgba(10,14,28,0) 60%);
+}
+.hero-video .bg-caption { z-index: 1; }
 .bg-replay canvas { width: 100%; height: 100%; display: block; opacity: 0.55; }
 .bg-caption { position: absolute; right: 14px; top: 88px; font-size: 0.875rem; color: var(--text-secondary); }
 .hero-body { position: relative; padding: clamp(20px, 4vw, 56px); max-width: 1100px; display: flex; flex-direction: column; gap: 18px; }
