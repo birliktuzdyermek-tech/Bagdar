@@ -227,6 +227,7 @@ button, input, select { font: inherit; color: inherit; }
   .bottom-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 .bottom-row > .card { height: 380px; }
+.bottom-row > .card.disrupt-card.expanded { height: auto; max-height: none; }
 .side {
   grid-column: 2;
   grid-row: 1 / span 3;

@@ -119,7 +119,7 @@ export function DisruptionPanel() {
   const [windowOpen, setWindowOpen] = useState(false);
 
   return (
-    <section className="card disrupt-card" aria-label="Сбои и сценарий">
+    <section className={`card disrupt-card ${windowOpen ? "expanded" : ""}`} aria-label="Сбои и сценарий">
       <div className="card-head">
         <span className="card-title">Сбои — сломайте сами</span>
         <span className="card-sub">выберите, что сломать, и нажмите «Применить»: Бағдар за 1–2 с перестроит план, справа появится разбор</span>
