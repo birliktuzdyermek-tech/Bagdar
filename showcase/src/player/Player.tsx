@@ -7,6 +7,7 @@ import type { RunInfo, SimEvent } from "../replay/types";
 import { Clock, SPEEDS } from "./clock";
 import { drawGraph, MORPH_MS, type Morph } from "./graph";
 import { drawScheme, hitTest, type Flash, type Hit } from "./scheme";
+import { VoiceVideo } from "./VoiceVideo";
 
 const UI_HZ = 4;
 const FLASH_MS = 1500;
@@ -49,6 +50,7 @@ export function Player({ model, info, projector }: Props) {
   const [uiT, setUiT] = useState(model.start);
   const [selected, setSelected] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
   const hits = useRef<Hit[]>([]);
   const flashes = useRef<Flash[]>([]);
   const morph = useRef<Morph | null>(null);
@@ -172,7 +174,7 @@ export function Player({ model, info, projector }: Props) {
   const injected = info.injected ?? [];
 
   return (
-    <div className="player">
+    <div className="player" data-recording={recording ? "true" : undefined}>
       <section className="player-head" aria-label="О записи">
         <span className="badge badge-rec" title="Всё, что движется на экране, проигрывается из файла записи настоящего прогона Ядра">
           <span className="rec-dot" aria-hidden /> Запись прогона
@@ -224,6 +226,14 @@ export function Player({ model, info, projector }: Props) {
       </div>
 
       <Transport clk={clk} model={model} t={uiT} onSeek={(t) => { clk.seek(t); setUiT(clk.t); }} />
+      <VoiceVideo
+        clk={clk}
+        model={model}
+        info={info}
+        schemeRef={schemeRef}
+        graphRef={graphRef}
+        onRecordingChange={setRecording}
+      />
     </div>
   );
 }
