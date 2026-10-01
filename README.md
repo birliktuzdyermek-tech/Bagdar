@@ -37,6 +37,11 @@ npm run dev                                           # http://localhost:5173
 
 Или одной командой из корня: `./scripts/dev.sh`.
 
+**Windows.** Вместо `python3` пишите `python`. Одной командой из PowerShell:
+`powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` — скрипт возьмёт Python из
+`backend\.venv`, если окружение создано, и сам поставит зависимости фронтенда.
+Если в логах ошибки кодировки, задайте `PYTHONUTF8=1`.
+
 Один порт без Vite: `cd frontend && npm run build`, затем запустить backend —
 он раздаёт собранный фронтенд на `http://localhost:8000/`.
 
