@@ -20932,7 +20932,7 @@
         "2041",
         "2043"
       ],
-      "build_ms": 472.8,
+      "build_ms": 537.2,
       "validated": true
     }
   },
@@ -20949,7 +20949,7 @@
     "traffic": {},
     "disruptions": []
   },
-  "run_id": "662c68826925",
+  "run_id": "e2cabb5fe73d",
   "started_at": 21600.0,
   "ended_at": 21720.0,
   "frame_interval_s": 10,
@@ -20961,12 +20961,15 @@
         "created_at": 0.0,
         "solver": "timetable",
         "status": "feasible",
-        "compute_ms": 472.8,
+        "compute_ms": 537.2,
         "notes": [
           "Исходный график: 94 поездов",
           "Не вошли в график: 2012, 2016, 2025, 2029, 2028, 2034, 2036, 2038, 2041, 2043"
         ],
         "cost": {},
+        "horizon_end": 0.0,
+        "hold_all": false,
+        "held": [],
         "legs": [
           {
             "train_id": "t701",
@@ -40393,7 +40396,7 @@
       "t": 21600.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 1,
         "tick": 0,
@@ -41306,8 +41309,29 @@
           "step_us": 0.0,
           "tick_ms": 0.0,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -41315,7 +41339,7 @@
       "t": 21610.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 1,
         "tick": 10,
@@ -42258,11 +42282,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 56.3,
-          "tick_ms": 0.56,
+          "step_us": 64.6,
+          "tick_ms": 0.65,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -42270,7 +42315,7 @@
       "t": 21620.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 20,
@@ -43201,11 +43246,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 49.1,
-          "tick_ms": 0.49,
+          "step_us": 54.8,
+          "tick_ms": 0.55,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -43213,7 +43279,7 @@
       "t": 21630.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 30,
@@ -44148,11 +44214,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 47.7,
-          "tick_ms": 0.48,
+          "step_us": 49.3,
+          "tick_ms": 0.49,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -44160,7 +44247,7 @@
       "t": 21640.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 40,
@@ -45091,11 +45178,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 47.5,
-          "tick_ms": 0.47,
+          "step_us": 47.7,
+          "tick_ms": 0.48,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -45103,7 +45211,7 @@
       "t": 21650.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 50,
@@ -46034,11 +46142,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 51.4,
-          "tick_ms": 0.51,
+          "step_us": 50.4,
+          "tick_ms": 0.5,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -46046,7 +46175,7 @@
       "t": 21660.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 60,
@@ -46995,11 +47124,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 55.2,
+          "step_us": 54.9,
           "tick_ms": 0.55,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -47007,7 +47157,7 @@
       "t": 21670.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 70,
@@ -47956,11 +48106,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 51.6,
-          "tick_ms": 0.52,
+          "step_us": 53.2,
+          "tick_ms": 0.53,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -47968,7 +48139,7 @@
       "t": 21680.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 80,
@@ -48931,11 +49102,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 52.7,
+          "step_us": 52.6,
           "tick_ms": 0.53,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -48943,7 +49135,7 @@
       "t": 21690.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 3,
         "tick": 90,
@@ -49906,11 +50098,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 52.3,
-          "tick_ms": 0.52,
+          "step_us": 52.8,
+          "tick_ms": 0.53,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -49918,7 +50131,7 @@
       "t": 21700.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 4,
         "tick": 100,
@@ -50876,11 +51089,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 52.9,
-          "tick_ms": 0.53,
+          "step_us": 54.4,
+          "tick_ms": 0.54,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -50888,7 +51122,7 @@
       "t": 21710.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 4,
         "tick": 110,
@@ -51852,11 +52086,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 51.2,
-          "tick_ms": 0.51,
+          "step_us": 51.6,
+          "tick_ms": 0.52,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     },
@@ -51864,7 +52119,7 @@
       "t": 21720.0,
       "state": {
         "type": "state",
-        "run_id": "662c68826925",
+        "run_id": "e2cabb5fe73d",
         "world_version": 1,
         "seq": 4,
         "tick": 120,
@@ -52828,11 +53083,32 @@
           "stop_energy_kwh": 0.0
         },
         "perf": {
-          "step_us": 49.7,
+          "step_us": 50.2,
           "tick_ms": 0.5,
           "steps_per_s": 0.0,
-          "load_ms": 482.2
-        }
+          "load_ms": 547.8
+        },
+        "planner": {
+          "version": 0,
+          "solver": "timetable",
+          "status": "feasible",
+          "compute_ms": null,
+          "cpsat_ms": null,
+          "cp_status": null,
+          "t0": null,
+          "J": null,
+          "busy": false,
+          "pending": [
+            "загрузка сценария"
+          ],
+          "conflicts": 0,
+          "max_deviation_s": 0,
+          "reason": null,
+          "late_trains": [],
+          "held": [],
+          "cards_total": 0
+        },
+        "conflicts": []
       },
       "index": null
     }

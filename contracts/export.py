@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from bagdar.api.schemas import EventOut, PlanOut, StateOut, WorldOut  # noqa: E402
+from bagdar.api.schemas import ConflictOut, EventOut, PlanOut, StateOut, WorldOut, PlannerSummaryOut  # noqa: E402
 from bagdar.config import load_config  # noqa: E402
 from bagdar.dto import plan_dto  # noqa: E402
 from bagdar.runtime import SimulationRuntime  # noqa: E402
@@ -28,15 +28,28 @@ class IndexSnapshot(BaseModel):
     status: str = Field(description="normal, warning or critical")
 
 
+class ReplayStateOut(StateOut):
+    # Fields introduced by the planner are optional in the file format so
+    # recordings exported by the first version remain readable.
+    planner: PlannerSummaryOut | None = None
+    conflicts: list[ConflictOut] = Field(default_factory=list)
+
+
+class ReplayPlanOut(PlanOut):
+    horizon_end: float | None = None
+    hold_all: bool = False
+    held: list[str] = Field(default_factory=list)
+
+
 class ReplayFrame(BaseModel):
     t: float = Field(description="Model seconds at this complete state snapshot")
-    state: StateOut
+    state: ReplayStateOut
     index: IndexSnapshot | None = Field(description="Measured index at this time; null until the index calculator exists")
 
 
 class ReplayPlan(BaseModel):
     t: float = Field(description="Model seconds from which this plan applies")
-    plan: PlanOut
+    plan: ReplayPlanOut
 
 
 class Replay(BaseModel):
