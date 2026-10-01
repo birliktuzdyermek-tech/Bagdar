@@ -29,11 +29,11 @@ DESCRIPTION = """
 """
 
 
-def create_app(autostart_loop: bool = True) -> FastAPI:
+def create_app(autostart_loop: bool = True, planner_sync: bool = False) -> FastAPI:
     logging.basicConfig(level=os.environ.get("BAGDAR_LOG_LEVEL", "INFO"),
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     cfg = load_config()
-    runtime = SimulationRuntime(cfg, load_scenarios())
+    runtime = SimulationRuntime(cfg, load_scenarios(), planner_sync=planner_sync)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

@@ -9,7 +9,7 @@ from bagdar.api.app import create_app
 
 @pytest.fixture(scope="module")
 def client():
-    app = create_app(autostart_loop=False)
+    app = create_app(autostart_loop=False, planner_sync=True)
     with TestClient(app) as c:
         yield c
 
@@ -49,14 +49,14 @@ def test_load_new_seed_changes_world(client):
 
 def test_stream_initial_and_resume(client):
     with client.websocket_connect("/api/stream") as ws:
-        msgs = [json.loads(ws.receive_text()) for _ in range(4)]
-    assert [m["type"] for m in msgs] == ["hello", "world", "events", "state"]
-    hello, state = msgs[0], msgs[3]
+        msgs = [json.loads(ws.receive_text()) for _ in range(5)]
+    assert [m["type"] for m in msgs] == ["hello", "world", "events", "decisions", "state"]
+    hello, state = msgs[0], msgs[4]
     S.StateOut.model_validate(state)
     client.post("/api/sim/control", json={"action": "step", "step_s": 600})
     url = f"/api/stream?world_version={hello['world_version']}&run_id={hello['run_id']}&last_seq={state['seq']}"
     with client.websocket_connect(url) as ws:
-        msgs = [json.loads(ws.receive_text()) for _ in range(3)]
-    assert [m["type"] for m in msgs] == ["hello", "events", "state"], "мир не пересылается повторно"
+        msgs = [json.loads(ws.receive_text()) for _ in range(4)]
+    assert [m["type"] for m in msgs] == ["hello", "events", "decisions", "state"], "мир не пересылается повторно"
     assert msgs[1]["reset"] is False
     assert all(e["seq"] > state["seq"] for e in msgs[1]["events"])

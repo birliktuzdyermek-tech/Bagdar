@@ -164,6 +164,33 @@ function InfraLayer({ world, idx, layout, state, selectedTrain, selectedStation,
           ? <circle key={sg.id} cx={x} cy={y} r={3.2} fill="var(--good)" pointerEvents="none" />
           : <circle key={sg.id} cx={x} cy={y} r={2.6} fill="none" stroke="var(--text-muted)" strokeWidth={1} pointerEvents="none" />;
       })}
+      {state.conflicts.map((c, i) => {
+        // прогноз: конфликт подсвечивается до того, как случился
+        if (c.kind === "section" || c.kind === "headway") {
+          const sec = idx.sections.get(c.resource);
+          if (!sec) return null;
+          const [x1, x2] = sectionEnds(layout, sec.a, sec.b);
+          return (
+            <g key={`cf${i}`} pointerEvents="none">
+              <line x1={x1} x2={x2} y1={Y0} y2={Y0} stroke="var(--warning)" strokeWidth={7} opacity={0.35} />
+              <line x1={x1} x2={x2} y1={Y0} y2={Y0} stroke="var(--warning)" strokeWidth={2} strokeDasharray="5 4" />
+              <text x={(x1 + x2) / 2} y={Y0 - 16} textAnchor="middle" className="conflict-label">
+                ⚠ {Math.max(0, Math.round(c.in_s / 60))} мин
+              </text>
+            </g>
+          );
+        }
+        if (c.kind === "track") {
+          const y = layout.trackY.get(c.resource);
+          const stId = c.resource.split("-")[0];
+          const x = layout.stationX.get(stId);
+          const bw = layout.boxW.get(stId) ?? 30;
+          if (y == null || x == null) return null;
+          return <rect key={`cf${i}`} x={x - bw / 2 - 2} y={y - 4} width={bw + 4} height={8} rx={3} fill="none"
+            stroke="var(--warning)" strokeWidth={2} strokeDasharray="3 2" pointerEvents="none" />;
+        }
+        return null;
+      })}
       {state.sections.filter((s) => s.status !== "open").map((s) => {
         const sec = idx.sections.get(s.id)!;
         const [x1, x2] = sectionEnds(layout, sec.a, sec.b);
@@ -365,6 +392,10 @@ export function SchemeLegend() {
       <span className="legend-item">
         <svg width="28" height="12" aria-hidden><line x1="2" x2="26" y1="6" y2="6" stroke="var(--accent)" strokeWidth="2" strokeDasharray="3 2" /></svg>
         путь закреплён за поездом
+      </span>
+      <span className="legend-item">
+        <svg width="28" height="12" aria-hidden><line x1="2" x2="26" y1="6" y2="6" stroke="var(--warning)" strokeWidth="2" strokeDasharray="5 4" /></svg>
+        ⚠ прогноз конфликта (если не перепланировать)
       </span>
       <span className="legend-item">⛰ — тяжёлый поезд на подъёме не останавливать</span>
     </div>

@@ -40,12 +40,23 @@ def _overlap(a0: float, a1: float, b0: float, b1: float, gap: float = 0.0) -> bo
 
 
 def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: TimingRules,
-                  blocked: list[tuple[str, float, float]] | None = None) -> list[Violation]:
+                  blocked: list[tuple[str, float, float]] | None = None,
+                  since: float | None = None) -> list[Violation]:
+    """since — момент построения плана. Плечи, начавшиеся раньше, — уже
+    свершившийся факт: пары таких плеч между собой не проверяются, а их
+    прошлые окна горловин не учитываются."""
     out: list[Violation] = []
+    t_from = -1e18 if since is None else since
+
+    def started(leg: PlanLeg) -> bool:
+        return leg.dep < t_from
     by_section: dict[str, list[PlanLeg]] = defaultdict(list)
     track_holds: dict[str, list[_Hold]] = defaultdict(list)
     throat_use: dict[str, list[_Hold]] = defaultdict(list)
 
+    for tid, sh in plan.start_hold.items():
+        if sh.until is not None and not plan.legs.get(tid):
+            track_holds[sh.track_id].append(_Hold(tid, max(sh.since, t_from), sh.until))
     for tid, legs in plan.legs.items():
         tr = trains.get(tid)
         if tr is None or not legs:
@@ -56,7 +67,7 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
             by_section[leg.section_id].append(leg)
             # физически минимальное время хода
             vmax = min(cls.vmax_kmh, sec.speed_limit_kmh) / 3.6
-            if leg.arr - leg.dep < sec.length_m / vmax - EPS:
+            if not started(leg) and leg.arr - leg.dep < sec.length_m / vmax - EPS:
                 out.append(Violation("runtime", sec.id, [tid], leg.dep,
                                      f"Поезд {tr.number}: время хода по {sec.id} меньше физически возможного"))
             if i + 1 < len(legs):
@@ -92,13 +103,18 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
                 h1 = leg.arr + rules.clear_s
             track_holds[leg.track_id].append(_Hold(tid, h0, h1))
             # горловины
-            stopped_before = i == 0 and leg.k == 0 or (i > 0 and legs[i - 1].stop)
+            stopped_before = (i == 0 and (leg.k == 0 or tid in plan.start_hold)) or (i > 0 and legs[i - 1].stop)
             d0 = leg.dep if stopped_before else leg.dep - rules.approach_s
-            throat_use[sec.departure_throat(leg.direction)].append(_Hold(tid, d0, leg.dep + rules.throat_s))
+            if not started(leg):
+                throat_use[sec.departure_throat(leg.direction)].append(_Hold(tid, d0, leg.dep + rules.throat_s))
             throat_use[sec.arrival_throat(leg.direction)].append(_Hold(tid, leg.arr - rules.approach_s, leg.arr))
-        # путь на станции формирования
         first = legs[0]
-        if first.k == 0 and tid in plan.origin_track:
+        sh = plan.start_hold.get(tid)
+        if sh is not None:
+            # поезд стоит на станции в момент построения плана
+            track_holds[sh.track_id].append(_Hold(tid, max(sh.since, t_from), first.dep + rules.clear_s))
+        elif first.k == 0 and tid in plan.origin_track:
+            # путь на станции формирования
             track_holds[plan.origin_track[tid]].append(
                 _Hold(tid, first.dep - rules.prep_s, first.dep + rules.clear_s))
 
@@ -111,6 +127,8 @@ def validate_plan(world: World, trains: dict[str, Train], plan: Plan, rules: Tim
                 if b.dep > a.arr + max(rules.tau_cross_s, rules.headway_s) + 3600:
                     break
                 if sec.tracks == 2 and a.direction != b.direction:
+                    continue
+                if started(a) and started(b):
                     continue
                 if a.direction != b.direction or sec.signalling == "PAB":
                     if _overlap(a.dep, a.arr, b.dep, b.arr, rules.tau_cross_s):

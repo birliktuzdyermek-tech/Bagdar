@@ -48,6 +48,19 @@ export function TopBar() {
           <span className="kpi-label">Ожидают</span>
           <span className="kpi-value">{m?.waiting_trains ?? "—"}</span>
         </div>
+        <div className="kpi" title="Конфликты на ближайший час, если ничего не перепланировать. Найденный конфликт запускает пересчёт.">
+          <span className="kpi-label">Конфликты (прогноз)</span>
+          <span className="kpi-value" style={{ color: state && state.planner.conflicts > 0 ? "var(--warning)" : undefined }}>
+            {state ? state.planner.conflicts : "—"}
+          </span>
+        </div>
+        <div className="kpi" title="Время последнего пересчёта плана целиком: эвристика, CP-SAT, проверка, карточки решений">
+          <span className="kpi-label">Пересчёт плана</span>
+          <span className="kpi-value">
+            {state?.planner.busy ? "считает…" : state?.planner.compute_ms != null
+              ? `${(state.planner.compute_ms / 1000).toFixed(1).replace(".", ",")} с` : "—"}
+          </span>
+        </div>
         <div className="kpi" title="Проблемы, отсортированные по цене. Красными показываются только три самых дорогих.">
           <span className="kpi-label">Проблемы</span>
           <span className="kpi-value">
@@ -57,6 +70,12 @@ export function TopBar() {
         </div>
       </div>
       <div className="spacer" />
+      {state && state.planner.version > 0 && (
+        <span className="chip chip-strong" title={state.planner.reason ?? ""}>
+          План v{state.planner.version} · {state.planner.solver === "cpsat" ? "CP-SAT" : state.planner.solver === "hold" ? "удержание" : "эвристика"}
+          {state.planner.status === "infeasible" && <span className="badge badge-critical">не найден</span>}
+        </span>
+      )}
       <span className="chip" role="status" aria-live="polite">
         <span className="dot" style={{ background: conn === "open" ? "var(--good)" : conn === "connecting" ? "var(--warning)" : "var(--critical)" }} />
         {conn === "open" ? "связь есть" : conn === "connecting" ? "подключение…" : "нет связи"}

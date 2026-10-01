@@ -1,4 +1,4 @@
-import type { ControlIn, LoadIn, Plan, Scenario } from "./types";
+import type { ControlIn, EventIn, LoadIn, Plan, PlannerInfo, PlannerSummary, Scenario } from "./types";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -28,5 +28,11 @@ export const api = {
     body: JSON.stringify(body),
   }),
   scenarios: () => request<Scenario[]>("/api/scenarios"),
-  plan: () => request<Plan>("/api/plan"),
+  plan: (which: "current" | "previous" = "current") => request<Plan>(`/api/plan?which=${which}`),
+  planner: () => request<PlannerInfo>("/api/planner"),
+  replan: () => request<PlannerSummary>("/api/plan/replan", { method: "POST" }),
+  event: (body: EventIn) => request<{ ok: boolean; message: string }>("/api/events", {
+    method: "POST",
+    body: JSON.stringify(body),
+  }),
 };

@@ -20,11 +20,17 @@ export type Scenario = S["ScenarioOut"];
 export type Plan = S["PlanOut"];
 export type ControlIn = S["ControlIn"];
 export type LoadIn = S["LoadIn"];
+export type DecisionCard = S["DecisionCardOut"];
+export type PlannerSummary = S["PlannerSummaryOut"];
+export type Conflict = S["ConflictOut"];
+export type PlannerInfo = S["PlannerOut"];
+export type EventIn = S["EventIn"];
 
 export type HelloMsg = S["HelloMsg"];
 export type StreamMsg =
   | HelloMsg
   | { type: "world"; world: World }
   | { type: "events"; reset: boolean; events: SimEvent[] }
+  | { type: "decisions"; reset: boolean; cards: DecisionCard[] }
   | State
   | { type: "pong" };

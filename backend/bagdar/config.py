@@ -69,6 +69,24 @@ class SolverConfig(BaseModel):
     fallback: Literal["greedy"] = "greedy"
 
 
+class PlannerConfig(BaseModel):
+    enabled: bool = True
+    min_interval_s: float = Field(1.0, ge=0.1, description="не чаще, с реального времени")
+    period_sim_s: float = Field(300, ge=30, description="плановый пересчёт по скользящему горизонту")
+    check_sim_s: float = Field(30, ge=5, description="как часто проверять отклонения от плана")
+    pair_window_min: float = Field(40, ge=5, description="пары поездов дальше этого окна не переупорядочиваются")
+    run_margin: float = 0.03
+    workers: int = Field(8, ge=1, le=32)
+    max_cards: int = 5
+    deviation_s: float = Field(120, description="отклонение от плана, после которого нужен пересчёт")
+
+
+class AutonomyConfig(BaseModel):
+    full_auto: bool = True
+    b_cancel_s: float = 30
+    a_max_shift_min: float = 5
+
+
 class SimConfig(BaseModel):
     dt_s: float = Field(1.0, gt=0, le=10)
     start_time: str = "06:00"
@@ -97,6 +115,8 @@ class BagdarConfig(BaseModel):
     priority: dict[str, PriorityEntry] = Field(default_factory=_default_priority)
     cost: CostConfig = CostConfig()
     solver: SolverConfig = SolverConfig()
+    planner: PlannerConfig = PlannerConfig()
+    autonomy: AutonomyConfig = AutonomyConfig()
     sim: SimConfig = SimConfig()
 
     def tolerance_s(self, train_class: str) -> float:

@@ -62,10 +62,61 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Действующий план движения */
+        /** Действующий или предыдущий план */
         get: operations["get_plan_api_plan_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Лента карточек решений */
+        get: operations["get_decisions_api_decisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/planner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Статус планировщика и история пересчётов (время, решатель, J) */
+        get: operations["get_planner_api_planner_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plan/replan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Пересчитать план сейчас */
+        post: operations["replan_api_plan_replan_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -82,7 +133,8 @@ export interface paths {
         /** Журнал событий текущего прогона */
         get: operations["get_events_api_events_get"];
         put?: never;
-        post?: never;
+        /** Внешнее событие (в демо: задержка поезда; сбои — этап 4) */
+        post: operations["post_event_api_events_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -178,6 +230,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AutonomyConfig */
+        AutonomyConfig: {
+            /**
+             * Full Auto
+             * @default true
+             */
+            full_auto: boolean;
+            /**
+             * B Cancel S
+             * @default 30
+             */
+            b_cancel_s: number;
+            /**
+             * A Max Shift Min
+             * @default 5
+             */
+            a_max_shift_min: number;
+        };
         /** BagdarConfig */
         BagdarConfig: {
             /**
@@ -233,6 +303,28 @@ export interface components {
             solver: components["schemas"]["SolverConfig"];
             /**
              * @default {
+             *       "enabled": true,
+             *       "min_interval_s": 1,
+             *       "period_sim_s": 300,
+             *       "check_sim_s": 30,
+             *       "pair_window_min": 40,
+             *       "run_margin": 0.03,
+             *       "workers": 8,
+             *       "max_cards": 5,
+             *       "deviation_s": 120
+             *     }
+             */
+            planner: components["schemas"]["PlannerConfig"];
+            /**
+             * @default {
+             *       "full_auto": true,
+             *       "b_cancel_s": 30,
+             *       "a_max_shift_min": 5
+             *     }
+             */
+            autonomy: components["schemas"]["AutonomyConfig"];
+            /**
+             * @default {
              *       "dt_s": 1,
              *       "start_time": "06:00",
              *       "tau_cross_s": 90,
@@ -254,6 +346,59 @@ export interface components {
              *     }
              */
             sim: components["schemas"]["SimConfig"];
+        };
+        /** CandidateOut */
+        CandidateOut: {
+            /** Name */
+            name: string;
+            /** Ms */
+            ms: number;
+            /** Valid */
+            valid: boolean;
+            /** J */
+            J: number | null;
+            /** J Lex */
+            J_lex: number | null;
+            /** Pte Violations */
+            pte_violations: number;
+            /** Violations */
+            violations: string[];
+            /** Held */
+            held: string[];
+            /** Deadlock */
+            deadlock: boolean;
+        };
+        /** CardEffectOut */
+        CardEffectOut: {
+            /** Train Id */
+            train_id: string;
+            /** Number */
+            number: string;
+            /** Delay Plan Min */
+            delay_plan_min: number;
+            /** Delay Alt Min */
+            delay_alt_min: number | null;
+            /** Stops Plan */
+            stops_plan: number;
+            /** Stops Alt */
+            stops_alt: number | null;
+            /** Weight */
+            weight: number;
+        };
+        /** ConflictOut */
+        ConflictOut: {
+            /** Kind */
+            kind: string;
+            /** Resource */
+            resource: string;
+            /** Trains */
+            trains: string[];
+            /** T */
+            t: number;
+            /** In S */
+            in_s: number;
+            /** Message */
+            message: string;
         };
         /** ControlIn */
         ControlIn: {
@@ -303,6 +448,124 @@ export interface components {
              * @default 15
              */
             c_change: number;
+        };
+        /** DecisionCardOut */
+        DecisionCardOut: {
+            /** Id */
+            id: string;
+            /**
+             * Seq
+             * @default 0
+             */
+            seq: number;
+            /** Plan Version */
+            plan_version: number;
+            /** T */
+            t: number;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "crossing" | "overtake" | "track" | "hold" | "no_plan";
+            /**
+             * Level
+             * @description A — авто, B — авто с уведомлением, C — нужен выбор
+             * @enum {string}
+             */
+            level: "A" | "B" | "C";
+            /** Station Id */
+            station_id: string | null;
+            /** Station */
+            station: string | null;
+            /** Section Id */
+            section_id: string | null;
+            /** Trains */
+            trains: string[];
+            /** Action */
+            action: string;
+            /** Reason */
+            reason: string;
+            /** Alternative */
+            alternative: string;
+            /** Cost Plan */
+            cost_plan: number | null;
+            /** Cost Alt */
+            cost_alt: number | null;
+            /**
+             * Delta Cost
+             * @description На сколько альтернатива хуже с учётом слоя ПТЭ (для ранжирования)
+             */
+            delta_cost: number | null;
+            /**
+             * Delta Money
+             * @description На сколько альтернатива дороже, у.е. (условные)
+             */
+            delta_money?: number | null;
+            /**
+             * Alt Pte Violations
+             * @default 0
+             */
+            alt_pte_violations: number;
+            /** Alt Feasible */
+            alt_feasible: boolean;
+            /** Note */
+            note?: string | null;
+            /** Wait Min */
+            wait_min: number | null;
+            /** Effects */
+            effects: components["schemas"]["CardEffectOut"][];
+            /** Index Before */
+            index_before: number | null;
+            /** Index After */
+            index_after: number | null;
+            /** Status */
+            status: string;
+            /**
+             * Full Auto
+             * @default true
+             */
+            full_auto: boolean;
+        };
+        /** DecisionsMsg */
+        DecisionsMsg: {
+            /**
+             * Type
+             * @default decisions
+             * @constant
+             */
+            type: "decisions";
+            /** Reset */
+            reset: boolean;
+            /** Cards */
+            cards: components["schemas"]["DecisionCardOut"][];
+        };
+        /** DecisionsOut */
+        DecisionsOut: {
+            /** Run Id */
+            run_id: string;
+            /** Cards */
+            cards: components["schemas"]["DecisionCardOut"][];
+        };
+        /** EventAck */
+        EventAck: {
+            /** Ok */
+            ok: boolean;
+            /** Message */
+            message: string;
+        };
+        /** EventIn */
+        EventIn: {
+            /**
+             * Type
+             * @constant
+             */
+            type: "train_delay";
+            /** Train Id */
+            train_id?: string | null;
+            /** Minutes */
+            minutes?: number | null;
+            /** Reason */
+            reason?: string | null;
         };
         /** EventOut */
         EventOut: {
@@ -563,8 +826,114 @@ export interface components {
             cost: {
                 [key: string]: number;
             };
+            /** Horizon End */
+            horizon_end: number;
+            /** Hold All */
+            hold_all: boolean;
+            /** Held */
+            held: string[];
             /** Legs */
             legs: components["schemas"]["PlanLegOut"][];
+        };
+        /** PlannerConfig */
+        PlannerConfig: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Min Interval S
+             * @description не чаще, с реального времени
+             * @default 1
+             */
+            min_interval_s: number;
+            /**
+             * Period Sim S
+             * @description плановый пересчёт по скользящему горизонту
+             * @default 300
+             */
+            period_sim_s: number;
+            /**
+             * Check Sim S
+             * @description как часто проверять отклонения от плана
+             * @default 30
+             */
+            check_sim_s: number;
+            /**
+             * Pair Window Min
+             * @description пары поездов дальше этого окна не переупорядочиваются
+             * @default 40
+             */
+            pair_window_min: number;
+            /**
+             * Run Margin
+             * @default 0.03
+             */
+            run_margin: number;
+            /**
+             * Workers
+             * @default 8
+             */
+            workers: number;
+            /**
+             * Max Cards
+             * @default 5
+             */
+            max_cards: number;
+            /**
+             * Deviation S
+             * @description отклонение от плана, после которого нужен пересчёт
+             * @default 120
+             */
+            deviation_s: number;
+        };
+        /** PlannerOut */
+        PlannerOut: {
+            summary: components["schemas"]["PlannerSummaryOut"];
+            /** History */
+            history: components["schemas"]["SolveStatsOut"][];
+        };
+        /** PlannerSummaryOut */
+        PlannerSummaryOut: {
+            /** Version */
+            version: number;
+            /** Solver */
+            solver: string | null;
+            /** Status */
+            status: ("feasible" | "delayed" | "infeasible") | null;
+            /**
+             * Compute Ms
+             * @description Время последнего пересчёта целиком, мс
+             */
+            compute_ms: number | null;
+            /** Cpsat Ms */
+            cpsat_ms: number | null;
+            /** Cp Status */
+            cp_status: string | null;
+            /** T0 */
+            t0: number | null;
+            /**
+             * J
+             * @description Целевая функция плана, у.е. (условные)
+             */
+            J: number | null;
+            /** Busy */
+            busy: boolean;
+            /** Pending */
+            pending: string[];
+            /** Conflicts */
+            conflicts: number;
+            /** Max Deviation S */
+            max_deviation_s: number;
+            /** Reason */
+            reason: string | null;
+            /** Late Trains */
+            late_trains: string[];
+            /** Held */
+            held: string[];
+            /** Cards Total */
+            cards_total: number;
         };
         /** PriorityEntry */
         PriorityEntry: {
@@ -779,6 +1148,45 @@ export interface components {
              */
             broadcast_hz: number;
         };
+        /** SolveStatsOut */
+        SolveStatsOut: {
+            /** Version */
+            version: number;
+            /** T0 */
+            t0: number;
+            /** Status */
+            status: string;
+            /** Solver */
+            solver: string;
+            /** Reason */
+            reason: string;
+            /** J */
+            J: {
+                [key: string]: unknown;
+            } | null;
+            /** Candidates */
+            candidates: components["schemas"]["CandidateOut"][];
+            /** Cpsat */
+            cpsat: {
+                [key: string]: unknown;
+            };
+            /** Cp Notes */
+            cp_notes: string[];
+            /** Timings */
+            timings: {
+                [key: string]: number;
+            };
+            /** Held */
+            held: string[];
+            /** Late Trains */
+            late_trains: string[];
+            /** Cards */
+            cards: number;
+            /** Applied At */
+            applied_at?: number | null;
+            /** Lag S */
+            lag_s?: number | null;
+        };
         /** SolverConfig */
         SolverConfig: {
             /**
@@ -837,6 +1245,9 @@ export interface components {
             signals: components["schemas"]["SignalStateOut"][];
             metrics: components["schemas"]["MetricsOut"];
             perf: components["schemas"]["PerfOut"];
+            planner: components["schemas"]["PlannerSummaryOut"];
+            /** Conflicts */
+            conflicts: components["schemas"]["ConflictOut"][];
         };
         /** StationOut */
         StationOut: {
@@ -873,6 +1284,7 @@ export interface components {
             world: components["schemas"]["WorldMsg"];
             events: components["schemas"]["EventsMsg"];
             state: components["schemas"]["StateOut"];
+            decisions: components["schemas"]["DecisionsMsg"];
         };
         /** SwitchOut */
         SwitchOut: {
@@ -1165,7 +1577,9 @@ export interface operations {
     };
     get_plan_api_plan_get: {
         parameters: {
-            query?: never;
+            query?: {
+                which?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1179,6 +1593,87 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_decisions_api_decisions_get: {
+        parameters: {
+            query?: {
+                since?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_planner_api_planner_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannerOut"];
+                };
+            };
+        };
+    };
+    replan_api_plan_replan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannerSummaryOut"];
                 };
             };
         };
@@ -1203,6 +1698,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_event_api_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventAck"];
                 };
             };
             /** @description Validation Error */

@@ -54,6 +54,8 @@ class TrainRT:
     unplanned_stops: int = 0
     stop_energy_kwh: float = 0.0
     v_peak: float = 0.0
+    entered_at: float | None = None  # когда вошёл на текущий перегон
+    hold_extra: float = 0.0          # внешняя задержка: стоянка на ближайшей станции, с
 
 
 class Engine:
@@ -78,6 +80,7 @@ class Engine:
         self.gone: set[str] = set()
         self.steps = 0
         self._cand: str | None = None
+        self.hold_all = False
         self._init_from_plan(start_time)
 
     # ------------------------------------------------------------------ события
@@ -154,6 +157,7 @@ class Engine:
             rt.v = min(self._vmax(rt, sec, leg.direction), sec.length_m / max(1.0, leg.arr - leg.dep) * 1.05)
             rt.v_peak = rt.v
             rt.v_target = rt.v
+            rt.entered_at = leg.dep
             self.il.enter_section(sec.id, leg.direction, tid, dep)
             if self.il.sections[sec.id].single:
                 rt.dest_track = leg.track_id
@@ -167,6 +171,34 @@ class Engine:
         rt.arrived_at = arrived
         rt.dwell_until = dwell_until
         self.il.occupy_track(track_id, rt.train.id)
+
+    # ----------------------------------------------------------------- план и сбои
+    def apply_plan(self, plan: Plan) -> None:
+        """Новый план вступает в силу: порядок на перегонах и пути приёма."""
+        self.ex.set_plan(plan, self.entered)
+        self.hold_all = plan.hold_all
+
+    def inject_delay(self, train_id: str, seconds: float, reason: str = "внешнее событие") -> str:
+        """Задержать поезд: стоит на станции дольше или сделает стоянку на ближайшей."""
+        rt = self.rt.get(train_id)
+        if rt is None or rt.status == "finished":
+            raise ValueError(f"Поезд {train_id} не на участке")
+        tr = rt.train
+        if rt.status == "pending":
+            rt.ready_at = max(rt.ready_at, self.t) + seconds
+            where = f"отправление со ст. {self.world.stations[tr.route[0]].name}"
+        elif rt.status == "station":
+            if rt.k == len(tr.route) - 1:
+                raise ValueError(f"Поезд {tr.number} уже на конечной")
+            rt.dwell_until = max(rt.dwell_until, self.t) + seconds
+            where = f"ст. {self.world.stations[tr.route[rt.k]].name}"
+        else:
+            rt.hold_extra += seconds
+            where = f"стоянка на ст. {self.world.stations[tr.route[rt.k + 1]].name}"
+        self.emit("train_delay_injected", "warn",
+                  f"Поезд {tr.number} задержан на {round(seconds / 60)} мин ({where}): {reason}",
+                  train_id=train_id, data={"seconds": seconds})
+        return where
 
     # ----------------------------------------------------------------- помощники
     def _vmax(self, rt: TrainRT, sec: Section, d: int) -> float:
@@ -193,6 +225,8 @@ class Engine:
     def _planned_stop(self, rt: TrainRT, k_leg: int) -> bool:
         tr = rt.train
         if k_leg + 1 == len(tr.route) - 1:
+            return True
+        if rt.hold_extra > 0 and rt.status == "section" and k_leg == rt.k:
             return True
         leg = self.ex.leg(tr.id, k_leg)
         return leg.stop if leg else tr.schedule[k_leg + 1].stop
@@ -296,6 +330,8 @@ class Engine:
         sec = self.world.sections[tr.sections[kl]]
         d = self.world.direction(sec, tr.route[kl])
         leg = self.ex.leg(tr.id, kl)
+        if leg is None and self.hold_all:
+            return "удержан: допустимый план не найден", True
         if leg is not None and at < leg.dep - (60 if through else 0):
             return f"по плану отправление в {hhmm(leg.dep)}", False
         sched = tr.schedule[kl]
@@ -331,6 +367,8 @@ class Engine:
         self.il.enter_section(sec.id, d, tr.id, now)
         self.entered.add((tr.id, kl))
         dep_thr = sec.departure_throat(d)
+        if not through:
+            rt.entered_at = now
         cand = self._cand
         if cand:
             self.il.reserve_track(cand, tr.id)
@@ -478,6 +516,7 @@ class Engine:
                   train_id=tr.id, station_id=tr.route[nk])
         rt.k = nk
         rt.dist = max(0.0, rt.dist - sec.length_m)
+        rt.entered_at = now
         rt.dest_track = rt.next_dest_track
         rt.next_dest_track = None
         rt.through = False
@@ -502,11 +541,12 @@ class Engine:
         rt.v = 0.0
         rt.arrived_at = now
         rt.stops += 1
-        if not planned_stop:
+        sched = tr.schedule[nk]
+        if not sched.stop and nk != len(tr.route) - 1:
+            # остановка, которой нет в расписании: теряется кинетическая энергия
             rt.unplanned_stops += 1
             rt.stop_energy_kwh += stop_energy_kwh(tr.mass_t, rt.v_peak)
         rt.v_peak = 0.0
-        sched = tr.schedule[nk]
         if sched.arr is not None:
             self._record_delay(rt, now - sched.arr)
         self._clear_wait(rt)
@@ -516,10 +556,14 @@ class Engine:
             self.emit("train_arrived", "debug", f"Поезд {tr.number} прибыл на конечную ст. {st.name}",
                       train_id=tr.id, station_id=st.id)
             return
-        dwell = sched.dwell_s if planned_stop else 0.0
+        planned_by_sched = sched.stop
+        dwell = sched.dwell_s if planned_by_sched else 0.0
         s = self.cfg.sim
-        if planned_stop and dwell > 0 and self.rng.random() < s.dwell_jitter_prob:
+        if planned_by_sched and dwell > 0 and self.rng.random() < s.dwell_jitter_prob:
             dwell += round(self.rng.uniform(10, s.dwell_jitter_max_s))
+        if rt.hold_extra > 0:
+            dwell += rt.hold_extra
+            rt.hold_extra = 0.0
         rt.dwell_until = now + dwell
         self.emit("train_arrived", "debug", f"Поезд {tr.number} прибыл на ст. {st.name}",
                   train_id=tr.id, station_id=st.id)

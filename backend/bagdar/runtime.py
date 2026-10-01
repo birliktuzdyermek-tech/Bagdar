@@ -26,6 +26,7 @@ from bagdar.generator.world_gen import CorridorParams, generate_world
 from bagdar.models.plan import Plan
 from bagdar.models.train import Train
 from bagdar.models.world import World
+from bagdar.planner.runner import PlannerRunner
 from bagdar.scenarios import Scenario
 from bagdar.sim.engine import Engine
 from bagdar.sim.events import SimEvent
@@ -54,7 +55,7 @@ def _apply_overrides(obj: Any, overrides: dict[str, Any]) -> Any:
 
 
 class SimulationRuntime:
-    def __init__(self, cfg: BagdarConfig, scenarios: dict[str, Scenario]) -> None:
+    def __init__(self, cfg: BagdarConfig, scenarios: dict[str, Scenario], planner_sync: bool = False) -> None:
         self.cfg = cfg
         self.scenarios = scenarios
         self.scenario: Scenario | None = None
@@ -74,6 +75,7 @@ class SimulationRuntime:
         self._dirty = True
         self.perf = {"step_us": 0.0, "tick_ms": 0.0, "steps_per_s": 0.0, "load_ms": 0.0}
         self._world_payload: dict | None = None
+        self.planner = PlannerRunner(self, sync=planner_sync)
 
     # ------------------------------------------------------------ загрузка мира
     def load(self, scenario_id: str | None = None, seed: int | None = None) -> None:
@@ -106,10 +108,14 @@ class SimulationRuntime:
                               f"Загружен сценарий «{sc.title}», seed {seed}: {len(tt.trains)} поездов в графике")
         log.info("load scenario=%s seed=%s trains=%d dropped=%d build_ms=%.0f total_ms=%.0f",
                  sc.id, seed, len(tt.trains), len(tt.dropped), tt.build_ms, self.perf["load_ms"])
+        self.planner.reset(tt.plan)
         self._flush_events()
         self._broadcast({"type": "world", "world": self.world_payload()})
         self._broadcast({"type": "events", "reset": True, "events": [ev.to_dict()]})
+        self._broadcast({"type": "decisions", "reset": True, "cards": []})
         self._broadcast_state()
+        if self.planner.sync:
+            self.planner.tick()
 
     # ----------------------------------------------------------------- управление
     def control(self, action: str, speed: float | None = None, step_s: float | None = None) -> None:
@@ -126,6 +132,7 @@ class SimulationRuntime:
             self.running = False
             seconds = step_s if step_s is not None else 60.0
             self._advance_steps(max(1, int(round(seconds / self.engine.dt))))
+            self.planner.tick()
         elif action == "reset":
             self.load(self.scenario.id if self.scenario else None, self.engine.seed)
             return
@@ -175,6 +182,7 @@ class SimulationRuntime:
                 if steps:
                     self._advance_steps(steps)
                     self.perf["steps_per_s"] = round(steps / max(real_dt, 1e-3), 1)
+            self.planner.tick()
             self._flush_events()
             hz = self.cfg.sim.broadcast_hz
             if (self.running or self._dirty) and now >= next_state:
@@ -186,6 +194,8 @@ class SimulationRuntime:
         t0 = time.perf_counter()
         for _ in range(steps):
             self.engine.step()
+            if self.planner.sync:
+                self.planner.tick()
         el = time.perf_counter() - t0
         self.perf["step_us"] = round(el / steps * 1e6, 1)
         self.perf["tick_ms"] = round(el * 1000, 2)
@@ -202,8 +212,35 @@ class SimulationRuntime:
 
     def state_payload(self) -> dict:
         assert self.engine is not None
-        return dto.state_dto(self.engine, running=self.running, speed=self.speed, run_id=self.run_id,
-                             world_version=self.world_version, perf=dict(self.perf))
+        st = dto.state_dto(self.engine, running=self.running, speed=self.speed, run_id=self.run_id,
+                           world_version=self.world_version, perf=dict(self.perf))
+        st["planner"] = self.planner.summary()
+        st["conflicts"] = list(self.planner.conflicts)
+        return st
+
+    # ------------------------------------------------------------- внешние события
+    def external_event(self, kind: str, params: dict) -> str:
+        assert self.engine is not None
+        if kind == "train_delay":
+            tid = params.get("train_id")
+            minutes = float(params.get("minutes", 10))
+            if not tid or not (1 <= minutes <= 240):
+                raise ValueError("Нужны train_id и minutes от 1 до 240")
+            where = self.engine.inject_delay(tid, minutes * 60, params.get("reason") or "внешнее событие")
+            self.planner.request(f"задержка поезда {self.engine.trains[tid].number} на {round(minutes)} мин",
+                                 urgent=True)
+            msg = f"Поезд {self.engine.trains[tid].number}: {where}"
+        else:
+            raise ValueError(f"Тип события «{kind}» пока не поддерживается (сбои — этап 4)")
+        self._flush_events()
+        self._broadcast_state()
+        if self.planner.sync:
+            self.planner.tick()
+        return msg
+
+    def _mark_planner_update(self, res) -> None:
+        self._dirty = True
+        self._broadcast({"type": "decisions", "reset": False, "cards": res.cards})
 
     def events_since(self, seq: int, limit: int = 2000, min_severity: str = "debug") -> list[dict]:
         order = {"debug": 0, "info": 1, "warn": 2, "critical": 3}

@@ -32,6 +32,9 @@ function handle(msg: StreamMsg): void {
     case "events":
       st.pushEvents(msg.events, msg.reset);
       break;
+    case "decisions":
+      st.pushCards(msg.cards, msg.reset);
+      break;
     case "state":
       st.pushState(msg);
       break;

@@ -39,6 +39,7 @@ async def _send_initial(ws: WebSocket, r: SimulationRuntime, world_version: int,
     else:
         events = r.events_since(0)[-INITIAL_EVENTS:]
         await ws.send_text(_dump({"type": "events", "reset": True, "events": events}))
+    await ws.send_text(_dump({"type": "decisions", "reset": True, "cards": list(r.planner.cards)[-100:]}))
     await ws.send_text(_dump(r.state_payload()))
 
 

@@ -81,6 +81,10 @@ export function Toolbar({ theme, onTheme }: { theme: string; onTheme: () => void
         title="Вернуть сценарий к началу с тем же seed">
         ↺ Сброс
       </button>
+      <button className="btn" onClick={() => run(() => api.replan())} disabled={busy || !state || state.planner.busy}
+        title="Пересчитать план сейчас (обычно пересчёт запускается сам по событиям)">
+        ⟳ Пересчитать план
+      </button>
       <div className="spacer" />
       <label className="field">
         Сценарий
