@@ -1,0 +1,621 @@
+{
+  "$defs": {
+    "GenerationOut": {
+      "properties": {
+        "trains_total": {
+          "title": "Trains Total",
+          "type": "integer"
+        },
+        "dropped": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dropped",
+          "type": "array"
+        },
+        "build_ms": {
+          "title": "Build Ms",
+          "type": "number"
+        },
+        "validated": {
+          "title": "Validated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "trains_total",
+        "dropped",
+        "build_ms",
+        "validated"
+      ],
+      "title": "GenerationOut",
+      "type": "object"
+    },
+    "ScheduleStopOut": {
+      "properties": {
+        "station_id": {
+          "title": "Station Id",
+          "type": "string"
+        },
+        "arr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Arr"
+        },
+        "dep": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Dep"
+        },
+        "stop": {
+          "title": "Stop",
+          "type": "boolean"
+        },
+        "dwell_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Dwell S"
+        },
+        "track_id": {
+          "title": "Track Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "station_id",
+        "arr",
+        "dep",
+        "stop",
+        "dwell_s",
+        "track_id"
+      ],
+      "title": "ScheduleStopOut",
+      "type": "object"
+    },
+    "SectionOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "a": {
+          "title": "A",
+          "type": "string"
+        },
+        "b": {
+          "title": "B",
+          "type": "string"
+        },
+        "length_km": {
+          "title": "Length Km",
+          "type": "number"
+        },
+        "tracks": {
+          "description": "1 — однопутный, 2 — двухпутный",
+          "title": "Tracks",
+          "type": "integer"
+        },
+        "signalling": {
+          "enum": [
+            "AB",
+            "PAB"
+          ],
+          "title": "Signalling",
+          "type": "string"
+        },
+        "blocks": {
+          "title": "Blocks",
+          "type": "integer"
+        },
+        "speed_limit_kmh": {
+          "title": "Speed Limit Kmh",
+          "type": "number"
+        },
+        "gradient_permille": {
+          "description": "Уклон в направлении a→b, ‰; плюс — подъём",
+          "title": "Gradient Permille",
+          "type": "number"
+        },
+        "no_stop_uphill": {
+          "title": "No Stop Uphill",
+          "type": "boolean"
+        },
+        "electrified": {
+          "title": "Electrified",
+          "type": "boolean"
+        },
+        "throat_a": {
+          "title": "Throat A",
+          "type": "string"
+        },
+        "throat_b": {
+          "title": "Throat B",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "a",
+        "b",
+        "length_km",
+        "tracks",
+        "signalling",
+        "blocks",
+        "speed_limit_kmh",
+        "gradient_permille",
+        "no_stop_uphill",
+        "electrified",
+        "throat_a",
+        "throat_b"
+      ],
+      "title": "SectionOut",
+      "type": "object"
+    },
+    "SignalOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "section_id": {
+          "title": "Section Id",
+          "type": "string"
+        },
+        "station_id": {
+          "title": "Station Id",
+          "type": "string"
+        },
+        "direction": {
+          "title": "Direction",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "section_id",
+        "station_id",
+        "direction"
+      ],
+      "title": "SignalOut",
+      "type": "object"
+    },
+    "StationOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "terminal",
+            "station",
+            "loop",
+            "junction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "km": {
+          "title": "Km",
+          "type": "number"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "zone_id": {
+          "title": "Zone Id",
+          "type": "string"
+        },
+        "crew_change": {
+          "title": "Crew Change",
+          "type": "boolean"
+        },
+        "tracks": {
+          "items": {
+            "$ref": "#/$defs/TrackOut"
+          },
+          "title": "Tracks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "km",
+        "x",
+        "y",
+        "zone_id",
+        "crew_change",
+        "tracks"
+      ],
+      "title": "StationOut",
+      "type": "object"
+    },
+    "SwitchOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "station_id": {
+          "title": "Station Id",
+          "type": "string"
+        },
+        "track_id": {
+          "title": "Track Id",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "station_id",
+        "track_id",
+        "number"
+      ],
+      "title": "SwitchOut",
+      "type": "object"
+    },
+    "TrackOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "length_m": {
+          "title": "Length M",
+          "type": "integer"
+        },
+        "is_main": {
+          "title": "Is Main",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "length_m",
+        "is_main"
+      ],
+      "title": "TrackOut",
+      "type": "object"
+    },
+    "TrainClassOut": {
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "pte_rank": {
+          "title": "Pte Rank",
+          "type": "integer"
+        },
+        "weight": {
+          "title": "Weight",
+          "type": "number"
+        },
+        "tolerance_min": {
+          "title": "Tolerance Min",
+          "type": "number"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "pte_rank",
+        "weight",
+        "tolerance_min"
+      ],
+      "title": "TrainClassOut",
+      "type": "object"
+    },
+    "TrainStaticOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "string"
+        },
+        "cls": {
+          "title": "Cls",
+          "type": "string"
+        },
+        "cls_label": {
+          "title": "Cls Label",
+          "type": "string"
+        },
+        "pte_rank": {
+          "description": "0 — внеочередной, 1..5 — очерёдность по ПТЭ",
+          "title": "Pte Rank",
+          "type": "integer"
+        },
+        "direction": {
+          "title": "Direction",
+          "type": "integer"
+        },
+        "length_m": {
+          "title": "Length M",
+          "type": "integer"
+        },
+        "mass_t": {
+          "title": "Mass T",
+          "type": "integer"
+        },
+        "passengers": {
+          "title": "Passengers",
+          "type": "integer"
+        },
+        "cargo": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cargo",
+          "type": "array"
+        },
+        "traction": {
+          "enum": [
+            "electric",
+            "diesel"
+          ],
+          "title": "Traction",
+          "type": "string"
+        },
+        "vmax_kmh": {
+          "title": "Vmax Kmh",
+          "type": "number"
+        },
+        "loco_id": {
+          "title": "Loco Id",
+          "type": "string"
+        },
+        "crew_id": {
+          "title": "Crew Id",
+          "type": "string"
+        },
+        "crew_shift_end": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Crew Shift End"
+        },
+        "route": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Route",
+          "type": "array"
+        },
+        "sections": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sections",
+          "type": "array"
+        },
+        "suburban": {
+          "title": "Suburban",
+          "type": "boolean"
+        },
+        "transfer": {
+          "title": "Transfer",
+          "type": "boolean"
+        },
+        "schedule": {
+          "items": {
+            "$ref": "#/$defs/ScheduleStopOut"
+          },
+          "title": "Schedule",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "number",
+        "cls",
+        "cls_label",
+        "pte_rank",
+        "direction",
+        "length_m",
+        "mass_t",
+        "passengers",
+        "cargo",
+        "traction",
+        "vmax_kmh",
+        "loco_id",
+        "crew_id",
+        "crew_shift_end",
+        "route",
+        "sections",
+        "suburban",
+        "transfer",
+        "schedule"
+      ],
+      "title": "TrainStaticOut",
+      "type": "object"
+    },
+    "ZoneOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "station_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Station Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "station_ids"
+      ],
+      "title": "ZoneOut",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "mode": {
+      "title": "Mode",
+      "type": "string"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "integer"
+    },
+    "scenario_id": {
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "start_time": {
+      "title": "Start Time",
+      "type": "number"
+    },
+    "date": {
+      "title": "Date",
+      "type": "string"
+    },
+    "tz": {
+      "title": "Tz",
+      "type": "string"
+    },
+    "zones": {
+      "items": {
+        "$ref": "#/$defs/ZoneOut"
+      },
+      "title": "Zones",
+      "type": "array"
+    },
+    "stations": {
+      "items": {
+        "$ref": "#/$defs/StationOut"
+      },
+      "title": "Stations",
+      "type": "array"
+    },
+    "sections": {
+      "items": {
+        "$ref": "#/$defs/SectionOut"
+      },
+      "title": "Sections",
+      "type": "array"
+    },
+    "signals": {
+      "items": {
+        "$ref": "#/$defs/SignalOut"
+      },
+      "title": "Signals",
+      "type": "array"
+    },
+    "switches": {
+      "items": {
+        "$ref": "#/$defs/SwitchOut"
+      },
+      "title": "Switches",
+      "type": "array"
+    },
+    "trains": {
+      "items": {
+        "$ref": "#/$defs/TrainStaticOut"
+      },
+      "title": "Trains",
+      "type": "array"
+    },
+    "classes": {
+      "items": {
+        "$ref": "#/$defs/TrainClassOut"
+      },
+      "title": "Classes",
+      "type": "array"
+    },
+    "generation": {
+      "$ref": "#/$defs/GenerationOut"
+    }
+  },
+  "required": [
+    "id",
+    "mode",
+    "seed",
+    "name",
+    "version",
+    "scenario_id",
+    "start_time",
+    "date",
+    "tz",
+    "zones",
+    "stations",
+    "sections",
+    "signals",
+    "switches",
+    "trains",
+    "classes",
+    "generation"
+  ],
+  "title": "WorldOut",
+  "type": "object"
+}

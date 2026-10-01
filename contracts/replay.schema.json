@@ -1,0 +1,1540 @@
+{
+  "$defs": {
+    "Disruption": {
+      "properties": {
+        "at": {
+          "title": "At",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        }
+      },
+      "required": [
+        "at",
+        "type"
+      ],
+      "title": "Disruption",
+      "type": "object"
+    },
+    "EventOut": {
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "critical"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "train_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Train Id"
+        },
+        "station_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Station Id"
+        },
+        "section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Section Id"
+        },
+        "data": {
+          "additionalProperties": true,
+          "title": "Data",
+          "type": "object"
+        }
+      },
+      "required": [
+        "seq",
+        "t",
+        "kind",
+        "severity",
+        "message",
+        "train_id",
+        "station_id",
+        "section_id",
+        "data"
+      ],
+      "title": "EventOut",
+      "type": "object"
+    },
+    "GenerationOut": {
+      "properties": {
+        "trains_total": {
+          "title": "Trains Total",
+          "type": "integer"
+        },
+        "dropped": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dropped",
+          "type": "array"
+        },
+        "build_ms": {
+          "title": "Build Ms",
+          "type": "number"
+        },
+        "validated": {
+          "title": "Validated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "trains_total",
+        "dropped",
+        "build_ms",
+        "validated"
+      ],
+      "title": "GenerationOut",
+      "type": "object"
+    },
+    "IndexSnapshot": {
+      "properties": {
+        "value": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        },
+        "factors": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Measured factor scores, each between 0 and 1",
+          "title": "Factors",
+          "type": "object"
+        },
+        "status": {
+          "description": "normal, warning or critical",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "factors",
+        "status"
+      ],
+      "title": "IndexSnapshot",
+      "type": "object"
+    },
+    "MetricsOut": {
+      "properties": {
+        "active_trains": {
+          "title": "Active Trains",
+          "type": "integer"
+        },
+        "finished_trains": {
+          "title": "Finished Trains",
+          "type": "integer"
+        },
+        "avg_delay_s": {
+          "title": "Avg Delay S",
+          "type": "number"
+        },
+        "max_delay_s": {
+          "title": "Max Delay S",
+          "type": "number"
+        },
+        "on_time_share": {
+          "title": "On Time Share",
+          "type": "number"
+        },
+        "waiting_trains": {
+          "title": "Waiting Trains",
+          "type": "integer"
+        },
+        "unplanned_stops": {
+          "title": "Unplanned Stops",
+          "type": "integer"
+        },
+        "stop_energy_kwh": {
+          "title": "Stop Energy Kwh",
+          "type": "number"
+        }
+      },
+      "required": [
+        "active_trains",
+        "finished_trains",
+        "avg_delay_s",
+        "max_delay_s",
+        "on_time_share",
+        "waiting_trains",
+        "unplanned_stops",
+        "stop_energy_kwh"
+      ],
+      "title": "MetricsOut",
+      "type": "object"
+    },
+    "PerfOut": {
+      "properties": {
+        "step_us": {
+          "title": "Step Us",
+          "type": "number"
+        },
+        "tick_ms": {
+          "title": "Tick Ms",
+          "type": "number"
+        },
+        "steps_per_s": {
+          "title": "Steps Per S",
+          "type": "number"
+        },
+        "load_ms": {
+          "title": "Load Ms",
+          "type": "number"
+        }
+      },
+      "required": [
+        "step_us",
+        "tick_ms",
+        "steps_per_s",
+        "load_ms"
+      ],
+      "title": "PerfOut",
+      "type": "object"
+    },
+    "PlanLegOut": {
+      "properties": {
+        "train_id": {
+          "title": "Train Id",
+          "type": "string"
+        },
+        "k": {
+          "title": "K",
+          "type": "integer"
+        },
+        "section_id": {
+          "title": "Section Id",
+          "type": "string"
+        },
+        "from_id": {
+          "title": "From Id",
+          "type": "string"
+        },
+        "to_id": {
+          "title": "To Id",
+          "type": "string"
+        },
+        "direction": {
+          "title": "Direction",
+          "type": "integer"
+        },
+        "dep": {
+          "title": "Dep",
+          "type": "number"
+        },
+        "arr": {
+          "title": "Arr",
+          "type": "number"
+        },
+        "track_id": {
+          "title": "Track Id",
+          "type": "string"
+        },
+        "stop": {
+          "title": "Stop",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "train_id",
+        "k",
+        "section_id",
+        "from_id",
+        "to_id",
+        "direction",
+        "dep",
+        "arr",
+        "track_id",
+        "stop"
+      ],
+      "title": "PlanLegOut",
+      "type": "object"
+    },
+    "PlanOut": {
+      "properties": {
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "number"
+        },
+        "solver": {
+          "title": "Solver",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "feasible",
+            "delayed",
+            "infeasible"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "compute_ms": {
+          "title": "Compute Ms",
+          "type": "number"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "cost": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Cost",
+          "type": "object"
+        },
+        "legs": {
+          "items": {
+            "$ref": "#/$defs/PlanLegOut"
+          },
+          "title": "Legs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "version",
+        "created_at",
+        "solver",
+        "status",
+        "compute_ms",
+        "notes",
+        "cost",
+        "legs"
+      ],
+      "title": "PlanOut",
+      "type": "object"
+    },
+    "ReplayFrame": {
+      "properties": {
+        "t": {
+          "description": "Model seconds at this complete state snapshot",
+          "title": "T",
+          "type": "number"
+        },
+        "state": {
+          "$ref": "#/$defs/StateOut"
+        },
+        "index": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IndexSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Measured index at this time; null until the index calculator exists"
+        }
+      },
+      "required": [
+        "t",
+        "state",
+        "index"
+      ],
+      "title": "ReplayFrame",
+      "type": "object"
+    },
+    "ReplayPlan": {
+      "properties": {
+        "t": {
+          "description": "Model seconds from which this plan applies",
+          "title": "T",
+          "type": "number"
+        },
+        "plan": {
+          "$ref": "#/$defs/PlanOut"
+        }
+      },
+      "required": [
+        "t",
+        "plan"
+      ],
+      "title": "ReplayPlan",
+      "type": "object"
+    },
+    "Scenario": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "summary": {
+          "default": "",
+          "title": "Summary",
+          "type": "string"
+        },
+        "mode": {
+          "default": "light",
+          "title": "Mode",
+          "type": "string"
+        },
+        "seed": {
+          "default": 42,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "start_time": {
+          "default": "06:00",
+          "title": "Start Time",
+          "type": "string"
+        },
+        "difficulty": {
+          "default": 1,
+          "title": "Difficulty",
+          "type": "integer"
+        },
+        "wave": {
+          "default": 0,
+          "title": "Wave",
+          "type": "integer"
+        },
+        "world": {
+          "additionalProperties": true,
+          "title": "World",
+          "type": "object"
+        },
+        "traffic": {
+          "additionalProperties": true,
+          "title": "Traffic",
+          "type": "object"
+        },
+        "disruptions": {
+          "items": {
+            "$ref": "#/$defs/Disruption"
+          },
+          "title": "Disruptions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title"
+      ],
+      "title": "Scenario",
+      "type": "object"
+    },
+    "ScheduleStopOut": {
+      "properties": {
+        "station_id": {
+          "title": "Station Id",
+          "type": "string"
+        },
+        "arr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Arr"
+        },
+        "dep": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Dep"
+        },
+        "stop": {
+          "title": "Stop",
+          "type": "boolean"
+        },
+        "dwell_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Dwell S"
+        },
+        "track_id": {
+          "title": "Track Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "station_id",
+        "arr",
+        "dep",
+        "stop",
+        "dwell_s",
+        "track_id"
+      ],
+      "title": "ScheduleStopOut",
+      "type": "object"
+    },
+    "SectionOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "a": {
+          "title": "A",
+          "type": "string"
+        },
+        "b": {
+          "title": "B",
+          "type": "string"
+        },
+        "length_km": {
+          "title": "Length Km",
+          "type": "number"
+        },
+        "tracks": {
+          "description": "1 — однопутный, 2 — двухпутный",
+          "title": "Tracks",
+          "type": "integer"
+        },
+        "signalling": {
+          "enum": [
+            "AB",
+            "PAB"
+          ],
+          "title": "Signalling",
+          "type": "string"
+        },
+        "blocks": {
+          "title": "Blocks",
+          "type": "integer"
+        },
+        "speed_limit_kmh": {
+          "title": "Speed Limit Kmh",
+          "type": "number"
+        },
+        "gradient_permille": {
+          "description": "Уклон в направлении a→b, ‰; плюс — подъём",
+          "title": "Gradient Permille",
+          "type": "number"
+        },
+        "no_stop_uphill": {
+          "title": "No Stop Uphill",
+          "type": "boolean"
+        },
+        "electrified": {
+          "title": "Electrified",
+          "type": "boolean"
+        },
+        "throat_a": {
+          "title": "Throat A",
+          "type": "string"
+        },
+        "throat_b": {
+          "title": "Throat B",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "a",
+        "b",
+        "length_km",
+        "tracks",
+        "signalling",
+        "blocks",
+        "speed_limit_kmh",
+        "gradient_permille",
+        "no_stop_uphill",
+        "electrified",
+        "throat_a",
+        "throat_b"
+      ],
+      "title": "SectionOut",
+      "type": "object"
+    },
+    "SectionStateOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "open",
+            "restricted",
+            "closed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "single": {
+          "title": "Single",
+          "type": "boolean"
+        },
+        "restriction_kmh": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Restriction Kmh"
+        },
+        "occupants": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Occupants",
+          "type": "array"
+        },
+        "dir": {
+          "title": "Dir",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "single",
+        "restriction_kmh",
+        "occupants",
+        "dir"
+      ],
+      "title": "SectionStateOut",
+      "type": "object"
+    },
+    "SignalOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "section_id": {
+          "title": "Section Id",
+          "type": "string"
+        },
+        "station_id": {
+          "title": "Station Id",
+          "type": "string"
+        },
+        "direction": {
+          "title": "Direction",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "section_id",
+        "station_id",
+        "direction"
+      ],
+      "title": "SignalOut",
+      "type": "object"
+    },
+    "SignalStateOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "open",
+            "closed",
+            "fault"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "state"
+      ],
+      "title": "SignalStateOut",
+      "type": "object"
+    },
+    "StateOut": {
+      "properties": {
+        "type": {
+          "const": "state",
+          "default": "state",
+          "title": "Type",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "world_version": {
+          "title": "World Version",
+          "type": "integer"
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "tick": {
+          "title": "Tick",
+          "type": "integer"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        },
+        "running": {
+          "title": "Running",
+          "type": "boolean"
+        },
+        "speed": {
+          "title": "Speed",
+          "type": "number"
+        },
+        "trains": {
+          "items": {
+            "$ref": "#/$defs/TrainStateOut"
+          },
+          "title": "Trains",
+          "type": "array"
+        },
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/SectionStateOut"
+          },
+          "title": "Sections",
+          "type": "array"
+        },
+        "tracks": {
+          "items": {
+            "$ref": "#/$defs/TrackStateOut"
+          },
+          "title": "Tracks",
+          "type": "array"
+        },
+        "throats": {
+          "items": {
+            "$ref": "#/$defs/ThroatStateOut"
+          },
+          "title": "Throats",
+          "type": "array"
+        },
+        "signals": {
+          "items": {
+            "$ref": "#/$defs/SignalStateOut"
+          },
+          "title": "Signals",
+          "type": "array"
+        },
+        "metrics": {
+          "$ref": "#/$defs/MetricsOut"
+        },
+        "perf": {
+          "$ref": "#/$defs/PerfOut"
+        }
+      },
+      "required": [
+        "run_id",
+        "world_version",
+        "seq",
+        "tick",
+        "t",
+        "running",
+        "speed",
+        "trains",
+        "sections",
+        "tracks",
+        "throats",
+        "signals",
+        "metrics",
+        "perf"
+      ],
+      "title": "StateOut",
+      "type": "object"
+    },
+    "StationOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "terminal",
+            "station",
+            "loop",
+            "junction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "km": {
+          "title": "Km",
+          "type": "number"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "zone_id": {
+          "title": "Zone Id",
+          "type": "string"
+        },
+        "crew_change": {
+          "title": "Crew Change",
+          "type": "boolean"
+        },
+        "tracks": {
+          "items": {
+            "$ref": "#/$defs/TrackOut"
+          },
+          "title": "Tracks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "km",
+        "x",
+        "y",
+        "zone_id",
+        "crew_change",
+        "tracks"
+      ],
+      "title": "StationOut",
+      "type": "object"
+    },
+    "SwitchOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "station_id": {
+          "title": "Station Id",
+          "type": "string"
+        },
+        "track_id": {
+          "title": "Track Id",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "station_id",
+        "track_id",
+        "number"
+      ],
+      "title": "SwitchOut",
+      "type": "object"
+    },
+    "ThroatStateOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "holder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Holder"
+        }
+      },
+      "required": [
+        "id",
+        "holder"
+      ],
+      "title": "ThroatStateOut",
+      "type": "object"
+    },
+    "TrackOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "length_m": {
+          "title": "Length M",
+          "type": "integer"
+        },
+        "is_main": {
+          "title": "Is Main",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "length_m",
+        "is_main"
+      ],
+      "title": "TrackOut",
+      "type": "object"
+    },
+    "TrackStateOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "occupant": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Occupant"
+        },
+        "reserved": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reserved"
+        },
+        "available": {
+          "title": "Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "occupant",
+        "reserved",
+        "available"
+      ],
+      "title": "TrackStateOut",
+      "type": "object"
+    },
+    "TrainClassOut": {
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "pte_rank": {
+          "title": "Pte Rank",
+          "type": "integer"
+        },
+        "weight": {
+          "title": "Weight",
+          "type": "number"
+        },
+        "tolerance_min": {
+          "title": "Tolerance Min",
+          "type": "number"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "pte_rank",
+        "weight",
+        "tolerance_min"
+      ],
+      "title": "TrainClassOut",
+      "type": "object"
+    },
+    "TrainStateOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "station",
+            "section",
+            "finished"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "display": {
+          "enum": [
+            "ready",
+            "dwell",
+            "held",
+            "terminated",
+            "running",
+            "braking",
+            "stopped",
+            "pending",
+            "finished"
+          ],
+          "title": "Display",
+          "type": "string"
+        },
+        "k": {
+          "title": "K",
+          "type": "integer"
+        },
+        "station_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Station Id"
+        },
+        "track_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Track Id"
+        },
+        "section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Section Id"
+        },
+        "progress": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Положение на перегоне 0..1 от станции a к b",
+          "title": "Progress"
+        },
+        "v_kmh": {
+          "title": "V Kmh",
+          "type": "number"
+        },
+        "v_target_kmh": {
+          "title": "V Target Kmh",
+          "type": "number"
+        },
+        "delay_s": {
+          "title": "Delay S",
+          "type": "integer"
+        },
+        "wait_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Wait Reason"
+        },
+        "dest_track": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Dest Track"
+        },
+        "through": {
+          "title": "Through",
+          "type": "boolean"
+        },
+        "next_station_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Station Id"
+        },
+        "crew_left_s": {
+          "title": "Crew Left S",
+          "type": "integer"
+        },
+        "stops": {
+          "title": "Stops",
+          "type": "integer"
+        },
+        "unplanned_stops": {
+          "title": "Unplanned Stops",
+          "type": "integer"
+        },
+        "stop_energy_kwh": {
+          "title": "Stop Energy Kwh",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "display",
+        "k",
+        "station_id",
+        "track_id",
+        "section_id",
+        "progress",
+        "v_kmh",
+        "v_target_kmh",
+        "delay_s",
+        "wait_reason",
+        "dest_track",
+        "through",
+        "next_station_id",
+        "crew_left_s",
+        "stops",
+        "unplanned_stops",
+        "stop_energy_kwh"
+      ],
+      "title": "TrainStateOut",
+      "type": "object"
+    },
+    "TrainStaticOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "string"
+        },
+        "cls": {
+          "title": "Cls",
+          "type": "string"
+        },
+        "cls_label": {
+          "title": "Cls Label",
+          "type": "string"
+        },
+        "pte_rank": {
+          "description": "0 — внеочередной, 1..5 — очерёдность по ПТЭ",
+          "title": "Pte Rank",
+          "type": "integer"
+        },
+        "direction": {
+          "title": "Direction",
+          "type": "integer"
+        },
+        "length_m": {
+          "title": "Length M",
+          "type": "integer"
+        },
+        "mass_t": {
+          "title": "Mass T",
+          "type": "integer"
+        },
+        "passengers": {
+          "title": "Passengers",
+          "type": "integer"
+        },
+        "cargo": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cargo",
+          "type": "array"
+        },
+        "traction": {
+          "enum": [
+            "electric",
+            "diesel"
+          ],
+          "title": "Traction",
+          "type": "string"
+        },
+        "vmax_kmh": {
+          "title": "Vmax Kmh",
+          "type": "number"
+        },
+        "loco_id": {
+          "title": "Loco Id",
+          "type": "string"
+        },
+        "crew_id": {
+          "title": "Crew Id",
+          "type": "string"
+        },
+        "crew_shift_end": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Crew Shift End"
+        },
+        "route": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Route",
+          "type": "array"
+        },
+        "sections": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sections",
+          "type": "array"
+        },
+        "suburban": {
+          "title": "Suburban",
+          "type": "boolean"
+        },
+        "transfer": {
+          "title": "Transfer",
+          "type": "boolean"
+        },
+        "schedule": {
+          "items": {
+            "$ref": "#/$defs/ScheduleStopOut"
+          },
+          "title": "Schedule",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "number",
+        "cls",
+        "cls_label",
+        "pte_rank",
+        "direction",
+        "length_m",
+        "mass_t",
+        "passengers",
+        "cargo",
+        "traction",
+        "vmax_kmh",
+        "loco_id",
+        "crew_id",
+        "crew_shift_end",
+        "route",
+        "sections",
+        "suburban",
+        "transfer",
+        "schedule"
+      ],
+      "title": "TrainStaticOut",
+      "type": "object"
+    },
+    "WorldOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "mode": {
+          "title": "Mode",
+          "type": "string"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "scenario_id": {
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "start_time": {
+          "title": "Start Time",
+          "type": "number"
+        },
+        "date": {
+          "title": "Date",
+          "type": "string"
+        },
+        "tz": {
+          "title": "Tz",
+          "type": "string"
+        },
+        "zones": {
+          "items": {
+            "$ref": "#/$defs/ZoneOut"
+          },
+          "title": "Zones",
+          "type": "array"
+        },
+        "stations": {
+          "items": {
+            "$ref": "#/$defs/StationOut"
+          },
+          "title": "Stations",
+          "type": "array"
+        },
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/SectionOut"
+          },
+          "title": "Sections",
+          "type": "array"
+        },
+        "signals": {
+          "items": {
+            "$ref": "#/$defs/SignalOut"
+          },
+          "title": "Signals",
+          "type": "array"
+        },
+        "switches": {
+          "items": {
+            "$ref": "#/$defs/SwitchOut"
+          },
+          "title": "Switches",
+          "type": "array"
+        },
+        "trains": {
+          "items": {
+            "$ref": "#/$defs/TrainStaticOut"
+          },
+          "title": "Trains",
+          "type": "array"
+        },
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/TrainClassOut"
+          },
+          "title": "Classes",
+          "type": "array"
+        },
+        "generation": {
+          "$ref": "#/$defs/GenerationOut"
+        }
+      },
+      "required": [
+        "id",
+        "mode",
+        "seed",
+        "name",
+        "version",
+        "scenario_id",
+        "start_time",
+        "date",
+        "tz",
+        "zones",
+        "stations",
+        "sections",
+        "signals",
+        "switches",
+        "trains",
+        "classes",
+        "generation"
+      ],
+      "title": "WorldOut",
+      "type": "object"
+    },
+    "ZoneOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "station_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Station Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "station_ids"
+      ],
+      "title": "ZoneOut",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "default": 1,
+      "description": "Contract format version, currently 1",
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "world": {
+      "$ref": "#/$defs/WorldOut"
+    },
+    "scenario": {
+      "$ref": "#/$defs/Scenario"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "started_at": {
+      "title": "Started At",
+      "type": "number"
+    },
+    "ended_at": {
+      "title": "Ended At",
+      "type": "number"
+    },
+    "frame_interval_s": {
+      "title": "Frame Interval S",
+      "type": "number"
+    },
+    "plans": {
+      "items": {
+        "$ref": "#/$defs/ReplayPlan"
+      },
+      "title": "Plans",
+      "type": "array"
+    },
+    "frames": {
+      "items": {
+        "$ref": "#/$defs/ReplayFrame"
+      },
+      "title": "Frames",
+      "type": "array"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/EventOut"
+      },
+      "title": "Events",
+      "type": "array"
+    }
+  },
+  "required": [
+    "world",
+    "scenario",
+    "run_id",
+    "started_at",
+    "ended_at",
+    "frame_interval_s",
+    "plans",
+    "frames",
+    "events"
+  ],
+  "title": "Replay",
+  "type": "object"
+}
