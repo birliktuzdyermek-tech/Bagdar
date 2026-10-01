@@ -53,16 +53,31 @@ def create_app(autostart_loop: bool = True) -> FastAPI:
     # Собранный фронтенд (если есть) раздаётся тем же сервером.
     dist = Path(os.environ.get("BAGDAR_FRONTEND_DIST", Path(__file__).resolve().parents[3] / "frontend" / "dist"))
     if dist.is_dir():
-        app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
-
-        @app.get("/{path:path}", include_in_schema=False)
-        def spa(path: str) -> FileResponse:
-            target = dist / path
-            if path and target.is_file():
-                return FileResponse(target)
-            return FileResponse(dist / "index.html")
+        mount_spa(app, dist)
 
     return app
+
+
+def mount_spa(app: FastAPI, dist: Path) -> None:
+    """Раздать собранный фронтенд: файлы из dist, на остальные пути — index.html.
+
+    Путь из URL проверяется после resolve(): закодированные «..%2F», «%2e%2e»
+    и обратные слэши не должны выводить за пределы dist.
+    """
+    root = dist.resolve()
+    if (root / "assets").is_dir():
+        app.mount("/assets", StaticFiles(directory=root / "assets"), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def spa(path: str) -> FileResponse:
+        if path:
+            try:
+                target = (root / path).resolve()
+            except (OSError, ValueError):
+                target = None
+            if target is not None and target.is_relative_to(root) and target.is_file():
+                return FileResponse(target)
+        return FileResponse(root / "index.html")
 
 
 app = create_app()
