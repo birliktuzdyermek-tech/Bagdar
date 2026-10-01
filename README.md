@@ -21,6 +21,14 @@
 
 ## Быстрый старт
 
+Одной командой, нужен только Docker:
+
+```bash
+docker compose up --build        # http://localhost:8000, Swagger — /docs, витрина — /showcase/index.html
+```
+
+Без Docker:
+
 Нужны Python 3.11+ и Node.js 20.19+ (проверено на Python 3.11 и Node 22).
 
 ```bash
