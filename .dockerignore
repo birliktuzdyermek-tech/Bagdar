@@ -8,3 +8,5 @@ frontend/*.tsbuildinfo
 backend/.venv
 work
 
+showcase/node_modules
+showcase/dist

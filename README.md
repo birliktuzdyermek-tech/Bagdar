@@ -42,6 +42,8 @@ npm run dev                                           # http://localhost:5173
 `backend\.venv`, если окружение создано, и сам поставит зависимости фронтенда.
 Если в логах ошибки кодировки, задайте `PYTHONUTF8=1`.
 
+Витрина (презентация, ситуации, записи прогонов) — раздел того же сайта: `/showcase/index.html`, исходники в `showcase/`, подробности в `showcase/README.md`.
+
 Один порт без Vite: `cd frontend && npm run build`, затем запустить backend —
 он раздаёт собранный фронтенд на `http://localhost:8000/`.
 
