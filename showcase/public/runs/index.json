@@ -1,0 +1,49 @@
+[
+  {
+    "id": "normal-42",
+    "file": "normal-42.replay.json.gz",
+    "title": "Штатное движение, утро",
+    "situation": null,
+    "scenario_id": "normal",
+    "seed": 42,
+    "mode": "light",
+    "from": "06:00",
+    "to": "10:00",
+    "injected": [],
+    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)"
+  },
+  {
+    "id": "butterfly-42",
+    "file": "butterfly-42.replay.json.gz",
+    "title": "Опоздание скорого № 2 на 15 минут",
+    "situation": 15,
+    "scenario_id": "normal",
+    "seed": 42,
+    "mode": "light",
+    "from": "06:00",
+    "to": "10:00",
+    "injected": [
+      {
+        "at": "07:00",
+        "train_id": "t2",
+        "minutes": 15.0,
+        "reason": "неисправность локомотива"
+      }
+    ],
+    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)"
+  },
+  {
+    "id": "seed5",
+    "file": "seed5.replay.json.gz",
+    "title": "Seed 5: без перепланирования здесь вставал участок",
+    "situation": 1,
+    "scenario_id": "normal",
+    "seed": 5,
+    "mode": "light",
+    "from": "06:00",
+    "to": "11:00",
+    "injected": [],
+    "recorded_with": "showcase/tools/record.py, SimulationRuntime(planner_sync=True)",
+    "note": "Без планировщика (этап 1) на этом seed движение замирало в 09:46 (issue #7). В записи — тот же поток с планировщиком Ядра."
+  }
+]
