@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: bagdar-demo
+    runtime: docker
+    plan: free
+    branch: main
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
+
