@@ -26,6 +26,14 @@
 
 ## Быстрый старт
 
+Одной командой, нужен только Docker:
+
+```bash
+docker compose up --build        # http://localhost:8000, Swagger — /docs, витрина — /showcase/index.html
+```
+
+Без Docker:
+
 Нужны Python 3.11+ и Node.js 20.19+ (проверено на Python 3.11 и Node 22).
 
 ```bash
@@ -41,6 +49,13 @@ npm run dev                                           # http://localhost:5173
 ```
 
 Или одной командой из корня: `./scripts/dev.sh`.
+
+**Windows.** Вместо `python3` пишите `python`. Одной командой из PowerShell:
+`powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` — скрипт возьмёт Python из
+`backend\.venv`, если окружение создано, и сам поставит зависимости фронтенда.
+Если в логах ошибки кодировки, задайте `PYTHONUTF8=1`.
+
+Витрина (презентация, ситуации, записи прогонов) — раздел того же сайта: `/showcase/index.html`, исходники в `showcase/`, подробности в `showcase/README.md`.
 
 Один порт без Vite: `cd frontend && npm run build`, затем запустить backend —
 он раздаёт собранный фронтенд на `http://localhost:8000/`.

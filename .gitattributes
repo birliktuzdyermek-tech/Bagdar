@@ -1,0 +1,6 @@
+# Единые переводы строк LF на всех ОС: иначе на Windows с core.autocrlf
+# весь репозиторий выглядит изменённым, а сверка openapi.json в CI ломается.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

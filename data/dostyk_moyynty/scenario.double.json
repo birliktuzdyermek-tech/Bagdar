@@ -1,0 +1,25 @@
+{
+  "id": "dm-double",
+  "title": "Достык — Мойынты, двухпутная модель",
+  "summary": "Схема по открытым данным; длины перегонов, пути, скорость и движение смоделированы. Желаемый график ещё не проверен планировщиком.",
+  "mode": "network",
+  "seed": 42,
+  "start_time": "00:00",
+  "difficulty": 1,
+  "wave": 0,
+  "world": {
+    "file": "world.double.json",
+    "variant": "double"
+  },
+  "traffic": {
+    "count": 120,
+    "class_shares": {
+      "fast_passenger": 0.05,
+      "passenger": 0.1,
+      "express_freight": 0.15,
+      "freight": 0.65,
+      "local_freight": 0.05
+    }
+  },
+  "disruptions": []
+}

@@ -8,5 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from bagdar.api.app import create_app  # noqa: E402
 
 out = Path(__file__).resolve().parents[1] / "openapi.json"
-out.write_text(json.dumps(create_app(autostart_loop=False).openapi(), ensure_ascii=False, indent=1), encoding="utf-8")
-print(f"OpenAPI → {out}")
+# newline="\n": на Windows write_text иначе пишет CRLF, и файл расходится с закоммиченным
+with open(out, "w", encoding="utf-8", newline="\n") as fh:
+    fh.write(json.dumps(create_app(autostart_loop=False).openapi(), ensure_ascii=False, indent=1))
+# ASCII-вывод: консоль Windows с cp1251 не печатает «→» и роняет скрипт
+print(f"OpenAPI -> {out}")

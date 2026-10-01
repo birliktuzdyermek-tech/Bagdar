@@ -1,0 +1,12 @@
+.git
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+frontend/node_modules
+frontend/dist
+frontend/*.tsbuildinfo
+backend/.venv
+work
+
+showcase/node_modules
+showcase/dist
