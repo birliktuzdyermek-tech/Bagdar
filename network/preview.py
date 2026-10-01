@@ -42,7 +42,7 @@ def make_svg(single: dict, double: dict) -> str:
                 parts.append(_text(x, y + (29 if row == 0 else 28), label, size=14))
                 parts.append(_text(x, y + (46 if row == 0 else 45), f"{station['km']:g} км", size=12, fill="#a7b4c8"))
     parts.extend([_text(55, 594, "Схема по открытым данным. Движение смоделировано. Позиции промежуточных пунктов на схеме интерполированы.", size=14, fill="#c3c2b7", anchor="start"),
-                  _text(55, 616, "836 км — отдельная проектная длина второго пути; 12→60 пар/сутки — проектная способность, не измеренный поток.", size=13, fill="#c3c2b7", anchor="start"),
+                  _text(55, 616, "836 км — отдельная проектная длина второго пути; увеличится с 12 до 60 пар грузовых в сутки (проект), не измеренный поток.", size=13, fill="#c3c2b7", anchor="start"),
                   '</svg>'])
     return "\n".join(parts) + "\n"
 

@@ -104,5 +104,5 @@
 <text x="1520.0" y="414.2" text-anchor="middle" fill="#e8f0fb" font-size="14" font-family="Arial, sans-serif">Мойынты</text>
 <text x="1520.0" y="431.2" text-anchor="middle" fill="#a7b4c8" font-size="12" font-family="Arial, sans-serif">834 км</text>
 <text x="55.0" y="594.0" text-anchor="start" fill="#c3c2b7" font-size="14" font-family="Arial, sans-serif">Схема по открытым данным. Движение смоделировано. Позиции промежуточных пунктов на схеме интерполированы.</text>
-<text x="55.0" y="616.0" text-anchor="start" fill="#c3c2b7" font-size="13" font-family="Arial, sans-serif">836 км — отдельная проектная длина второго пути; 12→60 пар/сутки — проектная способность, не измеренный поток.</text>
+<text x="55.0" y="616.0" text-anchor="start" fill="#c3c2b7" font-size="13" font-family="Arial, sans-serif">836 км — отдельная проектная длина второго пути; увеличится с 12 до 60 пар грузовых в сутки (проект), не измеренный поток.</text>
 </svg>
