@@ -60,3 +60,23 @@ def test_stream_initial_and_resume(client):
     assert [m["type"] for m in msgs] == ["hello", "events", "decisions", "state"], "мир не пересылается повторно"
     assert msgs[1]["reset"] is False
     assert all(e["seq"] > state["seq"] for e in msgs[1]["events"])
+
+
+def test_stage3_endpoints(client):
+    client.post("/api/sim/load", json={"scenario_id": "normal"})
+    client.post("/api/sim/control", json={"action": "step", "step_s": 900})
+    idx = S.IndexHistoryOut.model_validate(client.get("/api/index").json())
+    assert idx.current is not None and 0 <= (idx.current.value or 0) <= 100 and idx.history
+    tr = S.TracesOut.model_validate(client.get("/api/traces?since=0").json())
+    assert tr.traces and all(len(p) == 2 for t in tr.traces for p in t.points)
+    occ = S.OccupancyOut.model_validate(client.get("/api/occupancy?which=current").json())
+    assert {b.source for b in occ.items} == {"fact", "plan"}
+    S.OccupancyOut.model_validate(client.get("/api/occupancy?which=previous").json())
+    S.PlanOut.model_validate(client.get("/api/plan?which=projected").json())
+    st = S.StateOut.model_validate(client.get("/api/state").json())
+    assert st.index is not None and st.planner.recovery is not None
+    off = client.post("/api/autonomy", json={"full_auto": False}).json()
+    assert off["full_auto"] is False and client.get("/api/state").json()["planner"]["full_auto"] is False
+    assert client.post("/api/autonomy", json={"full_auto": True}).json()["full_auto"] is True
+    r = client.post("/api/decisions/d-9999-9/action", json={"action": "cancel"})
+    assert r.status_code == 409

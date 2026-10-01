@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { Scenario } from "../api/types";
+import { focusMostImportant } from "../lib/focus";
 import { useSim } from "../store/sim";
 
 const SPEEDS = [1, 2, 5, 10, 30, 60, 100];
@@ -12,6 +13,7 @@ export function Toolbar({ theme, onTheme }: { theme: string; onTheme: () => void
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [seed, setSeed] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [focusMsg, setFocusMsg] = useState<string | null>(null);
 
   useEffect(() => {
     api.scenarios().then(setScenarios).catch((e) => setError(String(e.message ?? e)));
@@ -45,6 +47,8 @@ export function Toolbar({ theme, onTheme }: { theme: string; onTheme: () => void
         toggle();
       } else if (e.code === "ArrowRight") {
         step();
+      } else if (e.code === "KeyF") {
+        setFocusMsg(focusMostImportant());
       } else if (e.code === "Escape") {
         useSim.getState().selectTrain(null);
         useSim.getState().selectStation(null);
@@ -85,6 +89,15 @@ export function Toolbar({ theme, onTheme }: { theme: string; onTheme: () => void
         title="Пересчитать план сейчас (обычно пересчёт запускается сам по событиям)">
         ⟳ Пересчитать план
       </button>
+      <button className="btn btn-focus" onClick={() => setFocusMsg(focusMostImportant())} disabled={!state}
+        title="Показать самое важное прямо сейчас: решение, которое ждёт выбора, тревогу или ближайший конфликт (клавиша F)">
+        ◎ Что важно сейчас
+      </button>
+      {focusMsg && (
+        <span className="chip focus-msg" role="status" onClick={() => setFocusMsg(null)} title={`${focusMsg} — нажмите, чтобы скрыть`}>
+          {focusMsg}
+        </span>
+      )}
       <div className="spacer" />
       <label className="field">
         Сценарий

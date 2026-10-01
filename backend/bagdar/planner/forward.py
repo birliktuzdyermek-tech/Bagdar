@@ -576,6 +576,16 @@ class PriorityPolicy(Policy):
             cost += stop_cost(self.cfg, ti.train.mass_t, li.v_cruise, li.uphill_after)
         return cost, before, after
 
+    @staticmethod
+    def unavoidable(ti: TrainIn, station_idx: int) -> float:
+        """Опоздание на отправлении со станции, которого не избежать даже без других поездов."""
+        sched = ti.train.schedule[station_idx]
+        ref = sched.dep if sched.dep is not None else sched.arr
+        e = ti.earliest_dep[station_idx] if station_idx < len(ti.earliest_dep) else None
+        if ref is None or e is None:
+            return 0.0
+        return max(0.0, e - ref)
+
     def j_should_yield(self, j: TrainIn, i: TrainIn, j_station: int, i_station: int, t_j: float, t_i: float,
                        wait_j: float, wait_i: float, j_through: bool, i_through: bool,
                        kj: int, ki: int) -> bool:
@@ -584,9 +594,12 @@ class PriorityPolicy(Policy):
         cj, bj, aj = self.wait_cost(j, j_station, t_j, wait_j, j_through, kj)
         ci, bi, ai = self.wait_cost(i, i_station, t_i, wait_i, i_through, ki)
         if self.cfg.pte_strict:
-            if i.rank < j.rank and ai > bi + i.tol:
+            # слой 2 — по накопленной задержке, как в CP-SAT: старший не может опоздать больше,
+            # чем неизбежно (по его самому раннему ходу без других поездов) плюс допуск.
+            # Сравнение с «до ожидания» пропускало серию скрещений по 3–4 мин каждое.
+            if i.rank < j.rank and ai > self.unavoidable(i, i_station) + i.tol:
                 return True
-            if j.rank < i.rank and aj > bj + j.tol:
+            if j.rank < i.rank and aj > self.unavoidable(j, j_station) + j.tol:
                 return False
         if abs(cj - ci) < 1e-6:
             return self.sort_key(None, i.id) < self.sort_key(None, j.id)  # type: ignore[arg-type]

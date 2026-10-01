@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { hhmm } from "../lib/format";
 import { classGroup, GROUP_COLOR } from "../lib/palette";
+import { useAlarms } from "../lib/alarms";
 import { useSim } from "../store/sim";
 
 const W = 560;
@@ -10,6 +11,7 @@ const TH = 52; // x центра горловины от края
 
 export function StationDetail() {
   const id = useSim((s) => s.selectedStation);
+  const alarms = useAlarms();
   const idx = useSim((s) => s.idx);
   const world = useSim((s) => s.world);
   const state = useSim((s) => s.state);
@@ -92,7 +94,7 @@ export function StationDetail() {
                 )}
                 {t.is_main && <line x1={TH + 12} x2={W - TH - 12} y1={y} y2={y} stroke="var(--track)" strokeWidth={2} />}
                 <line x1={xs} x2={xs + len} y1={y} y2={y}
-                  stroke={unavailable ? "var(--critical)" : res ? "var(--accent)" : "var(--track)"}
+                  stroke={unavailable ? (alarms.red.has(`track:${t.id}`) ? "var(--critical)" : "var(--serious)") : res ? "var(--accent)" : "var(--track)"}
                   strokeWidth={unavailable ? 4 : 3} strokeDasharray={res && !occ ? "5 3" : "none"} />
                 <text x={4} y={y + 4} textAnchor="start" fontSize={11} fill="var(--text-primary)">
                   {t.name}{t.is_main ? " гл." : ""}

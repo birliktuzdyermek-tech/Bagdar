@@ -12,6 +12,10 @@ import copy
 from bagdar.models.plan import Plan
 from bagdar.validator import validate_plan
 
+# отклонение до минуты поглощают запас времени хода (run_margin) и автоблокировка:
+# это не диспетчерский конфликт, и план из-за него не пересчитывается
+DEV_TOLERANCE_S = 60.0
+
 
 def deviations(engine, plan: Plan) -> dict[str, float]:
     """Насколько каждый поезд отстаёт от своего плана, с."""
@@ -47,15 +51,14 @@ def _any_entered(plan: Plan, v, entered) -> bool:
     return False
 
 
-def project_conflicts(engine, plan: Plan, horizon_s: float = 3600, limit: int = 12) -> tuple[list[dict], float]:
-    """Конфликты действующего плана с учётом отклонений в ближайшие horizon_s секунд."""
-    now = engine.t
-    dev = deviations(engine, plan)
+def shift_plan(engine, plan: Plan, dev: dict[str, float] | None = None) -> Plan:
+    """Действующий план, сдвинутый на текущие отклонения: что будет, если не перепланировать."""
+    dev = deviations(engine, plan) if dev is None else dev
     shifted = copy.copy(plan)
     shifted.legs = {}
     for tid, legs in plan.legs.items():
         d = max(0.0, dev.get(tid, 0.0))
-        if d < 1:
+        if d < DEV_TOLERANCE_S:
             shifted.legs[tid] = legs
             continue
         out = []
@@ -67,6 +70,14 @@ def project_conflicts(engine, plan: Plan, horizon_s: float = 3600, limit: int = 
                 nl.dep, nl.arr = lg.dep + d, lg.arr + d
             out.append(nl)
         shifted.legs[tid] = out
+    return shifted
+
+
+def project_conflicts(engine, plan: Plan, horizon_s: float = 3600, limit: int = 12) -> tuple[list[dict], float, Plan]:
+    """Конфликты действующего плана с учётом отклонений в ближайшие horizon_s секунд."""
+    now = engine.t
+    dev = deviations(engine, plan)
+    shifted = shift_plan(engine, plan, dev)
     trains = engine.trains
     # пары, где хотя бы один поезд уже вошёл на перегон, разрешит блокировка (второй подождёт) —
     # это задержка, а не будущий конфликт; оставляем только пары ещё не начатых плеч
@@ -87,4 +98,4 @@ def project_conflicts(engine, plan: Plan, horizon_s: float = 3600, limit: int = 
         if len(res) >= limit:
             break
     worst = max([d for d in dev.values()] or [0.0])
-    return res, worst
+    return res, worst, shifted

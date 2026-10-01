@@ -29,8 +29,13 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 | GET | `/api/health` | Живость сервиса |
 | GET | `/api/world` | Инфраструктура и поезда с исходным расписанием (`WorldOut`) |
 | GET | `/api/state` | Текущее состояние (`StateOut`) |
-| GET | `/api/plan?which=current\|previous` | Действующий или предыдущий план (`PlanOut`) |
+| GET | `/api/plan?which=current\|previous\|projected` | Действующий, предыдущий или прогнозный план: действующий, сдвинутый на текущие отклонения (`PlanOut`) |
 | GET | `/api/decisions?since=&limit=` | Карточки решений (`DecisionCardOut`) |
+| POST | `/api/decisions/{id}/action` | `{action: cancel\|choose, variant_id?}` — отменить B, выбрать вариант C; 409 — окно закрыто, поезд уже на перегоне, вариант недопустим |
+| POST | `/api/autonomy` | `{full_auto: bool}` — переключатель «полный авто» |
+| GET | `/api/index?since=` | Индекс: текущий, прогноз по плану на час, история (`IndexHistoryOut`) |
+| GET | `/api/traces?since=` | Факт движения для графика: точки `[t, км]` по поездам (`TracesOut`) |
+| GET | `/api/occupancy?which=current\|previous&t_from=&t_to=` | Занятость путей и перегонов для Ганта: факт до текущего момента, дальше план; `changed` — отличается в другом плане (`OccupancyOut`) |
 | GET | `/api/planner` | Статус планировщика и история пересчётов: время, решатель, кандидаты, J |
 | POST | `/api/plan/replan` | Пересчитать план сейчас |
 | POST | `/api/events` | Внешнее событие: `{type: "train_delay", train_id, minutes}` |
@@ -54,9 +59,13 @@ cd frontend && npm run gen:types                  # → src/api/schema.d.ts
 2. `world {world}` — только если `world_version` клиента устарела.
 3. `events {reset, events[]}` — если `run_id` совпадает, только пропущенные после
    `last_seq` (`reset=false`); иначе последние события с `reset=true`.
-4. `decisions {reset, cards[]}` — последние карточки решений.
-5. `state {...}` — полный снимок динамики, включая `planner` (версия плана, решатель, статус,
-   время пересчёта, число прогнозных конфликтов) и `conflicts[]` (прогноз на час).
+4. `decisions {reset, cards[]}` — последние карточки решений. Карточка с уже известным `id`
+   приходит повторно, когда меняется её статус (отменена, выбран вариант, истекла): клиент
+   заменяет её на месте.
+5. `state {...}` — полный снимок динамики, включая `planner` (версия и применённая версия плана,
+   решатель, статус, время пересчёта, число прогнозных конфликтов, открытые окна отмены и
+   выбора `actions[]`, «полный авто», прогноз восстановления `recovery`, прогноз индекса
+   `forecast`), `conflicts[]` (прогноз на час) и `index` (индекс с факторами и причинами).
 
 Дальше `state` идёт с частотой `sim.broadcast_hz` (10 Гц в лёгком режиме), пока
 симуляция идёт или что-то изменилось, `events` и `decisions` — сразу по мере появления. При загрузке
@@ -100,7 +109,19 @@ PlanOut       version, created_at, solver(cpsat|greedy|repair|hold), status(feas
 DecisionCardOut id, plan_version, t, type(crossing|overtake|track|no_plan), level(A|B|C),
               station_id, section_id, trains[], action, reason, alternative,
               cost_plan, cost_alt, delta_cost, delta_money, alt_pte_violations, alt_feasible,
-              wait_min, effects[], status, full_auto, note
+              wait_min, effects[], note, full_auto,
+              impact{delay_min, energy_kwh, track_load_pct, idle_pct — *_plan и *_alt},
+              index_before (прогноз с альтернативой), index_after (с решением),
+              status(applied|pending|proposed|cancelled|chosen|expired|superseded),
+              can_cancel, can_choose, variants[{id,title,solver,valid,J,delta_money,
+              late_pax,pte_violations,note}], chosen_variant, choice_card, outcome
+
+IndexOut      t, value(0–100|null), status(norm|warning|critical|no_data), status_label,
+              factors[{key,label,weight,weight_eff,score|null,available,value_text,note,lost}],
+              reasons[], missing[]
+
+OccupancyOut  which, plan_version, t, items[{resource,train_id,t0,t1,
+              kind(stand|pass|section|hold),source(fact|plan),changed}]
 
 EventOut      seq, t, kind, severity(debug|info|warn|critical), message,
               train_id?, station_id?, section_id?, data{}

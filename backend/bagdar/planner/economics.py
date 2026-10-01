@@ -3,7 +3,8 @@
 J = Σ w_i · опоздание_i                     (ущерб от задержек, у.е./мин)
   + c_stop · Σ E_stop_i                      (энергия неплановых остановок, E = m·v²/2)
   + c_idle · Σ простой_i                     (локомотив и бригада стоят сверх плана)
-  + c_change · число_изменений               (стабильность плана)
+  + c_change · число_изменений               (стабильность плана: порядок и пути)
+  + c_shift · Σ |сдвиг отправления|          (стабильность плана: времена, у.е./мин)
 
 Опоздание считается в последней точке плана на горизонте и, для
 пассажирских, в каждой плановой остановке (с коэффициентом 0,3).
@@ -69,6 +70,7 @@ class TrainCost:
     stops: float = 0.0
     idle: float = 0.0
     unplanned_stops: int = 0
+    stop_kwh: float = 0.0
 
 
 @dataclass
@@ -79,6 +81,7 @@ class CostBreakdown:
     idle: float = 0.0
     changes: float = 0.0
     n_changes: int = 0
+    shift_min: float = 0.0
     pte_excess_s: float = 0.0
     pte_violations: list[tuple[str, str, str, float]] = field(default_factory=list)
     extra_violations: list[tuple[str, str, str]] = field(default_factory=list)
@@ -93,6 +96,7 @@ class CostBreakdown:
     def as_dict(self) -> dict[str, float]:
         return {"total": round(self.total, 1), "delay": round(self.delay, 1), "stops": round(self.stops, 1),
                 "idle": round(self.idle, 1), "changes": round(self.changes, 1), "n_changes": self.n_changes,
+                "shift_min": round(self.shift_min, 1),
                 "pte_violations": len(self.pte_violations), "pte_excess_min": round(self.pte_excess_s / 60, 1)}
 
 
@@ -119,6 +123,7 @@ def plan_cost(inp: "PlanningInput", plan: Plan) -> CostBreakdown:
             li = ti.legs[lg.k]
             if lg.stop and not li.planned_stop_next:
                 tc.stops += stop_cost(cfg, ti.train.mass_t, li.v_cruise, li.uphill_after)
+                tc.stop_kwh += stop_energy_kwh(ti.train.mass_t, li.v_cruise)
                 tc.unplanned_stops += 1
             if li.pax_stop_next and li.sched_arr_next is not None and i < len(legs) - 1:
                 tc.delay += PAX_STOP_FACTOR * ti.w * max(0.0, lg.arr - li.sched_arr_next) / 60
@@ -148,7 +153,8 @@ def plan_cost(inp: "PlanningInput", plan: Plan) -> CostBreakdown:
         out.idle += tc.idle
     if inp.prev_plan is not None:
         out.n_changes = count_changes(inp, inp.prev_plan, plan)
-        out.changes = out.n_changes * cfg.cost.c_change
+        out.shift_min = shift_minutes(inp, inp.prev_plan, plan)
+        out.changes = out.n_changes * cfg.cost.c_change + out.shift_min * cfg.cost.c_shift
     out.total = out.delay + out.stops + out.idle + out.changes
     if cfg.pte_strict:
         _pte(inp, plan, out)
@@ -222,6 +228,19 @@ def section_sequences(plan: Plan, world, entered: frozenset[tuple[str, int]]) ->
     return seqs
 
 
+def shift_minutes(inp: "PlanningInput", old: Plan, new: Plan) -> float:
+    """Σ |сдвиг отправления| относительно прошлого плана по ещё не начатым плечам, мин."""
+    total = 0.0
+    for tid, legs in new.legs.items():
+        for lg in legs:
+            if (tid, lg.k) in inp.entered:
+                continue
+            o = old.leg(tid, lg.k)
+            if o is not None and o.dep >= inp.t0:
+                total += abs(lg.dep - o.dep)
+    return total / 60
+
+
 def count_changes(inp: "PlanningInput", old: Plan, new: Plan) -> int:
     """Число изменённых решений: перестановки пар на перегонах и смены пути приёма."""
     old_seq = section_sequences(old, inp.world, inp.entered)
@@ -243,3 +262,17 @@ def count_changes(inp: "PlanningInput", old: Plan, new: Plan) -> int:
             if o is not None and o.track_id != lg.track_id and (tid, lg.k) not in inp.entered:
                 n += 1
     return n
+
+
+def override_violations(inp: "PlanningInput", plan: Plan) -> list[str]:
+    """Нарушает ли план решения диспетчера (порядок пары на перегоне)."""
+    out = []
+    for pair, first in inp.overrides.items():
+        a, b = sorted(pair)
+        la, lb = plan.leg(*a), plan.leg(*b)
+        if la is None or lb is None or a in inp.entered or b in inp.entered:
+            continue
+        first_leg, second_leg = (la, lb) if first == a else (lb, la)
+        if second_leg.dep < first_leg.dep:
+            out.append(f"нарушено решение диспетчера: {first[0]} должен идти первым по {la.section_id}")
+    return out

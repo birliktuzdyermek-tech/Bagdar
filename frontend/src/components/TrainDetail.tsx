@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import { CARGO_LABEL, delayLabel, DISPLAY_LABEL, duration, hhmm, num } from "../lib/format";
 import { classGroup, GROUP_COLOR } from "../lib/palette";
 import { trainShape } from "../lib/geometry";
+import { useAlarms } from "../lib/alarms";
 import { useSim } from "../store/sim";
 
 export function TrainDetail() {
@@ -12,6 +13,7 @@ export function TrainDetail() {
   const state = useSim((s) => s.state);
   const selectStation = useSim((s) => s.selectStation);
   const setError = useSim((s) => s.setError);
+  const alarms = useAlarms();
   const [sent, setSent] = useState<string | null>(null);
 
   const tr = id && idx ? idx.trains.get(id) : undefined;
@@ -30,7 +32,9 @@ export function TrainDetail() {
   const group = classGroup(tr.cls);
   const st = (sid: string | null | undefined) => (sid ? idx.stations.get(sid)?.name ?? sid : "—");
   const delay = ts?.delay_s ?? 0;
-  const delayBadge = delay < 60 ? "badge-good" : delay < tol ? "badge-warning" : "badge-critical";
+  // красный — только если поезд в бюджете трёх самых дорогих тревог
+  const delayBadge = delay < 60 ? "badge-good" : delay < tol ? "badge-warning"
+    : alarms.red.has(`train:${tr.id}`) ? "badge-critical" : "badge-serious";
   const crewLeft = ts?.crew_left_s ?? (tr.crew_shift_end ?? 0) - (state?.t ?? 0);
   const where = ts
     ? ts.section_id

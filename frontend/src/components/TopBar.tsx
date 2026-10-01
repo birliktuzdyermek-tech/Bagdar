@@ -1,23 +1,48 @@
-import { useMemo } from "react";
-import { computeAlarms, RED_BUDGET } from "../lib/alarms";
+import { INDEX_STATUS } from "../charts/IndexPanel";
+import { RED_BUDGET, useAlarms } from "../lib/alarms";
 import { clock, minutes, simDate } from "../lib/format";
 import { useSim } from "../store/sim";
 
 const MODE_LABEL: Record<string, string> = { light: "Лёгкий · Участок", medium: "Средний · Регион", ultra: "Ультра · Сеть" };
 
+function Recovery() {
+  const rec = useSim((s) => s.state?.planner.recovery);
+  const t = useSim((s) => s.state?.t ?? 0);
+  if (!rec) return null;
+  let text = "график в норме";
+  let title = "Ни один поезд по плану не выходит за допуск по опозданию";
+  if (rec.affected > 0) {
+    const parts: string[] = [];
+    if (rec.recovery_at != null) parts.push(`через ${Math.max(1, Math.round((rec.recovery_at - t) / 60))} мин`);
+    if (rec.beyond_horizon > 0) parts.push(`${rec.beyond_horizon} п. за горизонтом`);
+    text = parts.join(", ") || "—";
+    title = `По действующему плану за допуск выходят ${rec.affected} поезд(ов); вне допуска сейчас: ${rec.late_now}. `
+      + "Время — когда восстановятся те, кто восстанавливается на горизонте 3 ч.";
+  }
+  return (
+    <div className="kpi" title={title}>
+      <span className="kpi-label">Восстановление{rec.affected > 0 ? ` · задето ${rec.affected}` : ""}</span>
+      <span className="kpi-value kpi-small">{text}</span>
+    </div>
+  );
+}
+
 export function TopBar() {
   const world = useSim((s) => s.world);
-  const idx = useSim((s) => s.idx);
   const state = useSim((s) => s.state);
   const conn = useSim((s) => s.conn);
-  const alarms = useMemo(() => computeAlarms(world, idx, state), [world, idx, state]);
+  const alarms = useAlarms();
   const m = state?.metrics;
   const extra = Math.max(0, alarms.all.length - RED_BUDGET);
+  const index = state?.index;
+  const ist = index ? INDEX_STATUS[index.status] : INDEX_STATUS.no_data;
+  const indexCls = index?.status === "critical" && !alarms.red.has("index") ? "badge-serious" : ist.cls;
 
   return (
     <header className="topbar">
-      <div className="brand">
+      <div className="brand brand-col">
         <span className="brand-name">БАҒДАР</span>
+        <span className="brand-sub" title="Режим моделирования">{world ? MODE_LABEL[world.mode] ?? world.mode : "—"}</span>
       </div>
       <div className="clock" aria-live="off">
         <span className="clock-time">{state ? clock(state.t) : "--:--:--"}</span>
@@ -26,7 +51,13 @@ export function TopBar() {
           {state ? (state.running ? `идёт ×${state.speed}` : "пауза") : "нет данных"}
         </span>
       </div>
-      <span className="chip chip-strong" title="Режим моделирования">{world ? MODE_LABEL[world.mode] ?? world.mode : "—"}</span>
+      <div className="top-index" title={index?.reasons.join("\n") || "Индекс эффективности участка, 0–100"}>
+        <span className="kpi-label">Индекс</span>
+        <span className="top-index-row">
+          <span className="top-index-value">{index?.value != null ? Math.round(index.value) : "—"}</span>
+          <span className={`badge ${indexCls}`}><span aria-hidden>{ist.icon}</span> {index?.status_label ?? "нет данных"}</span>
+        </span>
+      </div>
       <div className="kpis">
         <div className="kpi">
           <span className="kpi-label">Поездов на участке</span>
@@ -36,21 +67,10 @@ export function TopBar() {
           <span className="kpi-label">Средняя задержка</span>
           <span className="kpi-value">{m ? `${minutes(m.avg_delay_s)} мин` : "—"}</span>
         </div>
-        <div className="kpi">
-          <span className="kpi-label">Максимальная</span>
-          <span className="kpi-value">{m ? `${minutes(m.max_delay_s, 0)} мин` : "—"}</span>
-        </div>
-        <div className="kpi">
-          <span className="kpi-label">В допуске</span>
-          <span className="kpi-value">{m ? `${Math.round(m.on_time_share * 100)} %` : "—"}</span>
-        </div>
-        <div className="kpi">
-          <span className="kpi-label">Ожидают</span>
-          <span className="kpi-value">{m?.waiting_trains ?? "—"}</span>
-        </div>
         <div className="kpi" title="Конфликты на ближайший час, если ничего не перепланировать. Найденный конфликт запускает пересчёт.">
           <span className="kpi-label">Конфликты (прогноз)</span>
-          <span className="kpi-value" style={{ color: state && state.planner.conflicts > 0 ? "var(--warning)" : undefined }}>
+          <span className="kpi-value">
+            {state && state.planner.conflicts > 0 && <span className="warn-mark" aria-hidden>▲ </span>}
             {state ? state.planner.conflicts : "—"}
           </span>
         </div>
@@ -61,7 +81,9 @@ export function TopBar() {
               ? `${(state.planner.compute_ms / 1000).toFixed(1).replace(".", ",")} с` : "—"}
           </span>
         </div>
-        <div className="kpi" title="Проблемы, отсортированные по цене. Красными показываются только три самых дорогих.">
+        <Recovery />
+        <div className="kpi" title={"Проблемы, отсортированные по цене. Красными показываются только три самых дорогих.\n"
+          + alarms.all.slice(0, 8).map((a) => `• ${a.label}`).join("\n")}>
           <span className="kpi-label">Проблемы</span>
           <span className="kpi-value">
             {alarms.all.length}
@@ -70,15 +92,12 @@ export function TopBar() {
         </div>
       </div>
       <div className="spacer" />
-      {state && state.planner.version > 0 && (
-        <span className="chip chip-strong" title={state.planner.reason ?? ""}>
-          План v{state.planner.version} · {state.planner.solver === "cpsat" ? "CP-SAT" : state.planner.solver === "hold" ? "удержание" : "эвристика"}
-          {state.planner.status === "infeasible" && <span className="badge badge-critical">не найден</span>}
-        </span>
+      {state?.planner.awaiting_choice && (
+        <span className="badge badge-warning" title="План ждёт выбора диспетчера по карточке C">C · ждёт выбора</span>
       )}
       <span className="chip" role="status" aria-live="polite">
         <span className="dot" style={{ background: conn === "open" ? "var(--good)" : conn === "connecting" ? "var(--warning)" : "var(--critical)" }} />
-        {conn === "open" ? "связь есть" : conn === "connecting" ? "подключение…" : "нет связи"}
+        {conn === "open" ? "связь" : conn === "connecting" ? "подключение…" : "нет связи"}
       </span>
       <span className="chip chip-disclaimer" title="Не управляет реальными сигналами, стрелками и поездами и не заменяет СЦБ. Данные синтетические, веса и цены условные.">
         ⓘ Консультативный прототип — не система управления движением

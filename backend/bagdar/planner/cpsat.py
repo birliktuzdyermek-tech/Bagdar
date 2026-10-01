@@ -383,6 +383,9 @@ def solve_cpsat(inp: PlanningInput, ref: Plan | None, time_limit_s: float, worke
                     fixed = False
                 elif p.entered and q.entered:
                     fixed = p.ref_dep <= q.ref_dep
+                elif frozenset(((p.tid, p.k), (q.tid, q.k))) in inp.overrides:
+                    # решение диспетчера (отмена B или выбор варианта C) — закон для планировщика
+                    fixed = inp.overrides[frozenset(((p.tid, p.k), (q.tid, q.k)))] == (p.tid, p.k)
                 elif tp.extra != tq.extra:
                     fixed = None               # слой 1 решается штрафом EXTRA_PENALTY (см. ниже)
                 elif prev is not None and (p.tid, p.k) in prev_order and (q.tid, q.k) in prev_order and \
@@ -442,6 +445,19 @@ def solve_cpsat(inp: PlanningInput, ref: Plan | None, time_limit_s: float, worke
                     if (p.tid, p.k) in prev_order and (q.tid, q.k) in prev_order:
                         was = prev_order[(p.tid, p.k)] <= prev_order[(q.tid, q.k)]
                         obj.append((1 - b if was else b) * change_coef)
+    # сдвиг отправления относительно прошлого плана: без причины план не «дёргается»
+    shift_coef = int(round(C * cfg.cost.c_shift / 60))
+    if inp.prev_plan is not None and shift_coef > 0:
+        for L in legs.values():
+            if L.started or L.entered or isinstance(L.dep, int):
+                continue
+            pl = inp.prev_plan.leg(L.tid, L.k)
+            if pl is None or pl.dep < T0:
+                continue
+            dev = m.new_int_var(0, DOM + 48 * 3600, f"sh_{L.tid}_{L.k}")
+            m.add(dev >= L.dep - rel(pl.dep))
+            m.add(dev >= rel(pl.dep) - L.dep)
+            obj.append(dev * shift_coef)
     # смена пути приёма относительно прошлого плана
     if inp.prev_plan is not None:
         for L in legs.values():

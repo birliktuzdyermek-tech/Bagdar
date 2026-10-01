@@ -3,7 +3,8 @@ import { clock } from "../lib/format";
 import { useSim } from "../store/sim";
 
 const ICON: Record<string, { ch: string; color: string; label: string }> = {
-  critical: { ch: "■", color: "var(--critical)", label: "критично" },
+  // в ленте — история, не текущие тревоги: красный остаётся для трёх самых дорогих проблем на экране
+  critical: { ch: "■", color: "var(--serious)", label: "критично" },
   warn: { ch: "▲", color: "var(--warning)", label: "внимание" },
   info: { ch: "●", color: "var(--accent)", label: "информация" },
   debug: { ch: "·", color: "var(--text-muted)", label: "движение" },

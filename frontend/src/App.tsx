@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { connectStream, disconnectStream } from "./api/stream";
+import { IndexPanel } from "./charts/IndexPanel";
 import { DecisionsPanel } from "./components/DecisionsPanel";
 import { EventFeed } from "./components/EventFeed";
 import { LineScheme, SchemeLegend } from "./components/LineScheme";
@@ -7,6 +8,8 @@ import { StationDetail } from "./components/StationDetail";
 import { Toolbar } from "./components/Toolbar";
 import { TopBar } from "./components/TopBar";
 import { TrainDetail } from "./components/TrainDetail";
+import { ViewsCard } from "./components/ViewsCard";
+import { usePlanSync } from "./store/plans";
 import { useSim } from "./store/sim";
 
 function PerfChip() {
@@ -34,6 +37,7 @@ export default function App() {
   const error = useSim((s) => s.error);
   const setError = useSim((s) => s.setError);
 
+  usePlanSync();
   useEffect(() => {
     connectStream();
     return () => disconnectStream();
@@ -53,7 +57,7 @@ export default function App() {
       <Toolbar theme={theme} onTheme={() => setTheme(theme === "dark" ? "light" : "dark")} />
       <main className="main">
         {conn === "closed" && (
-          <div className="banner" style={{ gridColumn: "1 / -1", borderRadius: 8 }} role="alert">
+          <div className="banner main-banner" role="alert">
             Нет связи с сервером симуляции — переподключение…
           </div>
         )}
@@ -70,10 +74,16 @@ export default function App() {
           <LineScheme />
           <SchemeLegend />
         </section>
-        <DecisionsPanel />
-        <TrainDetail />
-        <StationDetail />
-        <EventFeed />
+        <ViewsCard />
+        <div className="bottom-row">
+          <TrainDetail />
+          <StationDetail />
+          <EventFeed />
+        </div>
+        <aside className="side">
+          <IndexPanel />
+          <DecisionsPanel />
+        </aside>
       </main>
       {error && (
         <div className="error-toast" role="alert">

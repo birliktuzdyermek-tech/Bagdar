@@ -23,10 +23,12 @@ from bagdar.core.rules import TimingRules
 from bagdar.generator.timetable import TimetableBuilder
 from bagdar.generator.trains_gen import TrafficParams, generate_traffic
 from bagdar.generator.world_gen import CorridorParams, generate_world
+from bagdar.index import IndexTracker
 from bagdar.models.plan import Plan
 from bagdar.models.train import Train
 from bagdar.models.world import World
-from bagdar.planner.runner import PlannerRunner
+from bagdar.planner.occupancy import fact_occupancy, plan_occupancy
+from bagdar.planner.runner import ActionError, PlannerRunner
 from bagdar.scenarios import Scenario
 from bagdar.sim.engine import Engine
 from bagdar.sim.events import SimEvent
@@ -76,6 +78,7 @@ class SimulationRuntime:
         self.perf = {"step_us": 0.0, "tick_ms": 0.0, "steps_per_s": 0.0, "load_ms": 0.0}
         self._world_payload: dict | None = None
         self.planner = PlannerRunner(self, sync=planner_sync)
+        self.index = IndexTracker(cfg)
 
     # ------------------------------------------------------------ загрузка мира
     def load(self, scenario_id: str | None = None, seed: int | None = None) -> None:
@@ -109,6 +112,8 @@ class SimulationRuntime:
         log.info("load scenario=%s seed=%s trains=%d dropped=%d build_ms=%.0f total_ms=%.0f",
                  sc.id, seed, len(tt.trains), len(tt.dropped), tt.build_ms, self.perf["load_ms"])
         self.planner.reset(tt.plan)
+        self.index.reset(self.engine)
+        self.index.update([])
         self._flush_events()
         self._broadcast({"type": "world", "world": self.world_payload()})
         self._broadcast({"type": "events", "reset": True, "events": [ev.to_dict()]})
@@ -133,6 +138,7 @@ class SimulationRuntime:
             seconds = step_s if step_s is not None else 60.0
             self._advance_steps(max(1, int(round(seconds / self.engine.dt))))
             self.planner.tick()
+            self.index.update(self.planner.conflicts)
         elif action == "reset":
             self.load(self.scenario.id if self.scenario else None, self.engine.seed)
             return
@@ -183,6 +189,8 @@ class SimulationRuntime:
                     self._advance_steps(steps)
                     self.perf["steps_per_s"] = round(steps / max(real_dt, 1e-3), 1)
             self.planner.tick()
+            self.planner.advance_windows(real_dt if self.running else 0.0)
+            self.index.update(self.planner.conflicts)
             self._flush_events()
             hz = self.cfg.sim.broadcast_hz
             if (self.running or self._dirty) and now >= next_state:
@@ -196,6 +204,8 @@ class SimulationRuntime:
             self.engine.step()
             if self.planner.sync:
                 self.planner.tick()
+                if self.engine.t >= self.index.next_sample:
+                    self.index.update(self.planner.conflicts)
         el = time.perf_counter() - t0
         self.perf["step_us"] = round(el / steps * 1e6, 1)
         self.perf["tick_ms"] = round(el * 1000, 2)
@@ -216,7 +226,51 @@ class SimulationRuntime:
                            world_version=self.world_version, perf=dict(self.perf))
         st["planner"] = self.planner.summary()
         st["conflicts"] = list(self.planner.conflicts)
+        st["index"] = self.index.current
         return st
+
+    # ------------------------------------------------------- график и Гант
+    def traces_since(self, since: float) -> dict:
+        assert self.engine is not None
+        eng = self.engine
+        out = []
+        for tid in eng.order:
+            pts = [[p[0], p[1]] for p in eng.rt[tid].trace if p[0] > since]
+            if pts:
+                out.append({"train_id": tid, "points": pts})
+        return {"t": round(eng.t, 1), "traces": out}
+
+    def occupancy(self, which: str, t_from: float | None, t_to: float | None) -> dict:
+        """Занятость путей и перегонов: факт до текущего момента, дальше — план (действующий или предыдущий)."""
+        assert self.engine is not None
+        eng = self.engine
+        now = eng.t
+        t_from = now - 1800 if t_from is None else t_from
+        t_to = now + 9000 if t_to is None else t_to
+        plan = self.planner.current if which == "current" else self.planner.previous
+        other = self.planner.previous if which == "current" else self.planner.current
+        items = [{"resource": b.resource, "train_id": b.train_id, "t0": round(max(b.t0, t_from), 1),
+                  "t1": round(min(b.t1, now), 1), "kind": b.kind, "source": "fact", "changed": False}
+                 for b in fact_occupancy(eng, t_from) if b.t0 < now]
+        if plan is not None:
+            trains = eng.trains
+            ref: dict[tuple[str, str], list] = {}
+            if other is not None:
+                for o in plan_occupancy(eng.world, trains, other, eng.rules):
+                    ref.setdefault((o.resource, o.train_id), []).append(o)
+            for b in plan_occupancy(eng.world, trains, plan, eng.rules):
+                if b.t1 <= now or b.t0 >= t_to:
+                    continue
+                changed = other is not None and not any(
+                    abs(o.t0 - b.t0) < 120 and abs(o.t1 - b.t1) < 120 for o in ref.get((b.resource, b.train_id), []))
+                items.append({"resource": b.resource, "train_id": b.train_id, "t0": round(max(b.t0, now), 1),
+                              "t1": round(min(b.t1, t_to), 1), "kind": b.kind, "source": "plan", "changed": changed})
+        return {"which": which, "plan_version": None if plan is None else plan.version, "t": round(now, 1),
+                "items": items}
+
+    def index_payload(self, since: float | None) -> dict:
+        return {"current": self.index.current, "forecast": self.planner.forecast,
+                "history": self.index.history_since(since)}
 
     # ------------------------------------------------------------- внешние события
     def external_event(self, kind: str, params: dict) -> str:
@@ -241,6 +295,43 @@ class SimulationRuntime:
     def _mark_planner_update(self, res) -> None:
         self._dirty = True
         self._broadcast({"type": "decisions", "reset": False, "cards": res.cards})
+
+    def _cards_updated(self, cards: list[dict]) -> None:
+        self._dirty = True
+        self._broadcast({"type": "decisions", "reset": False, "cards": cards})
+
+    def _plan_changed(self) -> None:
+        self._dirty = True
+        self.index.update(self.planner.conflicts)
+        self._flush_events()
+
+    # ------------------------------------------------------------- действия диспетчера
+    def decision_action(self, card_id: str, action: str, variant_id: str | None = None) -> str:
+        assert self.engine is not None
+        try:
+            if action == "cancel":
+                msg = self.planner.cancel(card_id)
+            elif action == "choose":
+                if not variant_id:
+                    raise ActionError("Нужен variant_id")
+                msg = self.planner.choose(card_id, variant_id)
+            else:
+                raise ActionError(f"Неизвестное действие {action}")
+        finally:
+            self._flush_events()
+        self._broadcast_state()
+        return msg
+
+    def set_autonomy(self, full_auto: bool) -> dict:
+        assert self.engine is not None
+        if self.cfg.autonomy.full_auto != full_auto:
+            self.engine.emit("autonomy", "info", "Режим «полный авто» " + ("включён: A и B применяются сразу, "
+                             "C — лучшим вариантом" if full_auto else "выключен: решения C ждут выбора диспетчера"),
+                             data={"full_auto": full_auto})
+            self.planner.set_full_auto(full_auto)
+        self._flush_events()
+        self._broadcast_state()
+        return self.cfg.autonomy.model_dump()
 
     def events_since(self, seq: int, limit: int = 2000, min_severity: str = "debug") -> list[dict]:
         order = {"debug": 0, "info": 1, "warn": 2, "critical": 3}

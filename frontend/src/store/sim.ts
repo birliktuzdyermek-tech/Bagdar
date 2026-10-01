@@ -36,6 +36,7 @@ interface SimStore {
   selectedTrain: string | null;
   selectedStation: string | null;
   error: string | null;
+  focusSeq: number;
 
   setConn: (c: Conn) => void;
   setHello: (runId: string) => void;
@@ -46,6 +47,7 @@ interface SimStore {
   selectTrain: (id: string | null) => void;
   selectStation: (id: string | null) => void;
   setError: (e: string | null) => void;
+  bumpFocus: () => void;
 }
 
 export const useSim = create<SimStore>()((set, get) => ({
@@ -63,6 +65,7 @@ export const useSim = create<SimStore>()((set, get) => ({
   selectedTrain: null,
   selectedStation: null,
   error: null,
+  focusSeq: 0,
 
   setConn: (conn) => set({ conn }),
   setHello: (runId) => {
@@ -96,12 +99,22 @@ export const useSim = create<SimStore>()((set, get) => ({
     set({ events: trimmed, lastSeq });
   },
   pushCards: (cards, reset) => {
-    const base = reset ? [] : get().cards;
-    const seen = new Set(base.map((c) => c.id));
-    const merged = base.concat(cards.filter((c) => !seen.has(c.id)));
-    set({ cards: merged.slice(-200) });
+    // карточки обновляются на месте (статус, окно отмены), новые дописываются
+    const base = reset ? [] : get().cards.slice();
+    const pos = new Map(base.map((c, i) => [c.id, i]));
+    for (const c of cards) {
+      const i = pos.get(c.id);
+      if (i == null) {
+        pos.set(c.id, base.length);
+        base.push(c);
+      } else {
+        base[i] = c;
+      }
+    }
+    set({ cards: base.slice(-200) });
   },
   selectTrain: (id) => set({ selectedTrain: id }),
   selectStation: (id) => set({ selectedStation: id }),
   setError: (error) => set({ error }),
+  bumpFocus: () => set({ focusSeq: get().focusSeq + 1 }),
 }));

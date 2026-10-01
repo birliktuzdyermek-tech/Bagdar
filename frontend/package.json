@@ -11,6 +11,7 @@
     "gen:types": "openapi-typescript ../backend/openapi.json -o src/api/schema.d.ts"
   },
   "dependencies": {
+    "echarts": "6.1.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zustand": "5.0.15"

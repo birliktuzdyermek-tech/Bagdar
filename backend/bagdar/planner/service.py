@@ -17,13 +17,14 @@ from dataclasses import dataclass, field
 
 from bagdar.models.plan import Plan, PlanLeg, StartHold
 from bagdar.planner.cpsat import CpStats, solve_cpsat
-from bagdar.planner.decisions import build_cards
-from bagdar.planner.economics import CostBreakdown, plan_cost
+from bagdar.planner.decisions import CardCtx, build_cards
+from bagdar.planner.economics import CostBreakdown, override_violations, plan_cost
 from bagdar.planner.forward import ForwardResult, run_greedy, run_repair
 from bagdar.planner.inputs import PlanningInput
 from bagdar.validator import validate_plan
 
 log = logging.getLogger("bagdar.planner")
+RESERVE_S = 0.4   # запас бюджета после CP-SAT: проверка кандидатов и карточки решений
 
 
 @dataclass
@@ -46,6 +47,25 @@ class Candidate:
 
 
 @dataclass
+class Variant:
+    """Вариант решения уровня C: целый план со своей ценой."""
+    id: str
+    title: str
+    solver: str
+    plan: Plan
+    cost: CostBreakdown
+    valid: bool
+    late_pax: int = 0
+    note: str = ""
+
+    def public(self, best: CostBreakdown | None) -> dict:
+        return {"id": self.id, "title": self.title, "solver": self.solver, "valid": self.valid,
+                "J": round(self.cost.total, 1), "J_lex": round(self.cost.lex, 1),
+                "delta_money": None if best is None else round(self.cost.total - best.total, 1),
+                "pte_violations": len(self.cost.pte_violations), "late_pax": self.late_pax, "note": self.note}
+
+
+@dataclass
 class PlanResult:
     plan: Plan
     status: str                       # feasible | delayed | infeasible
@@ -58,6 +78,8 @@ class PlanResult:
     t0: float
     reason: str
     late_trains: list[str] = field(default_factory=list)
+    card_ctx: dict[str, CardCtx] = field(default_factory=dict)
+    variants: dict[str, list[Variant]] = field(default_factory=dict)
 
     def stats(self) -> dict:
         return {
@@ -79,8 +101,8 @@ class Planner:
         trains = {tid: ti.train for tid, ti in inp.trains.items()}
         blocked = [(sid, a, b) for sid, (a, b) in inp.closed_sections.items()]
         v = validate_plan(inp.world, trains, cand.plan, inp.rules, blocked=blocked, since=inp.t0)
-        cand.violations = [x.message for x in v]
-        cand.valid = not v and not cand.deadlock
+        cand.violations = [x.message for x in v] + override_violations(inp, cand.plan)
+        cand.valid = not cand.violations and not cand.deadlock
         cand.cost = plan_cost(inp, cand.plan)
         return cand
 
@@ -109,9 +131,9 @@ class Planner:
 
         t = time.perf_counter()
         # общий бюджет пересчёта — solver.time_limit_s: CP-SAT получает остаток после эвристик
-        # (минус запас на проверку и карточки)
+        # минус запас на проверку, карточки решений и их оценку (до ~150 мс на 5 карточек)
         spent = time.perf_counter() - t_all
-        limit = cfg.solver.time_limit_s if self.deterministic else max(0.4, cfg.solver.time_limit_s - spent - 0.25)
+        limit = cfg.solver.time_limit_s if self.deterministic else max(0.4, cfg.solver.time_limit_s - spent - RESERVE_S)
         cp_plan, cp = solve_cpsat(inp, ref, limit, workers=cfg.planner.workers, deterministic=self.deterministic,
                                   use_freeze=True)
         if cp_plan is None and cp.status in ("infeasible", "invalid"):
@@ -160,9 +182,19 @@ class Planner:
 
         t = time.perf_counter()
         cards: list[dict] = []
+        ctx: dict[str, CardCtx] = {}
+        variants: dict[str, list[Variant]] = {}
         if solver != "hold":
             try:
-                cards = build_cards(inp, inp.prev_plan, plan, version, cfg.planner.max_cards)
+                cards, ctx = build_cards(inp, inp.prev_plan, plan, version, cfg.planner.max_cards)
+                c_cards = [c for c in cards if c["level"] == "C"]
+                if c_cards:
+                    # варианты — целые планы, поэтому выбор один на пересчёт: в первой карточке C
+                    main = c_cards[0]
+                    variants[main["id"]] = self._variants(inp, c_cards, ctx, best, cands)
+                    main["variants"] = [v.public(cost) for v in variants[main["id"]]]
+                    for c in c_cards[1:]:
+                        c["choice_card"] = main["id"]
             except Exception:  # noqa: BLE001 — карточки не должны ронять планирование
                 log.exception("decision cards failed")
         else:
@@ -170,7 +202,42 @@ class Planner:
         timings["cards_ms"] = (time.perf_counter() - t) * 1000
         timings["total_ms"] = (time.perf_counter() - t_all) * 1000
         return PlanResult(plan=plan, status=status, solver=solver, cost=cost, candidates=cands, cp=cp,
-                          timings=timings, cards=cards, t0=inp.t0, reason=inp.reason, late_trains=late)
+                          timings=timings, cards=cards, t0=inp.t0, reason=inp.reason, late_trains=late,
+                          card_ctx=ctx, variants=variants)
+
+    def _late_pax(self, inp: PlanningInput, cost: CostBreakdown) -> int:
+        return sum(1 for tid, tc in cost.per_train.items()
+                   if inp.trains[tid].rank <= 3 and tc.lateness_end_s > inp.trains[tid].tol)
+
+    def _variants(self, inp: PlanningInput, c_cards: list[dict], ctx: dict[str, CardCtx], best: Candidate | None,
+                  cands: list[Candidate]) -> list[Variant]:
+        """2–3 варианта: рекомендация, прежний порядок спорной пары, другой допустимый план."""
+        out: list[Variant] = []
+        if best is not None and best.plan is not None and best.cost is not None:
+            out.append(Variant("v1", "Рекомендация Бағдара: " + c_cards[0]["action"], best.name, best.plan,
+                               best.cost, True, self._late_pax(inp, best.cost)))
+        for card in c_cards:
+            cx = ctx.get(card["id"])
+            if cx is None or cx.alt_plan is None or len(out) >= 2:
+                continue
+            alt = self._check(inp, Candidate(name="alt", plan=cx.alt_plan, ms=0.0))
+            if alt.cost is not None and alt.valid:
+                out.append(Variant(f"v{len(out) + 1}", "Прежний порядок: " + card["alternative"], "greedy",
+                                   cx.alt_plan, alt.cost, True, self._late_pax(inp, alt.cost)))
+        seen = [v.cost.total for v in out]
+        for c in cands:
+            if len(out) >= 3:
+                break
+            if not c.valid or c.cost is None or c.plan is None or (best is not None and c.name == best.name):
+                continue
+            if any(abs(c.cost.total - j) <= max(1.0, 0.01 * abs(j)) for j in seen):
+                continue
+            title = {"repair": "Сохранить прежний порядок всех поездов",
+                     "greedy": "Другой план: эвристика по классу и весу поездов",
+                     "cpsat": "Другой план: решатель CP-SAT"}.get(c.name, c.name)
+            out.append(Variant(f"v{len(out) + 1}", title, c.name, c.plan, c.cost, True, self._late_pax(inp, c.cost)))
+            seen.append(c.cost.total)
+        return out
 
     def _hold_plan(self, inp: PlanningInput) -> Plan:
         """План удержания: поезда на перегонах доходят до станции, остальные стоят."""
@@ -202,4 +269,5 @@ class Planner:
             "alternative": "Нет: любой порядок нарушает ограничения безопасности",
             "cost_plan": None, "cost_alt": None, "delta_cost": None, "alt_feasible": False, "wait_min": None,
             "effects": [], "index_before": None, "index_after": None, "status": "applied",
+            "impact": None, "variants": [],
         }

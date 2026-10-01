@@ -84,6 +84,8 @@ class PlanningInput:
     prev_plan: Plan | None
     entered: frozenset[tuple[str, int]]
     reason: str = ""
+    # решения диспетчера (отмена B, выбор C): пара плеч на перегоне → кто идёт первым
+    overrides: dict[frozenset, tuple[str, int]] = field(default_factory=dict)
 
     def fitting_tracks(self, station_id: str, length_m: int, keep: str | None = None) -> list[str]:
         st = self.world.stations[station_id]
@@ -135,7 +137,7 @@ def _legs_for(world: World, tr: Train, cfg: BagdarConfig, restrictions: dict[str
 
 
 def build_input(engine, cfg: BagdarConfig, prev_plan: Plan | None, reason: str = "",
-                extra_freeze_s: float = 0.0) -> PlanningInput:
+                extra_freeze_s: float = 0.0, overrides: dict | None = None) -> PlanningInput:
     """Снимок движка (bagdar.sim.engine.Engine) в момент engine.t.
 
     extra_freeze_s — сколько секунд модели пройдёт, пока план считается (при ускорении):
@@ -199,7 +201,8 @@ def build_input(engine, cfg: BagdarConfig, prev_plan: Plan | None, reason: str =
         t0=t0, horizon_end=t0 + cfg.solver.horizon_min * 60,
         freeze_until=t0 + max(cfg.solver.freeze_min * 60, extra_freeze_s),
         world=engine.world, rules=rules, cfg=cfg, trains=trains, unavailable_tracks=unavailable,
-        closed_sections=closed, prev_plan=prev_plan, entered=frozenset(engine.entered), reason=reason)
+        closed_sections=closed, prev_plan=prev_plan, entered=frozenset(engine.entered), reason=reason,
+        overrides=dict(overrides or {}))
 
 
 def _entry_time(engine, rt) -> float:

@@ -60,6 +60,7 @@ class CostConfig(BaseModel):
     c_energy: float = 0.1
     c_idle: float = 2
     c_change: float = 15
+    c_shift: float = Field(0.5, ge=0, description="у.е. за минуту сдвига отправления относительно прошлого плана")
 
 
 class SolverConfig(BaseModel):

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import math
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from bagdar.config import BagdarConfig
 from bagdar.core.kinematics import effective_accel, effective_vmax, stop_energy_kwh
@@ -56,6 +56,9 @@ class TrainRT:
     v_peak: float = 0.0
     entered_at: float | None = None  # когда вошёл на текущий перегон
     hold_extra: float = 0.0          # внешняя задержка: стоянка на ближайшей станции, с
+    idle_s: float = 0.0              # простой локомотива и бригады сверх графика, с
+    trace: list = field(default_factory=list)   # факт для графика движения: [(t, км)]
+    last_trace: float = -1e18
 
 
 class Engine:
@@ -81,6 +84,13 @@ class Engine:
         self.steps = 0
         self._cand: str | None = None
         self.hold_all = False
+        # факт для показателей и графиков
+        self.passages: list[float] = []          # моменты прибытия и проследования станций
+        self.idle_total_s = 0.0                  # Σ простоя сверх графика по всем поездам
+        self.active_total_s = 0.0                # Σ времени поездов на участке
+        self.occ: list[list] = []                # журнал занятости: [ресурс, поезд, t0, t1|None, вид]
+        self._occ_open: dict[tuple[str, str], int] = {}
+        self._km = {sid: st.km for sid, st in world.stations.items()}
         self._init_from_plan(start_time)
 
     # ------------------------------------------------------------------ события
@@ -158,6 +168,9 @@ class Engine:
             rt.v_peak = rt.v
             rt.v_target = rt.v
             rt.entered_at = leg.dep
+            self._trace(rt, leg.dep, self._km[leg.from_id])
+            self._trace(rt, t0)
+            self.occ_open(sec.id, tid, leg.dep, "section")
             self.il.enter_section(sec.id, leg.direction, tid, dep)
             if self.il.sections[sec.id].single:
                 rt.dest_track = leg.track_id
@@ -171,6 +184,35 @@ class Engine:
         rt.arrived_at = arrived
         rt.dwell_until = dwell_until
         self.il.occupy_track(track_id, rt.train.id)
+        self.occ_open(track_id, rt.train.id, arrived, "stand")
+        self._trace(rt, arrived)
+
+    # ------------------------------------------------------------- журнал факта
+    def occ_open(self, res: str, tid: str, t: float, kind: str) -> None:
+        key = (res, tid)
+        if key in self._occ_open:
+            return
+        self._occ_open[key] = len(self.occ)
+        self.occ.append([res, tid, t, None, kind])
+
+    def occ_close(self, res: str | None, tid: str, t: float) -> None:
+        if res is None:
+            return
+        i = self._occ_open.pop((res, tid), None)
+        if i is not None:
+            self.occ[i][3] = t
+
+    def km_of(self, rt: TrainRT) -> float:
+        tr = rt.train
+        if rt.status == "section":
+            sec = self.world.sections[tr.sections[rt.k]]
+            a, b = self._km[tr.route[rt.k]], self._km[tr.route[rt.k + 1]]
+            return a + (b - a) * min(1.0, max(0.0, rt.dist / sec.length_m))
+        return self._km[tr.route[rt.k]]
+
+    def _trace(self, rt: TrainRT, t: float, km: float | None = None) -> None:
+        rt.trace.append((round(t, 1), round(self.km_of(rt) if km is None else km, 3)))
+        rt.last_trace = t
 
     # ----------------------------------------------------------------- план и сбои
     def apply_plan(self, plan: Plan) -> None:
@@ -277,8 +319,32 @@ class Engine:
             rt = self.rt[tid]
             if rt.status == "section":
                 self._move(rt, now)
+        self._account(now)
         self.t = now + self.dt
         self.steps += 1
+
+    def _account(self, now: float) -> None:
+        """Учёт простоя: поезд стоит сверх графика (на станции после планового
+        отправления или у светофора на перегоне). Плюс точки факта для графика."""
+        dt = self.dt
+        for tid in self.order:
+            rt = self.rt[tid]
+            if rt.status == "section":
+                self.active_total_s += dt
+                if rt.v < 0.05:
+                    rt.idle_s += dt
+                    self.idle_total_s += dt
+                if now - rt.last_trace >= 30:
+                    self._trace(rt, now)
+            elif rt.status == "station":
+                tr = rt.train
+                if rt.k == len(tr.route) - 1:
+                    continue
+                self.active_total_s += dt
+                sd = tr.schedule[rt.k].dep
+                if now >= rt.dwell_until and (sd is None or now > sd):
+                    rt.idle_s += dt
+                    self.idle_total_s += dt
 
     def advance(self, seconds: float) -> int:
         n = max(0, int(round(seconds / self.dt)))
@@ -384,6 +450,9 @@ class Engine:
         self.il.open_signal(sec.id, d, now + self.rules.throat_s)
         if rt.track_id:
             self.il.release_track(rt.track_id, tr.id, now)
+        self.occ_close(rt.track_id, tr.id, now)
+        self.occ_open(sec.id, tr.id, now, "section")
+        self._trace(rt, now)
         rt.track_id = None
         rt.status = "section"
         rt.dist = 0.0
@@ -511,6 +580,13 @@ class Engine:
         sched = tr.schedule[nk]
         if sched.arr is not None:
             self._record_delay(rt, now - sched.arr)
+        self.passages.append(now)
+        self.occ_close(sec.id, tr.id, now)
+        if rt.dest_track:
+            occ_s = tr.length_m / max(rt.v, 5.0)
+            self.occ.append([rt.dest_track, tr.id, now - occ_s / 2, now + occ_s / 2, "pass"])
+        self.occ_open(nsec.id, tr.id, now, "section")
+        self._trace(rt, now, self._km[tr.route[nk]])
         self.emit("train_passed", "debug",
                   f"Поезд {tr.number} проследовал ст. {self.world.stations[tr.route[nk]].name}",
                   train_id=tr.id, station_id=tr.route[nk])
@@ -532,6 +608,9 @@ class Engine:
         trk = rt.dest_track
         assert trk is not None
         self.il.occupy_track(trk, tr.id)
+        self.occ_close(sec.id, tr.id, now)
+        self.occ_open(trk, tr.id, now, "stand")
+        self.passages.append(now)
         rt.status = "station"
         rt.k = nk
         rt.track_id = trk
@@ -541,6 +620,7 @@ class Engine:
         rt.v = 0.0
         rt.arrived_at = now
         rt.stops += 1
+        self._trace(rt, now)
         sched = tr.schedule[nk]
         if not sched.stop and nk != len(tr.route) - 1:
             # остановка, которой нет в расписании: теряется кинетическая энергия
@@ -572,6 +652,7 @@ class Engine:
         tr = rt.train
         if rt.track_id:
             self.il.release_track(rt.track_id, tr.id, now)
+        self.occ_close(rt.track_id, tr.id, now)
         rt.track_id = None
         rt.status = "finished"
         self.gone.add(tr.id)

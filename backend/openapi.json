@@ -74,7 +74,7 @@
     "tags": [
      "planner"
     ],
-    "summary": "Действующий или предыдущий план",
+    "summary": "Действующий, предыдущий или прогнозный план (действующий, сдвинутый на текущие отклонения)",
     "operationId": "get_plan_api_plan_get",
     "parameters": [
      {
@@ -83,7 +83,7 @@
       "required": false,
       "schema": {
        "type": "string",
-       "pattern": "^(current|previous)$",
+       "pattern": "^(current|previous|projected)$",
        "default": "current",
        "title": "Which"
       }
@@ -152,6 +152,270 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/DecisionsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/decisions/{card_id}/action": {
+   "post": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Действие диспетчера: отменить решение B или выбрать вариант C",
+    "operationId": "decision_action_api_decisions__card_id__action_post",
+    "parameters": [
+     {
+      "name": "card_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Card Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DecisionActionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ActionResultOut"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Окно закрыто, поезд уже на перегоне или вариант недопустим"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/autonomy": {
+   "post": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Переключатель «полный авто»: A и B сразу, C — лучшим вариантом",
+    "operationId": "set_autonomy_api_autonomy_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AutonomyIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AutonomyConfig"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/index": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Индекс эффективности: текущий, прогноз на час по плану, история",
+    "operationId": "get_index_api_index_get",
+    "parameters": [
+     {
+      "name": "since",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Since"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/IndexHistoryOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/traces": {
+   "get": {
+    "tags": [
+     "state"
+    ],
+    "summary": "Факт движения для графика: точки [t, км] по поездам после since",
+    "operationId": "get_traces_api_traces_get",
+    "parameters": [
+     {
+      "name": "since",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "number",
+       "default": 0.0,
+       "title": "Since"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TracesOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/occupancy": {
+   "get": {
+    "tags": [
+     "planner"
+    ],
+    "summary": "Занятость путей и перегонов для Ганта: факт + действующий или предыдущий план",
+    "operationId": "get_occupancy_api_occupancy_get",
+    "parameters": [
+     {
+      "name": "which",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^(current|previous)$",
+       "default": "current",
+       "title": "Which"
+      }
+     },
+     {
+      "name": "t_from",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "T From"
+      }
+     },
+     {
+      "name": "t_to",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "T To"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OccupancyOut"
         }
        }
       }
@@ -474,6 +738,59 @@
  },
  "components": {
   "schemas": {
+   "ActionOut": {
+    "properties": {
+     "card_id": {
+      "type": "string",
+      "title": "Card Id"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "cancel",
+       "choose"
+      ],
+      "title": "Kind"
+     },
+     "left_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Left S",
+      "description": "Сколько реальных секунд осталось; null — ждёт выбора без таймера"
+     }
+    },
+    "type": "object",
+    "required": [
+     "card_id",
+     "kind",
+     "left_s"
+    ],
+    "title": "ActionOut"
+   },
+   "ActionResultOut": {
+    "properties": {
+     "ok": {
+      "type": "boolean",
+      "title": "Ok"
+     },
+     "message": {
+      "type": "string",
+      "title": "Message"
+     }
+    },
+    "type": "object",
+    "required": [
+     "ok",
+     "message"
+    ],
+    "title": "ActionResultOut"
+   },
    "AutonomyConfig": {
     "properties": {
      "full_auto": {
@@ -494,6 +811,19 @@
     },
     "type": "object",
     "title": "AutonomyConfig"
+   },
+   "AutonomyIn": {
+    "properties": {
+     "full_auto": {
+      "type": "boolean",
+      "title": "Full Auto"
+     }
+    },
+    "type": "object",
+    "required": [
+     "full_auto"
+    ],
+    "title": "AutonomyIn"
    },
    "BagdarConfig": {
     "properties": {
@@ -542,7 +872,8 @@
        "c_stop": 0.5,
        "c_energy": 0.1,
        "c_idle": 2.0,
-       "c_change": 15.0
+       "c_change": 15.0,
+       "c_shift": 0.5
       }
      },
      "solver": {
@@ -602,6 +933,61 @@
     },
     "type": "object",
     "title": "BagdarConfig"
+   },
+   "BusyOut": {
+    "properties": {
+     "resource": {
+      "type": "string",
+      "title": "Resource",
+      "description": "Путь станции или перегон"
+     },
+     "train_id": {
+      "type": "string",
+      "title": "Train Id"
+     },
+     "t0": {
+      "type": "number",
+      "title": "T0"
+     },
+     "t1": {
+      "type": "number",
+      "title": "T1"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "stand",
+       "pass",
+       "section",
+       "hold"
+      ],
+      "title": "Kind"
+     },
+     "source": {
+      "type": "string",
+      "enum": [
+       "fact",
+       "plan"
+      ],
+      "title": "Source"
+     },
+     "changed": {
+      "type": "boolean",
+      "title": "Changed",
+      "description": "Интервал отличается в другом плане (до/после)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "resource",
+     "train_id",
+     "t0",
+     "t1",
+     "kind",
+     "source",
+     "changed"
+    ],
+    "title": "BusyOut"
    },
    "CandidateOut": {
     "properties": {
@@ -732,6 +1118,90 @@
      "weight"
     ],
     "title": "CardEffectOut"
+   },
+   "CardImpactOut": {
+    "properties": {
+     "delay_min_plan": {
+      "type": "number",
+      "title": "Delay Min Plan"
+     },
+     "delay_min_alt": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delay Min Alt"
+     },
+     "energy_kwh_plan": {
+      "type": "number",
+      "title": "Energy Kwh Plan"
+     },
+     "energy_kwh_alt": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Energy Kwh Alt"
+     },
+     "track_load_pct_plan": {
+      "type": "number",
+      "title": "Track Load Pct Plan"
+     },
+     "track_load_pct_alt": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Track Load Pct Alt"
+     },
+     "idle_pct_plan": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idle Pct Plan"
+     },
+     "idle_pct_alt": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idle Pct Alt"
+     }
+    },
+    "type": "object",
+    "required": [
+     "delay_min_plan",
+     "delay_min_alt",
+     "energy_kwh_plan",
+     "energy_kwh_alt",
+     "track_load_pct_plan",
+     "track_load_pct_alt",
+     "idle_pct_plan",
+     "idle_pct_alt"
+    ],
+    "title": "CardImpactOut",
+    "description": "Влияние решения: «план» — с решением, «alt» — с альтернативой (прогноз на час, у.е. условные)."
    },
    "ConflictOut": {
     "properties": {
@@ -870,10 +1340,45 @@
       "type": "number",
       "title": "C Change",
       "default": 15
+     },
+     "c_shift": {
+      "type": "number",
+      "minimum": 0.0,
+      "title": "C Shift",
+      "description": "у.е. за минуту сдвига отправления относительно прошлого плана",
+      "default": 0.5
      }
     },
     "type": "object",
     "title": "CostConfig"
+   },
+   "DecisionActionIn": {
+    "properties": {
+     "action": {
+      "type": "string",
+      "enum": [
+       "cancel",
+       "choose"
+      ],
+      "title": "Action"
+     },
+     "variant_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Variant Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "action"
+    ],
+    "title": "DecisionActionIn"
    },
    "DecisionCardOut": {
     "properties": {
@@ -1022,6 +1527,12 @@
       "type": "boolean",
       "title": "Alt Feasible"
      },
+     "alt_reliable": {
+      "type": "boolean",
+      "title": "Alt Reliable",
+      "description": "false — быстрая модель не воспроизводит план, цена альтернативы не оценена",
+      "default": true
+     },
      "note": {
       "anyOf": [
        {
@@ -1060,7 +1571,8 @@
         "type": "null"
        }
       ],
-      "title": "Index Before"
+      "title": "Index Before",
+      "description": "Прогноз индекса на час с альтернативой"
      },
      "index_after": {
       "anyOf": [
@@ -1071,16 +1583,88 @@
         "type": "null"
        }
       ],
-      "title": "Index After"
+      "title": "Index After",
+      "description": "Прогноз индекса на час с решением"
      },
      "status": {
       "type": "string",
+      "enum": [
+       "applied",
+       "pending",
+       "proposed",
+       "cancelled",
+       "chosen",
+       "expired",
+       "superseded"
+      ],
       "title": "Status"
      },
      "full_auto": {
       "type": "boolean",
       "title": "Full Auto",
       "default": true
+     },
+     "impact": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/CardImpactOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "variants": {
+      "items": {
+       "$ref": "#/components/schemas/VariantOut"
+      },
+      "type": "array",
+      "title": "Variants",
+      "default": []
+     },
+     "chosen_variant": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chosen Variant"
+     },
+     "choice_card": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Choice Card",
+      "description": "Карточка, где делается выбор за весь пересчёт"
+     },
+     "outcome": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Outcome"
+     },
+     "can_cancel": {
+      "type": "boolean",
+      "title": "Can Cancel",
+      "default": false
+     },
+     "can_choose": {
+      "type": "boolean",
+      "title": "Can Choose",
+      "default": false
      }
     },
     "type": "object",
@@ -1354,6 +1938,36 @@
     ],
     "title": "EventsOut"
    },
+   "ForecastOut": {
+    "properties": {
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "status_label": {
+      "type": "string",
+      "title": "Status Label"
+     }
+    },
+    "type": "object",
+    "required": [
+     "value",
+     "status",
+     "status_label"
+    ],
+    "title": "ForecastOut"
+   },
    "GenerationOut": {
     "properties": {
      "trains_total": {
@@ -1483,6 +2097,235 @@
     },
     "type": "object",
     "title": "IndexConfig"
+   },
+   "IndexFactorOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "enum": [
+       "throughput",
+       "punctuality",
+       "track_load",
+       "resource_idle",
+       "conflicts"
+      ],
+      "title": "Key"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "weight": {
+      "type": "number",
+      "title": "Weight",
+      "description": "Вес из конфига"
+     },
+     "weight_eff": {
+      "type": "number",
+      "title": "Weight Eff",
+      "description": "Вес после перенормировки по факторам с данными"
+     },
+     "score": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Score",
+      "description": "s_k от 0 до 1; null — нет данных"
+     },
+     "available": {
+      "type": "boolean",
+      "title": "Available"
+     },
+     "value_text": {
+      "type": "string",
+      "title": "Value Text"
+     },
+     "note": {
+      "type": "string",
+      "title": "Note"
+     },
+     "lost": {
+      "type": "number",
+      "title": "Lost",
+      "description": "Сколько пунктов индекса теряется на этом факторе"
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "label",
+     "weight",
+     "weight_eff",
+     "score",
+     "available",
+     "value_text",
+     "note",
+     "lost"
+    ],
+    "title": "IndexFactorOut"
+   },
+   "IndexHistoryOut": {
+    "properties": {
+     "current": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IndexOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "forecast": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IndexOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Индекс по действующему плану на час вперёд"
+     },
+     "history": {
+      "items": {
+       "$ref": "#/components/schemas/IndexPointOut"
+      },
+      "type": "array",
+      "title": "History"
+     }
+    },
+    "type": "object",
+    "required": [
+     "current",
+     "forecast",
+     "history"
+    ],
+    "title": "IndexHistoryOut"
+   },
+   "IndexOut": {
+    "properties": {
+     "t": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "T"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value",
+      "description": "0–100; null — нет данных ни по одному фактору"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "norm",
+       "warning",
+       "critical",
+       "no_data"
+      ],
+      "title": "Status"
+     },
+     "status_label": {
+      "type": "string",
+      "title": "Status Label"
+     },
+     "factors": {
+      "items": {
+       "$ref": "#/components/schemas/IndexFactorOut"
+      },
+      "type": "array",
+      "title": "Factors"
+     },
+     "reasons": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Reasons",
+      "description": "Что сильнее всего тянет индекс вниз"
+     },
+     "missing": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Missing"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "value",
+     "status",
+     "status_label",
+     "factors",
+     "reasons",
+     "missing"
+    ],
+    "title": "IndexOut"
+   },
+   "IndexPointOut": {
+    "properties": {
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "f": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "type": "object",
+      "title": "F"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "value",
+     "status",
+     "f"
+    ],
+    "title": "IndexPointOut"
    },
    "IndexThresholds": {
     "properties": {
@@ -1646,6 +2489,48 @@
      "stop_energy_kwh"
     ],
     "title": "MetricsOut"
+   },
+   "OccupancyOut": {
+    "properties": {
+     "which": {
+      "type": "string",
+      "enum": [
+       "current",
+       "previous"
+      ],
+      "title": "Which"
+     },
+     "plan_version": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Plan Version"
+     },
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/BusyOut"
+      },
+      "type": "array",
+      "title": "Items"
+     }
+    },
+    "type": "object",
+    "required": [
+     "which",
+     "plan_version",
+     "t",
+     "items"
+    ],
+    "title": "OccupancyOut"
    },
    "PerfOut": {
     "properties": {
@@ -1901,6 +2786,11 @@
       "type": "integer",
       "title": "Version"
      },
+     "applied_version": {
+      "type": "integer",
+      "title": "Applied Version",
+      "description": "Версия плана, который сейчас исполняется"
+     },
      "solver": {
       "anyOf": [
        {
@@ -2032,11 +2922,55 @@
      "cards_total": {
       "type": "integer",
       "title": "Cards Total"
+     },
+     "full_auto": {
+      "type": "boolean",
+      "title": "Full Auto"
+     },
+     "awaiting_choice": {
+      "type": "boolean",
+      "title": "Awaiting Choice",
+      "description": "План ждёт выбора диспетчера по карточке C"
+     },
+     "actions": {
+      "items": {
+       "$ref": "#/components/schemas/ActionOut"
+      },
+      "type": "array",
+      "title": "Actions",
+      "description": "Открытые окна: отмена B, выбор C"
+     },
+     "overrides": {
+      "type": "integer",
+      "title": "Overrides",
+      "description": "Действующих решений диспетчера, которые план обязан соблюдать"
+     },
+     "recovery": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/RecoveryOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "forecast": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ForecastOut"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Прогноз индекса по действующему плану на час вперёд"
      }
     },
     "type": "object",
     "required": [
      "version",
+     "applied_version",
      "solver",
      "status",
      "compute_ms",
@@ -2051,7 +2985,13 @@
      "reason",
      "late_trains",
      "held",
-     "cards_total"
+     "cards_total",
+     "full_auto",
+     "awaiting_choice",
+     "actions",
+     "overrides",
+     "recovery",
+     "forecast"
     ],
     "title": "PlannerSummaryOut"
    },
@@ -2072,6 +3012,53 @@
      "tolerance_min"
     ],
     "title": "PriorityEntry"
+   },
+   "RecoveryOut": {
+    "properties": {
+     "affected": {
+      "type": "integer",
+      "title": "Affected",
+      "description": "Поездов, которые по плану выйдут за допуск по опозданию"
+     },
+     "affected_ids": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Affected Ids"
+     },
+     "late_now": {
+      "type": "integer",
+      "title": "Late Now",
+      "description": "Поездов вне допуска прямо сейчас"
+     },
+     "recovery_at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery At",
+      "description": "Когда восстановятся поезда, восстанавливающиеся на горизонте"
+     },
+     "beyond_horizon": {
+      "type": "integer",
+      "title": "Beyond Horizon",
+      "description": "Задетых поездов, не восстанавливающихся на горизонте плана"
+     }
+    },
+    "type": "object",
+    "required": [
+     "affected",
+     "affected_ids",
+     "late_now",
+     "recovery_at",
+     "beyond_horizon"
+    ],
+    "title": "RecoveryOut"
    },
    "ScenarioOut": {
     "properties": {
@@ -2698,6 +3685,16 @@
       },
       "type": "array",
       "title": "Conflicts"
+     },
+     "index": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/IndexOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -2717,7 +3714,8 @@
      "metrics",
      "perf",
      "planner",
-     "conflicts"
+     "conflicts",
+     "index"
     ],
     "title": "StateOut"
    },
@@ -2864,6 +3862,52 @@
      "holder"
     ],
     "title": "ThroatStateOut"
+   },
+   "TraceOut": {
+    "properties": {
+     "train_id": {
+      "type": "string",
+      "title": "Train Id"
+     },
+     "points": {
+      "items": {
+       "items": {
+        "type": "number"
+       },
+       "type": "array"
+      },
+      "type": "array",
+      "title": "Points",
+      "description": "[[t, км], ...] — факт движения"
+     }
+    },
+    "type": "object",
+    "required": [
+     "train_id",
+     "points"
+    ],
+    "title": "TraceOut"
+   },
+   "TracesOut": {
+    "properties": {
+     "t": {
+      "type": "number",
+      "title": "T"
+     },
+     "traces": {
+      "items": {
+       "$ref": "#/components/schemas/TraceOut"
+      },
+      "type": "array",
+      "title": "Traces"
+     }
+    },
+    "type": "object",
+    "required": [
+     "t",
+     "traces"
+    ],
+    "title": "TracesOut"
    },
    "TrackOut": {
     "properties": {
@@ -3309,6 +4353,73 @@
      "type"
     ],
     "title": "ValidationError"
+   },
+   "VariantOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "solver": {
+      "type": "string",
+      "title": "Solver"
+     },
+     "valid": {
+      "type": "boolean",
+      "title": "Valid"
+     },
+     "J": {
+      "type": "number",
+      "title": "J"
+     },
+     "J_lex": {
+      "type": "number",
+      "title": "J Lex"
+     },
+     "delta_money": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delta Money",
+      "description": "Дороже рекомендации на, у.е."
+     },
+     "pte_violations": {
+      "type": "integer",
+      "title": "Pte Violations"
+     },
+     "late_pax": {
+      "type": "integer",
+      "title": "Late Pax",
+      "description": "Пассажирских сверх допуска в этом варианте"
+     },
+     "note": {
+      "type": "string",
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "title",
+     "solver",
+     "valid",
+     "J",
+     "J_lex",
+     "delta_money",
+     "pte_violations",
+     "late_pax",
+     "note"
+    ],
+    "title": "VariantOut"
    },
    "WorldMsg": {
     "properties": {

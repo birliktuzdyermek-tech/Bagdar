@@ -62,7 +62,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Действующий или предыдущий план */
+        /** Действующий, предыдущий или прогнозный план (действующий, сдвинутый на текущие отклонения) */
         get: operations["get_plan_api_plan_get"];
         put?: never;
         post?: never;
@@ -81,6 +81,91 @@ export interface paths {
         };
         /** Лента карточек решений */
         get: operations["get_decisions_api_decisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions/{card_id}/action": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Действие диспетчера: отменить решение B или выбрать вариант C */
+        post: operations["decision_action_api_decisions__card_id__action_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/autonomy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Переключатель «полный авто»: A и B сразу, C — лучшим вариантом */
+        post: operations["set_autonomy_api_autonomy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Индекс эффективности: текущий, прогноз на час по плану, история */
+        get: operations["get_index_api_index_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/traces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Факт движения для графика: точки [t, км] по поездам после since */
+        get: operations["get_traces_api_traces_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/occupancy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Занятость путей и перегонов для Ганта: факт + действующий или предыдущий план */
+        get: operations["get_occupancy_api_occupancy_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -230,6 +315,28 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActionOut */
+        ActionOut: {
+            /** Card Id */
+            card_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "cancel" | "choose";
+            /**
+             * Left S
+             * @description Сколько реальных секунд осталось; null — ждёт выбора без таймера
+             */
+            left_s: number | null;
+        };
+        /** ActionResultOut */
+        ActionResultOut: {
+            /** Ok */
+            ok: boolean;
+            /** Message */
+            message: string;
+        };
         /** AutonomyConfig */
         AutonomyConfig: {
             /**
@@ -247,6 +354,11 @@ export interface components {
              * @default 5
              */
             a_max_shift_min: number;
+        };
+        /** AutonomyIn */
+        AutonomyIn: {
+            /** Full Auto */
+            full_auto: boolean;
         };
         /** BagdarConfig */
         BagdarConfig: {
@@ -288,7 +400,8 @@ export interface components {
              *       "c_stop": 0.5,
              *       "c_energy": 0.1,
              *       "c_idle": 2,
-             *       "c_change": 15
+             *       "c_change": 15,
+             *       "c_shift": 0.5
              *     }
              */
             cost: components["schemas"]["CostConfig"];
@@ -347,6 +460,35 @@ export interface components {
              */
             sim: components["schemas"]["SimConfig"];
         };
+        /** BusyOut */
+        BusyOut: {
+            /**
+             * Resource
+             * @description Путь станции или перегон
+             */
+            resource: string;
+            /** Train Id */
+            train_id: string;
+            /** T0 */
+            t0: number;
+            /** T1 */
+            t1: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "stand" | "pass" | "section" | "hold";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "fact" | "plan";
+            /**
+             * Changed
+             * @description Интервал отличается в другом плане (до/после)
+             */
+            changed: boolean;
+        };
         /** CandidateOut */
         CandidateOut: {
             /** Name */
@@ -384,6 +526,28 @@ export interface components {
             stops_alt: number | null;
             /** Weight */
             weight: number;
+        };
+        /**
+         * CardImpactOut
+         * @description Влияние решения: «план» — с решением, «alt» — с альтернативой (прогноз на час, у.е. условные).
+         */
+        CardImpactOut: {
+            /** Delay Min Plan */
+            delay_min_plan: number;
+            /** Delay Min Alt */
+            delay_min_alt: number | null;
+            /** Energy Kwh Plan */
+            energy_kwh_plan: number;
+            /** Energy Kwh Alt */
+            energy_kwh_alt: number | null;
+            /** Track Load Pct Plan */
+            track_load_pct_plan: number;
+            /** Track Load Pct Alt */
+            track_load_pct_alt: number | null;
+            /** Idle Pct Plan */
+            idle_pct_plan: number | null;
+            /** Idle Pct Alt */
+            idle_pct_alt: number | null;
         };
         /** ConflictOut */
         ConflictOut: {
@@ -448,6 +612,22 @@ export interface components {
              * @default 15
              */
             c_change: number;
+            /**
+             * C Shift
+             * @description у.е. за минуту сдвига отправления относительно прошлого плана
+             * @default 0.5
+             */
+            c_shift: number;
+        };
+        /** DecisionActionIn */
+        DecisionActionIn: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "cancel" | "choose";
+            /** Variant Id */
+            variant_id?: string | null;
         };
         /** DecisionCardOut */
         DecisionCardOut: {
@@ -508,23 +688,63 @@ export interface components {
             alt_pte_violations: number;
             /** Alt Feasible */
             alt_feasible: boolean;
+            /**
+             * Alt Reliable
+             * @description false — быстрая модель не воспроизводит план, цена альтернативы не оценена
+             * @default true
+             */
+            alt_reliable: boolean;
             /** Note */
             note?: string | null;
             /** Wait Min */
             wait_min: number | null;
             /** Effects */
             effects: components["schemas"]["CardEffectOut"][];
-            /** Index Before */
+            /**
+             * Index Before
+             * @description Прогноз индекса на час с альтернативой
+             */
             index_before: number | null;
-            /** Index After */
+            /**
+             * Index After
+             * @description Прогноз индекса на час с решением
+             */
             index_after: number | null;
-            /** Status */
-            status: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "applied" | "pending" | "proposed" | "cancelled" | "chosen" | "expired" | "superseded";
             /**
              * Full Auto
              * @default true
              */
             full_auto: boolean;
+            impact?: components["schemas"]["CardImpactOut"] | null;
+            /**
+             * Variants
+             * @default []
+             */
+            variants: components["schemas"]["VariantOut"][];
+            /** Chosen Variant */
+            chosen_variant?: string | null;
+            /**
+             * Choice Card
+             * @description Карточка, где делается выбор за весь пересчёт
+             */
+            choice_card?: string | null;
+            /** Outcome */
+            outcome?: string | null;
+            /**
+             * Can Cancel
+             * @default false
+             */
+            can_cancel: boolean;
+            /**
+             * Can Choose
+             * @default false
+             */
+            can_choose: boolean;
         };
         /** DecisionsMsg */
         DecisionsMsg: {
@@ -616,6 +836,15 @@ export interface components {
             /** Events */
             events: components["schemas"]["EventOut"][];
         };
+        /** ForecastOut */
+        ForecastOut: {
+            /** Value */
+            value: number | null;
+            /** Status */
+            status: string;
+            /** Status Label */
+            status_label: string;
+        };
         /** GenerationOut */
         GenerationOut: {
             /** Trains Total */
@@ -688,6 +917,89 @@ export interface components {
              * @default 10
              */
             conflicts_max: number;
+        };
+        /** IndexFactorOut */
+        IndexFactorOut: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "throughput" | "punctuality" | "track_load" | "resource_idle" | "conflicts";
+            /** Label */
+            label: string;
+            /**
+             * Weight
+             * @description Вес из конфига
+             */
+            weight: number;
+            /**
+             * Weight Eff
+             * @description Вес после перенормировки по факторам с данными
+             */
+            weight_eff: number;
+            /**
+             * Score
+             * @description s_k от 0 до 1; null — нет данных
+             */
+            score: number | null;
+            /** Available */
+            available: boolean;
+            /** Value Text */
+            value_text: string;
+            /** Note */
+            note: string;
+            /**
+             * Lost
+             * @description Сколько пунктов индекса теряется на этом факторе
+             */
+            lost: number;
+        };
+        /** IndexHistoryOut */
+        IndexHistoryOut: {
+            current: components["schemas"]["IndexOut"] | null;
+            /** @description Индекс по действующему плану на час вперёд */
+            forecast: components["schemas"]["IndexOut"] | null;
+            /** History */
+            history: components["schemas"]["IndexPointOut"][];
+        };
+        /** IndexOut */
+        IndexOut: {
+            /** T */
+            t: number | null;
+            /**
+             * Value
+             * @description 0–100; null — нет данных ни по одному фактору
+             */
+            value: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "norm" | "warning" | "critical" | "no_data";
+            /** Status Label */
+            status_label: string;
+            /** Factors */
+            factors: components["schemas"]["IndexFactorOut"][];
+            /**
+             * Reasons
+             * @description Что сильнее всего тянет индекс вниз
+             */
+            reasons: string[];
+            /** Missing */
+            missing: string[];
+        };
+        /** IndexPointOut */
+        IndexPointOut: {
+            /** T */
+            t: number;
+            /** Value */
+            value: number | null;
+            /** Status */
+            status: string;
+            /** F */
+            f: {
+                [key: string]: number | null;
+            };
         };
         /** IndexThresholds */
         IndexThresholds: {
@@ -770,6 +1082,20 @@ export interface components {
             unplanned_stops: number;
             /** Stop Energy Kwh */
             stop_energy_kwh: number;
+        };
+        /** OccupancyOut */
+        OccupancyOut: {
+            /**
+             * Which
+             * @enum {string}
+             */
+            which: "current" | "previous";
+            /** Plan Version */
+            plan_version: number | null;
+            /** T */
+            t: number;
+            /** Items */
+            items: components["schemas"]["BusyOut"][];
         };
         /** PerfOut */
         PerfOut: {
@@ -898,6 +1224,11 @@ export interface components {
         PlannerSummaryOut: {
             /** Version */
             version: number;
+            /**
+             * Applied Version
+             * @description Версия плана, который сейчас исполняется
+             */
+            applied_version: number;
             /** Solver */
             solver: string | null;
             /** Status */
@@ -934,6 +1265,26 @@ export interface components {
             held: string[];
             /** Cards Total */
             cards_total: number;
+            /** Full Auto */
+            full_auto: boolean;
+            /**
+             * Awaiting Choice
+             * @description План ждёт выбора диспетчера по карточке C
+             */
+            awaiting_choice: boolean;
+            /**
+             * Actions
+             * @description Открытые окна: отмена B, выбор C
+             */
+            actions: components["schemas"]["ActionOut"][];
+            /**
+             * Overrides
+             * @description Действующих решений диспетчера, которые план обязан соблюдать
+             */
+            overrides: number;
+            recovery: components["schemas"]["RecoveryOut"] | null;
+            /** @description Прогноз индекса по действующему плану на час вперёд */
+            forecast: components["schemas"]["ForecastOut"] | null;
         };
         /** PriorityEntry */
         PriorityEntry: {
@@ -941,6 +1292,31 @@ export interface components {
             weight: number;
             /** Tolerance Min */
             tolerance_min: number;
+        };
+        /** RecoveryOut */
+        RecoveryOut: {
+            /**
+             * Affected
+             * @description Поездов, которые по плану выйдут за допуск по опозданию
+             */
+            affected: number;
+            /** Affected Ids */
+            affected_ids: string[];
+            /**
+             * Late Now
+             * @description Поездов вне допуска прямо сейчас
+             */
+            late_now: number;
+            /**
+             * Recovery At
+             * @description Когда восстановятся поезда, восстанавливающиеся на горизонте
+             */
+            recovery_at: number | null;
+            /**
+             * Beyond Horizon
+             * @description Задетых поездов, не восстанавливающихся на горизонте плана
+             */
+            beyond_horizon: number;
         };
         /** ScenarioOut */
         ScenarioOut: {
@@ -1248,6 +1624,7 @@ export interface components {
             planner: components["schemas"]["PlannerSummaryOut"];
             /** Conflicts */
             conflicts: components["schemas"]["ConflictOut"][];
+            index: components["schemas"]["IndexOut"] | null;
         };
         /** StationOut */
         StationOut: {
@@ -1303,6 +1680,23 @@ export interface components {
             id: string;
             /** Holder */
             holder: string | null;
+        };
+        /** TraceOut */
+        TraceOut: {
+            /** Train Id */
+            train_id: string;
+            /**
+             * Points
+             * @description [[t, км], ...] — факт движения
+             */
+            points: number[][];
+        };
+        /** TracesOut */
+        TracesOut: {
+            /** T */
+            t: number;
+            /** Traces */
+            traces: components["schemas"]["TraceOut"][];
         };
         /** TrackOut */
         TrackOut: {
@@ -1450,6 +1844,35 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VariantOut */
+        VariantOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Solver */
+            solver: string;
+            /** Valid */
+            valid: boolean;
+            /** J */
+            J: number;
+            /** J Lex */
+            J_lex: number;
+            /**
+             * Delta Money
+             * @description Дороже рекомендации на, у.е.
+             */
+            delta_money: number | null;
+            /** Pte Violations */
+            pte_violations: number;
+            /**
+             * Late Pax
+             * @description Пассажирских сверх допуска в этом варианте
+             */
+            late_pax: number;
+            /** Note */
+            note: string;
         };
         /** WorldMsg */
         WorldMsg: {
@@ -1625,6 +2048,176 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DecisionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decision_action_api_decisions__card_id__action_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionActionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionResultOut"];
+                };
+            };
+            /** @description Окно закрыто, поезд уже на перегоне или вариант недопустим */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_autonomy_api_autonomy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutonomyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutonomyConfig"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_index_api_index_get: {
+        parameters: {
+            query?: {
+                since?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexHistoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_traces_api_traces_get: {
+        parameters: {
+            query?: {
+                since?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TracesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_occupancy_api_occupancy_get: {
+        parameters: {
+            query?: {
+                which?: string;
+                t_from?: number | null;
+                t_to?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OccupancyOut"];
                 };
             };
             /** @description Validation Error */

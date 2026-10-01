@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
-import type { DecisionCard, PlannerInfo } from "../api/types";
+import type { DecisionCard, PlannerInfo, Variant } from "../api/types";
+import { useAlarms } from "../lib/alarms";
 import { clock, num } from "../lib/format";
 import { useSim } from "../store/sim";
 
 const LEVEL: Record<string, { label: string; cls: string; hint: string }> = {
   A: { label: "A · авто", cls: "badge-neutral", hint: "Мелкая корректировка в пределах запаса, применена сама" },
-  B: { label: "B · авто с уведомлением", cls: "badge-accent", hint: "Меняется порядок поездов: применено, диспетчер уведомлён" },
+  B: { label: "B · авто с уведомлением", cls: "badge-accent", hint: "Меняется порядок поездов: применено сразу, 30 с на отмену" },
   C: {
     label: "C · нужен выбор",
     cls: "badge-warning",
-    hint: "Пассажирский остаётся сверх допуска. В режиме «полный авто» применён лучший вариант",
+    hint: "Пассажирский остаётся сверх допуска. Варианты с ценой; в «полном авто» сразу применён лучший",
   },
 };
 
@@ -22,21 +23,99 @@ const TYPE: Record<string, string> = {
   no_plan: "План не найден",
 };
 
-const SOLVER: Record<string, string> = { cpsat: "CP-SAT", greedy: "эвристика", repair: "прежний порядок", hold: "удержание" };
 const STATUS: Record<string, { text: string; cls: string }> = {
+  applied: { text: "применено", cls: "badge-neutral" },
+  pending: { text: "ждёт выбора", cls: "badge-warning" },
+  proposed: { text: "в предложении", cls: "badge-neutral" },
+  cancelled: { text: "отменено диспетчером", cls: "badge-accent" },
+  chosen: { text: "выбор диспетчера", cls: "badge-accent" },
+  expired: { text: "истекло", cls: "badge-neutral" },
+  superseded: { text: "не вступило", cls: "badge-neutral" },
+};
+
+const SOLVER: Record<string, string> = {
+  cpsat: "CP-SAT", greedy: "эвристика", repair: "прежний порядок", hold: "удержание", dispatcher: "решение диспетчера",
+};
+const PLAN_STATUS: Record<string, { text: string; cls: string }> = {
   feasible: { text: "допустим", cls: "badge-good" },
   delayed: { text: "допустим, есть задержки", cls: "badge-warning" },
   infeasible: { text: "не найден — поезда удержаны", cls: "badge-critical" },
 };
 
-function Card({ c }: { c: DecisionCard }) {
+function n1(v: number | null | undefined): string {
+  return v == null ? "—" : num(v, v < 10 ? 1 : 0);
+}
+
+function Pair({ label, a, b, unit, better = "lower" }: { label: string; a: number | null | undefined; b: number | null | undefined; unit: string; better?: "lower" | "higher" }) {
+  if (a == null) return null;
+  const diff = b == null ? 0 : b - a;
+  const worse = better === "lower" ? diff > 0.05 : diff < -0.05;
+  return (
+    <span className="impact-item" title="с решением → с альтернативой">
+      <span className="muted">{label}</span> <b className="tabular">{n1(a)}</b>
+      {b != null && <span className={`tabular ${worse ? "" : "muted"}`}> → {n1(b)}</span>} <span className="muted">{unit}</span>
+    </span>
+  );
+}
+
+function useAction() {
+  const setError = useSim((s) => s.setError);
+  const [busy, setBusy] = useState(false);
+  const run = async (fn: () => Promise<{ message: string }>) => {
+    setBusy(true);
+    try {
+      await fn();
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { busy, run };
+}
+
+function VariantRow({ v, card, left, chosen }: { v: Variant; card: DecisionCard; left: number | null | undefined; chosen: boolean }) {
+  const { busy, run } = useAction();
+  const can = card.can_choose && v.valid;
+  return (
+    <li className={`variant ${chosen ? "variant-chosen" : ""}`}>
+      <div className="variant-title">
+        {chosen && <span aria-hidden>✓ </span>}
+        {v.title}
+      </div>
+      <div className="variant-meta muted tabular">
+        J {num(v.J)} у.е.
+        {v.delta_money != null && v.delta_money > 0.5 && <> · дороже на {num(v.delta_money)}</>}
+        {" · "}пасс. сверх допуска: {v.late_pax}
+        {v.pte_violations > 0 && <> · нарушений ПТЭ: {v.pte_violations}</>}
+        {!v.valid && <> · недопустим: {v.note}</>}
+      </div>
+      {can && !chosen && (
+        <button className="btn btn-small" disabled={busy}
+          onClick={(e) => {
+            e.stopPropagation();
+            run(() => api.decision(card.id, "choose", v.id));
+          }}>
+          Выбрать{left != null ? ` · ${Math.ceil(left)} с` : ""}
+        </button>
+      )}
+    </li>
+  );
+}
+
+function Card({ c, left }: { c: DecisionCard; left: number | null | undefined }) {
   const selectTrain = useSim((s) => s.selectTrain);
   const selectStation = useSim((s) => s.selectStation);
+  const { busy, run } = useAction();
   const lv = LEVEL[c.level] ?? LEVEL.B;
+  const st = STATUS[c.status] ?? STATUS.applied;
   const money = c.delta_money;
+  const im = c.impact;
   return (
     <li
-      className={`decision lvl-${c.level}`}
+      id={`card-${c.id}`}
+      className={`decision lvl-${c.level} st-${c.status}`}
       onClick={() => {
         if (c.trains[0]) selectTrain(c.trains[0]);
         if (c.station_id) selectStation(c.station_id);
@@ -45,24 +124,66 @@ function Card({ c }: { c: DecisionCard }) {
       <div className="decision-head">
         <span className={`badge ${lv.cls}`} title={lv.hint}>{lv.label}</span>
         <span className="decision-type">{TYPE[c.type] ?? c.type}</span>
+        <span className={`badge ${st.cls}`}>{st.text}</span>
         <span className="spacer" />
-        <span className="muted tabular">{clock(c.t, false)} · план v{c.plan_version}</span>
+        <span className="muted tabular">{clock(c.t, false)} · v{c.plan_version}</span>
       </div>
       <div className="decision-action">{c.action}</div>
       <div className="decision-row"><span className="muted">Почему:</span> {c.reason}</div>
       <div className="decision-row">
         <span className="muted">Альтернатива:</span> {c.alternative}
         {c.alt_feasible && money != null && (
-          <span className={`badge ${money >= 0 ? "badge-neutral" : "badge-warning"}`} style={{ marginLeft: 6 }}>
+          <span className="badge badge-neutral" style={{ marginLeft: 6 }}>
             {money >= 0 ? `дороже на ${num(money)} у.е.` : `дешевле на ${num(-money)} у.е.`}
           </span>
         )}
         {(c.alt_pte_violations ?? 0) > 0 && <span className="badge badge-warning" style={{ marginLeft: 6 }}>нарушает ПТЭ</span>}
-        {!c.alt_feasible && <span className="badge badge-neutral" style={{ marginLeft: 6 }}>недопустима</span>}
+        {!c.alt_feasible && c.alt_reliable !== false && c.type !== "no_plan" && (
+          <span className="badge badge-neutral" style={{ marginLeft: 6 }}>недопустима</span>
+        )}
+        {c.alt_reliable === false && (
+          <span className="badge badge-neutral" style={{ marginLeft: 6 }}
+            title="Быстрая модель оценки не воспроизводит этот план для пары поездов — цифры альтернативы были бы артефактом">
+            цена не оценена
+          </span>
+        )}
       </div>
+      {im && (
+        <div className="impact" aria-label="Влияние решения: с решением → с альтернативой, прогноз на час">
+          <Pair label="Задержка" a={im.delay_min_plan} b={im.delay_min_alt} unit="поездо-мин" />
+          <Pair label="Энергия остановок" a={im.energy_kwh_plan} b={im.energy_kwh_alt} unit="кВт·ч" />
+          <Pair label="Загрузка путей" a={im.track_load_pct_plan} b={im.track_load_pct_alt} unit="%" />
+          <Pair label="Простой" a={im.idle_pct_plan} b={im.idle_pct_alt} unit="%" />
+          {c.index_after != null && (
+            <span className="impact-item" title="Прогноз индекса на час: с альтернативой → с решением">
+              <span className="muted">Индекс через час</span>{" "}
+              {c.index_before != null && <span className="tabular muted">{Math.round(c.index_before)} → </span>}
+              <b className="tabular">{Math.round(c.index_after)}</b>
+            </span>
+          )}
+        </div>
+      )}
       {c.note && <div className="decision-row muted">{c.note}</div>}
-      <div className="decision-foot muted">
-        {c.full_auto ? "Применено автоматически (полный авто)" : "Ожидает решения диспетчера"}
+      {c.variants.length > 0 && (
+        <ul className="variants" aria-label="Варианты решения">
+          {c.variants.map((v) => (
+            <VariantRow key={v.id} v={v} card={c} left={left} chosen={c.chosen_variant === v.id} />
+          ))}
+        </ul>
+      )}
+      <div className="decision-foot">
+        {c.can_cancel && (
+          <button className="btn btn-small" disabled={busy}
+            onClick={(e) => {
+              e.stopPropagation();
+              run(() => api.decision(c.id, "cancel"));
+            }}
+            title="Вернуть прежний порядок поездов. Решение закрепится: следующий пересчёт его не перевернёт">
+            ↶ Отменить{left != null ? ` · ${Math.ceil(left)} с` : ""}
+          </button>
+        )}
+        {c.status === "pending" && left == null && <span className="muted">План не применён, пока вы не выберете вариант</span>}
+        {c.outcome && <span className="muted">{c.outcome}</span>}
       </div>
     </li>
   );
@@ -71,6 +192,7 @@ function Card({ c }: { c: DecisionCard }) {
 export function DecisionsPanel() {
   const cards = useSim((s) => s.cards);
   const planner = useSim((s) => s.state?.planner);
+  const setError = useSim((s) => s.setError);
   const [info, setInfo] = useState<PlannerInfo | null>(null);
   const version = planner?.version ?? 0;
 
@@ -87,20 +209,34 @@ export function DecisionsPanel() {
     const bestHeur = heur.length ? Math.min(...heur.map((c) => c.J_lex as number)) : null;
     return { bestHeur, cp: cp?.valid ? cp.J_lex : null };
   }, [last]);
-  const shown = cards.slice(-40).reverse();
-  const st = planner?.status ? STATUS[planner.status] : null;
+  const left = useMemo(() => new Map((planner?.actions ?? []).map((a) => [a.card_id, a.left_s])), [planner?.actions]);
+  const shown = useMemo(() => {
+    const recent = cards.slice(-40).reverse();
+    const urgent = recent.filter((c) => c.status === "pending");
+    return urgent.concat(recent.filter((c) => c.status !== "pending"));
+  }, [cards]);
+  const alarms = useAlarms();
+  const st0 = planner?.status ? PLAN_STATUS[planner.status] : null;
+  const st = st0 && planner?.status === "infeasible" && !alarms.red.has("plan") ? { ...st0, cls: "badge-serious" } : st0;
+  const fullAuto = planner?.full_auto ?? true;
 
   return (
-    <section className="card" aria-label="Решения Бағдара">
+    <section className="card decisions-card" aria-label="Решения Бағдара">
       <div className="card-head">
         <span className="card-title">Решения Бағдара</span>
         <span className="card-sub">{cards.length ? `${cards.length} за прогон` : ""}</span>
+        <span className="spacer" />
+        <label className="switch" title="A и B применяются сразу; C — лучшим вариантом. Выключите, чтобы решения C ждали вашего выбора">
+          <input type="checkbox" checked={fullAuto} disabled={!planner}
+            onChange={(e) => api.autonomy(e.target.checked).catch((err) => setError(String(err.message ?? err)))} />
+          Полный авто
+        </label>
       </div>
       <div className="card-body">
         {planner && planner.version > 0 ? (
           <div className="planner-box">
             <div className="status-line" style={{ margin: 0 }}>
-              <b>План v{planner.version}</b>
+              <b>План v{planner.applied_version}</b>
               <span className="muted">{SOLVER[planner.solver ?? ""] ?? planner.solver}</span>
               {st && <span className={`badge ${st.cls}`}>{st.text}</span>}
               {planner.busy && <span className="badge badge-accent">пересчёт…</span>}
@@ -109,10 +245,17 @@ export function DecisionsPanel() {
               Пересчёт {planner.compute_ms != null ? `${(planner.compute_ms / 1000).toFixed(1).replace(".", ",")} с` : "—"}
               {planner.J != null && <> · J = {num(planner.J)} у.е.</>}
               {compare?.bestHeur != null && compare.cp != null && compare.bestHeur > 0 && (
-                <> · эвристика {num(compare.bestHeur)} → CP-SAT {num(compare.cp)} (−{Math.round((1 - compare.cp / compare.bestHeur) * 100)} %)</>
+                <> · эвристика {num(compare.bestHeur)} → CP-SAT {num(compare.cp)} (−{Math.max(0, Math.round((1 - compare.cp / compare.bestHeur) * 100))} %)</>
               )}
+              {planner.overrides > 0 && <> · решений диспетчера в силе: {planner.overrides}</>}
             </div>
-            {planner.reason && <div className="muted" style={{ fontSize: 12 }}>Причина: {planner.reason}</div>}
+            {planner.awaiting_choice && (
+              <div className="wait" style={{ margin: "4px 0 0" }}>
+                План v{planner.version} ждёт вашего выбора. Пока действует v{planner.applied_version}, прогнозные конфликты
+                остаются на схеме и графике.
+              </div>
+            )}
+            {planner.reason && <div className="muted" style={{ fontSize: 12 }}>Причина пересчёта: {planner.reason}</div>}
           </div>
         ) : (
           <div className="empty">Планировщик готовит первый план…</div>
@@ -120,8 +263,9 @@ export function DecisionsPanel() {
         {shown.length === 0 ? (
           <div className="empty">Порядок поездов пока не менялся: исходный график бесконфликтен. Задержите поезд в его карточке — система перестроит план и объяснит решения.</div>
         ) : (
-          <ul className="decisions">{shown.map((c) => <Card key={c.id} c={c} />)}</ul>
+          <ul className="decisions">{shown.map((c) => <Card key={c.id} c={c} left={left.get(c.id)} />)}</ul>
         )}
+        <div className="muted small" style={{ marginTop: 8 }}>Все цены — условные единицы (у.е.), не тарифы перевозчика.</div>
       </div>
     </section>
   );

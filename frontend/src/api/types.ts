@@ -25,6 +25,17 @@ export type PlannerSummary = S["PlannerSummaryOut"];
 export type Conflict = S["ConflictOut"];
 export type PlannerInfo = S["PlannerOut"];
 export type EventIn = S["EventIn"];
+export type IndexState = S["IndexOut"];
+export type IndexFactor = S["IndexFactorOut"];
+export type IndexPoint = S["IndexPointOut"];
+export type IndexHistory = S["IndexHistoryOut"];
+export type Variant = S["VariantOut"];
+export type CardImpact = S["CardImpactOut"];
+export type Recovery = S["RecoveryOut"];
+export type Traces = S["TracesOut"];
+export type Occupancy = S["OccupancyOut"];
+export type Busy = S["BusyOut"];
+export type Autonomy = S["AutonomyConfig"];
 
 export type HelloMsg = S["HelloMsg"];
 export type StreamMsg =

@@ -5,7 +5,9 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from bagdar import __version__, dto
 from bagdar.api import schemas as S
-from bagdar.config import BagdarConfig
+from bagdar.config import AutonomyConfig, BagdarConfig
+from bagdar.planner.conflicts import shift_plan
+from bagdar.planner.runner import ActionError
 from bagdar.runtime import SimulationRuntime
 
 router = APIRouter(prefix="/api")
@@ -31,10 +33,13 @@ def get_state(request: Request) -> dict:
     return rt(request).state_payload()
 
 
-@router.get("/plan", response_model=S.PlanOut, tags=["planner"], summary="Действующий или предыдущий план")
-def get_plan(request: Request, which: str = Query("current", pattern="^(current|previous)$")) -> dict:
+@router.get("/plan", response_model=S.PlanOut, tags=["planner"],
+            summary="Действующий, предыдущий или прогнозный план (действующий, сдвинутый на текущие отклонения)")
+def get_plan(request: Request, which: str = Query("current", pattern="^(current|previous|projected)$")) -> dict:
     r = rt(request)
     assert r.engine is not None
+    if which == "projected":
+        return dto.plan_dto(shift_plan(r.engine, r.engine.ex.plan))
     plan = r.engine.ex.plan if which == "current" else r.planner.previous
     if plan is None:
         raise HTTPException(404, "Предыдущего плана ещё нет")
@@ -46,6 +51,43 @@ def get_decisions(request: Request, since: int = Query(0, ge=0), limit: int = Qu
     r = rt(request)
     cards = [c for c in r.planner.cards if c.get("seq", 0) > since]
     return {"run_id": r.run_id, "cards": cards[-limit:]}
+
+
+@router.post("/decisions/{card_id}/action", response_model=S.ActionResultOut, tags=["planner"],
+             summary="Действие диспетчера: отменить решение B или выбрать вариант C",
+             responses={409: {"description": "Окно закрыто, поезд уже на перегоне или вариант недопустим"}})
+def decision_action(card_id: str, body: S.DecisionActionIn, request: Request) -> dict:
+    r = rt(request)
+    try:
+        msg = r.decision_action(card_id, body.action, body.variant_id)
+    except ActionError as e:
+        raise HTTPException(409, str(e)) from e
+    return {"ok": True, "message": msg}
+
+
+@router.post("/autonomy", response_model=AutonomyConfig, tags=["planner"],
+             summary="Переключатель «полный авто»: A и B сразу, C — лучшим вариантом")
+def set_autonomy(body: S.AutonomyIn, request: Request) -> dict:
+    return rt(request).set_autonomy(body.full_auto)
+
+
+@router.get("/index", response_model=S.IndexHistoryOut, tags=["state"],
+            summary="Индекс эффективности: текущий, прогноз на час по плану, история")
+def get_index(request: Request, since: float | None = Query(None)) -> dict:
+    return rt(request).index_payload(since)
+
+
+@router.get("/traces", response_model=S.TracesOut, tags=["state"],
+            summary="Факт движения для графика: точки [t, км] по поездам после since")
+def get_traces(request: Request, since: float = Query(0.0)) -> dict:
+    return rt(request).traces_since(since)
+
+
+@router.get("/occupancy", response_model=S.OccupancyOut, tags=["planner"],
+            summary="Занятость путей и перегонов для Ганта: факт + действующий или предыдущий план")
+def get_occupancy(request: Request, which: str = Query("current", pattern="^(current|previous)$"),
+                  t_from: float | None = Query(None), t_to: float | None = Query(None)) -> dict:
+    return rt(request).occupancy(which, t_from, t_to)
 
 
 @router.get("/planner", response_model=S.PlannerOut, tags=["planner"],

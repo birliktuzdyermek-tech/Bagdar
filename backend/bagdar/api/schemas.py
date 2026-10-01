@@ -208,8 +208,29 @@ class PerfOut(BaseModel):
     load_ms: float
 
 
+class ActionOut(BaseModel):
+    card_id: str
+    kind: Literal["cancel", "choose"]
+    left_s: float | None = Field(description="Сколько реальных секунд осталось; null — ждёт выбора без таймера")
+
+
+class RecoveryOut(BaseModel):
+    affected: int = Field(description="Поездов, которые по плану выйдут за допуск по опозданию")
+    affected_ids: list[str]
+    late_now: int = Field(description="Поездов вне допуска прямо сейчас")
+    recovery_at: float | None = Field(description="Когда восстановятся поезда, восстанавливающиеся на горизонте")
+    beyond_horizon: int = Field(description="Задетых поездов, не восстанавливающихся на горизонте плана")
+
+
+class ForecastOut(BaseModel):
+    value: float | None
+    status: str
+    status_label: str
+
+
 class PlannerSummaryOut(BaseModel):
     version: int
+    applied_version: int = Field(description="Версия плана, который сейчас исполняется")
     solver: str | None
     status: Literal["feasible", "delayed", "infeasible"] | None
     compute_ms: float | None = Field(description="Время последнего пересчёта целиком, мс")
@@ -225,6 +246,47 @@ class PlannerSummaryOut(BaseModel):
     late_trains: list[str]
     held: list[str]
     cards_total: int
+    full_auto: bool
+    awaiting_choice: bool = Field(description="План ждёт выбора диспетчера по карточке C")
+    actions: list[ActionOut] = Field(description="Открытые окна: отмена B, выбор C")
+    overrides: int = Field(description="Действующих решений диспетчера, которые план обязан соблюдать")
+    recovery: RecoveryOut | None
+    forecast: ForecastOut | None = Field(description="Прогноз индекса по действующему плану на час вперёд")
+
+
+class IndexFactorOut(BaseModel):
+    key: Literal["throughput", "punctuality", "track_load", "resource_idle", "conflicts"]
+    label: str
+    weight: float = Field(description="Вес из конфига")
+    weight_eff: float = Field(description="Вес после перенормировки по факторам с данными")
+    score: float | None = Field(description="s_k от 0 до 1; null — нет данных")
+    available: bool
+    value_text: str
+    note: str
+    lost: float = Field(description="Сколько пунктов индекса теряется на этом факторе")
+
+
+class IndexOut(BaseModel):
+    t: float | None
+    value: float | None = Field(description="0–100; null — нет данных ни по одному фактору")
+    status: Literal["norm", "warning", "critical", "no_data"]
+    status_label: str
+    factors: list[IndexFactorOut]
+    reasons: list[str] = Field(description="Что сильнее всего тянет индекс вниз")
+    missing: list[str]
+
+
+class IndexPointOut(BaseModel):
+    t: float
+    value: float | None
+    status: str
+    f: dict[str, float | None]
+
+
+class IndexHistoryOut(BaseModel):
+    current: IndexOut | None
+    forecast: IndexOut | None = Field(description="Индекс по действующему плану на час вперёд")
+    history: list[IndexPointOut]
 
 
 class ConflictOut(BaseModel):
@@ -254,6 +316,7 @@ class StateOut(BaseModel):
     perf: PerfOut
     planner: PlannerSummaryOut
     conflicts: list[ConflictOut]
+    index: IndexOut | None
 
 
 # ------------------------------------------------------------------- план
@@ -294,6 +357,31 @@ class CardEffectOut(BaseModel):
     weight: float
 
 
+class CardImpactOut(BaseModel):
+    """Влияние решения: «план» — с решением, «alt» — с альтернативой (прогноз на час, у.е. условные)."""
+    delay_min_plan: float
+    delay_min_alt: float | None
+    energy_kwh_plan: float
+    energy_kwh_alt: float | None
+    track_load_pct_plan: float
+    track_load_pct_alt: float | None
+    idle_pct_plan: float | None
+    idle_pct_alt: float | None
+
+
+class VariantOut(BaseModel):
+    id: str
+    title: str
+    solver: str
+    valid: bool
+    J: float
+    J_lex: float
+    delta_money: float | None = Field(description="Дороже рекомендации на, у.е.")
+    pte_violations: int
+    late_pax: int = Field(description="Пассажирских сверх допуска в этом варианте")
+    note: str
+
+
 class DecisionCardOut(BaseModel):
     id: str
     seq: int = 0
@@ -314,18 +402,68 @@ class DecisionCardOut(BaseModel):
     delta_money: float | None = Field(None, description="На сколько альтернатива дороже, у.е. (условные)")
     alt_pte_violations: int = 0
     alt_feasible: bool
+    alt_reliable: bool = Field(True, description="false — быстрая модель не воспроизводит план, цена альтернативы не оценена")
     note: str | None = None
     wait_min: float | None
     effects: list[CardEffectOut]
-    index_before: float | None
-    index_after: float | None
-    status: str
+    index_before: float | None = Field(description="Прогноз индекса на час с альтернативой")
+    index_after: float | None = Field(description="Прогноз индекса на час с решением")
+    status: Literal["applied", "pending", "proposed", "cancelled", "chosen", "expired", "superseded"]
     full_auto: bool = True
+    impact: CardImpactOut | None = None
+    variants: list[VariantOut] = []
+    chosen_variant: str | None = None
+    choice_card: str | None = Field(None, description="Карточка, где делается выбор за весь пересчёт")
+    outcome: str | None = None
+    can_cancel: bool = False
+    can_choose: bool = False
 
 
 class DecisionsOut(BaseModel):
     run_id: str
     cards: list[DecisionCardOut]
+
+
+class DecisionActionIn(BaseModel):
+    action: Literal["cancel", "choose"]
+    variant_id: str | None = None
+
+
+class ActionResultOut(BaseModel):
+    ok: bool
+    message: str
+
+
+class AutonomyIn(BaseModel):
+    full_auto: bool
+
+
+# ------------------------------------------------------- график и Гант
+class TraceOut(BaseModel):
+    train_id: str
+    points: list[list[float]] = Field(description="[[t, км], ...] — факт движения")
+
+
+class TracesOut(BaseModel):
+    t: float
+    traces: list[TraceOut]
+
+
+class BusyOut(BaseModel):
+    resource: str = Field(description="Путь станции или перегон")
+    train_id: str
+    t0: float
+    t1: float
+    kind: Literal["stand", "pass", "section", "hold"]
+    source: Literal["fact", "plan"]
+    changed: bool = Field(description="Интервал отличается в другом плане (до/после)")
+
+
+class OccupancyOut(BaseModel):
+    which: Literal["current", "previous"]
+    plan_version: int | None
+    t: float
+    items: list[BusyOut]
 
 
 class CandidateOut(BaseModel):

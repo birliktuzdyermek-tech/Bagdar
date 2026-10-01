@@ -9,13 +9,26 @@
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from bagdar.core.classes import TRAIN_CLASSES
+from bagdar.index.compute import forecast_raw, score
 from bagdar.models.plan import Plan, PlanLeg
 from bagdar.planner.economics import CostBreakdown, plan_cost, section_sequences
 from bagdar.planner.forward import run_with_order
 from bagdar.planner.inputs import PlanningInput
 
 MAX_FLIPS = 8
+
+
+@dataclass
+class CardCtx:
+    """Внутреннее к карточке: какая пара, в каком порядке, план альтернативы."""
+    key: tuple[str, int]
+    first: tuple[str, int]        # идёт первым по новому плану
+    second: tuple[str, int]
+    alt_plan: Plan | None
+    alt_cost: CostBreakdown | None
 
 
 def _flips(inp: PlanningInput, old: Plan, new: Plan) -> list[tuple[tuple[str, int], PlanLeg, PlanLeg]]:
@@ -77,15 +90,30 @@ def _pair_cost(c: CostBreakdown, tids: list[str]) -> float:
     return sum((c.per_train[t].delay + c.per_train[t].stops + c.per_train[t].idle) for t in tids if t in c.per_train)
 
 
+def _impact(inp: PlanningInput, plan: Plan, cost: CostBreakdown) -> tuple[dict, dict]:
+    trains = {tid: ti.train for tid, ti in inp.trains.items()}
+    raw = forecast_raw(inp.world, trains, plan, inp.rules, inp.t0)
+    idx = score(inp.cfg.index, raw, inp.t0 + 3600)
+    m = {
+        "delay_min": round(sum(c.lateness_end_s for c in cost.per_train.values()) / 60, 1),
+        "energy_kwh": round(sum(c.stop_kwh for c in cost.per_train.values()), 1),
+        "track_load_pct": round(raw["track_load"]["share"] * 100, 1),
+        "idle_pct": round(raw["resource_idle"]["share"] * 100, 1) if "share" in raw["resource_idle"] else None,
+    }
+    return m, idx
+
+
 def build_cards(inp: PlanningInput, old: Plan | None, new: Plan, version: int,
-                max_cards: int = 5) -> list[dict]:
+                max_cards: int = 5) -> tuple[list[dict], dict[str, CardCtx]]:
     if old is None:
-        return []
+        return [], {}
     flips = _flips(inp, old, new)
     if not flips:
-        return []
+        return [], {}
     cards: list[dict] = []
+    ctx: dict[str, CardCtx] = {}
     seen_pairs: set[tuple[str, str]] = set()
+    exact = plan_cost(inp, new)          # опубликованный план — то, что увидит и исполнит диспетчер
     for key, a, b in flips[:MAX_FLIPS]:
         pair = tuple(sorted((a.train_id, b.train_id)))
         if pair in seen_pairs:
@@ -94,17 +122,99 @@ def build_cards(inp: PlanningInput, old: Plan | None, new: Plan, version: int,
         rel = {a.train_id, b.train_id}
         base = run_with_order(inp, new, release=rel)
         base_cost = plan_cost(inp, base.plan)
+        mismatch = _mismatch(inp, new, base, rel)
+        if mismatch:
+            # быстрая модель не воспроизводит опубликованный план для этой пары — сравнивать
+            # с её альтернативой нечестно: цифры были бы артефактом модели, а не ценой решения
+            card = _describe(inp, key, a, b, new, base, exact, base, None, False, version, len(cards))
+            card.update(_unreliable(inp, card, exact, mismatch))
+            ctx[card["id"]] = CardCtx(key=key, first=(a.train_id, a.k), second=(b.train_id, b.k),
+                                      alt_plan=None, alt_cost=None)
+            m_plan, idx_plan = _impact(inp, new, exact)
+            card["impact"] = {**{f"{k}_plan": v for k, v in m_plan.items()}, **{f"{k}_alt": None for k in m_plan}}
+            card["index_after"] = idx_plan["value"]
+            cards.append(card)
+            continue
         alt = run_with_order(inp, new, swap=(key, (a.train_id, a.k), (b.train_id, b.k)), release=rel)
         alt_ok = not alt.deadlock and not (set(alt.held) - set(base.held))
         alt_cost = plan_cost(inp, alt.plan) if alt_ok else None
         card = _describe(inp, key, a, b, new, base, base_cost, alt, alt_cost, alt_ok, version, len(cards))
+        m_plan, idx_plan = _impact(inp, base.plan, base_cost)
+        impact = {f"{k}_plan": v for k, v in m_plan.items()}
+        impact.update({f"{k}_alt": None for k in m_plan})
+        card["index_after"] = idx_plan["value"]
+        if alt_ok and alt_cost is not None:
+            m_alt, idx_alt = _impact(inp, alt.plan, alt_cost)
+            impact.update({f"{k}_alt": v for k, v in m_alt.items()})
+            card["index_before"] = idx_alt["value"]
+        card["impact"] = impact
+        ctx[card["id"]] = CardCtx(key=key, first=(a.train_id, a.k), second=(b.train_id, b.k),
+                                  alt_plan=alt.plan if alt_ok else None, alt_cost=alt_cost)
         if card.get("delta_money") is not None and card["delta_money"] < -1 and card["alt_pte_violations"] == 0:
             # альтернатива дешевле — решение держится ограничением плана, говорим это прямо
             card["note"] = ("по оценке альтернатива дешевле: решение удержано заморозкой ближайших минут "
                             "или ограничением горизонта; при следующем пересчёте может измениться")
         cards.append(card)
-    cards.sort(key=lambda c: -(c["delta_cost"] if c["delta_cost"] is not None else 1e9))
-    return cards[:max_cards]
+    # сначала решения с недопустимой альтернативой, затем по цене альтернативы, неоценённые — в конце
+    cards.sort(key=lambda c: (0, 0.0) if (c["delta_cost"] is None and c.get("alt_reliable", True))
+               else (2, 0.0) if c["delta_cost"] is None else (1, -c["delta_cost"]))
+    cards = cards[:max_cards]
+    return cards, {c["id"]: ctx[c["id"]] for c in cards}
+
+
+MISMATCH_S = 300.0   # расхождение опоздания поезда пары между планом и быстрой моделью, после которого оценка не верна
+
+
+def _mismatch(inp: PlanningInput, new: Plan, base, rel: set[str]) -> list[tuple[str, str, float, float]]:
+    """Где быстрая модель расходится с опубликованным планом: сравниваются прибытия поезда пары
+    в последней точке, которая есть в обоих планах (хвост за обрезанным горизонтом не в счёт).
+    Возвращает [(поезд, станция, опоздание в плане, опоздание в модели), ...]."""
+    out = []
+    for t in sorted(rel):
+        le = {lg.k: lg for lg in new.legs.get(t, [])}
+        lb = {lg.k: lg for lg in base.plan.legs.get(t, [])}
+        common = sorted(set(le) & set(lb))
+        tr = inp.trains[t].train
+        if not common:
+            if le:
+                out.append((t, le[min(le)].to_id, 0.0, float("nan")))
+            continue
+        k = common[-1]
+        sa = tr.schedule[k + 1].arr
+        stuck = t in base.held and max(lb) < max(le)
+        if abs(le[k].arr - lb[k].arr) > MISMATCH_S or stuck:
+            ref = sa if sa is not None else le[k].arr
+            out.append((t, le[k].to_id, le[k].arr - ref, float("nan") if stuck else lb[k].arr - ref))
+    return out
+
+
+def _late_txt(sec: float) -> str:
+    if sec != sec:   # NaN — модель поезд дальше не довела
+        return "дальше не доведён"
+    return f"{'+' if sec >= 0 else '−'}{_mins(abs(sec) / 60)} мин"
+
+
+def _unreliable(inp: PlanningInput, card: dict, exact: CostBreakdown, mismatch) -> dict:
+    parts = [f"{inp.trains[t].train.number} на ст. {_station(inp, sid)}: в плане {_late_txt(le)}, в модели оценки "
+             f"{_late_txt(lb)}" for t, sid, le, lb in mismatch]
+    effects = []
+    for e in card["effects"]:
+        pe = exact.per_train.get(e["train_id"])
+        effects.append({**e, "delay_plan_min": round((pe.lateness_end_s if pe else 0) / 60, 1),
+                        "stops_plan": pe.unplanned_stops if pe else 0, "delay_alt_min": None, "stops_alt": None})
+    level = "B"
+    for e in effects:
+        ti = inp.trains[e["train_id"]]
+        if ti.rank <= 3 and e["delay_plan_min"] * 60 > ti.tol:
+            level = "C"
+    weights = card["reason"].split(". Веса: ")[-1]
+    return {
+        "reason": ("Порядок выбран решателем как лучший по J всего плана. Точную цену альтернативы быстрая "
+                   "модель оценки дать не может: она не воспроизводит этот план для пары (" + "; ".join(parts)
+                   + "). Веса: " + weights),
+        "effects": effects, "level": level, "alt_feasible": False, "alt_reliable": False,
+        "cost_alt": None, "delta_cost": None, "delta_money": None, "alt_pte_violations": 0, "note": None,
+    }
 
 
 def _describe(inp, key, a: PlanLeg, b: PlanLeg, new: Plan, base, base_cost: CostBreakdown, alt, alt_cost,
@@ -115,7 +225,8 @@ def _describe(inp, key, a: PlanLeg, b: PlanLeg, new: Plan, base, base_cost: Cost
     opposing = a.direction != b.direction
     wait_station = sec.from_station(b.direction)
     y_arr_leg = new.leg(y, b.k - 1)
-    y_track = y_arr_leg.track_id if y_arr_leg is not None else (ty.track or "")
+    y_track = y_arr_leg.track_id if y_arr_leg is not None else (
+        ty.track or new.origin_track.get(y) or ty.origin_track or "")
     wait_y = _wait_at(base.plan, y, b.k, inp)
     if opposing:
         kind = "crossing"
@@ -186,5 +297,5 @@ def _describe(inp, key, a: PlanLeg, b: PlanLeg, new: Plan, base, base_cost: Cost
         "delta_cost": delta, "delta_money": None if cost_alt is None else round(money, 1),
         "alt_pte_violations": max(0, pte_extra),
         "alt_feasible": alt_ok, "wait_min": round(wait_y / 60, 1), "effects": effects,
-        "index_before": None, "index_after": None, "status": "applied",
+        "index_before": None, "index_after": None, "status": "applied", "alt_reliable": True,
     }
