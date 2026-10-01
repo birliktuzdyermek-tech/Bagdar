@@ -5,8 +5,10 @@ import { ReplayModel } from "./replay/model";
 import type { RunInfo } from "./replay/types";
 import { Gallery } from "./pages/Gallery";
 import { Home } from "./pages/Home";
+import { HowItWorks } from "./pages/HowItWorks";
 import { Presentation } from "./pages/Presentation";
 import { Header } from "./ui/Header";
+import { ShowcaseTour } from "./ui/ShowcaseTour";
 
 function useHashRoute(): string {
   const [hash, setHash] = useState(() => window.location.hash || "#/");
@@ -59,7 +61,7 @@ export function App() {
   const playId = /^#\/play\/([\w-]+)/.exec(route)?.[1] ?? null;
   useEffect(() => {
     if (playId) return;
-    document.title = route.startsWith("#/presentation") ? "Режим показа — Бағдар" : route.startsWith("#/gallery") ? "Ситуации — Бағдар" : route.startsWith("#/runs") ? "Записи — Бағдар" : "Бағдар — Витрина";
+    document.title = route.startsWith("#/presentation") ? "Режим показа — Бағдар" : route.startsWith("#/how") ? "Как это работает — Бағдар" : route.startsWith("#/gallery") ? "Ситуации — Бағдар" : route.startsWith("#/runs") ? "Записи — Бағдар" : "Бағдар — Витрина";
     window.scrollTo(0, 0);
   }, [route, playId]);
 
@@ -69,16 +71,18 @@ export function App() {
       <main className="main" id="main">
         {error && <p className="error">⚠ {error}</p>}
         {!runs && !error && <p className="muted">Загружаю список записей…</p>}
-        {runs && playId && <PlayRoute runs={runs} id={playId} projector={projector} />}
+        {runs && playId && <PlayRoute key={playId} runs={runs} id={playId} projector={projector} />}
         {runs && !playId && route.startsWith("#/runs") && <RunList runs={runs} />}
         {runs && !playId && route.startsWith("#/gallery") && <Gallery runs={runs} />}
         {runs && !playId && route.startsWith("#/presentation") && <Presentation runs={runs} />}
-        {runs && !playId && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && !route.startsWith("#/presentation") && <Home runs={runs} />}
+        {runs && !playId && route.startsWith("#/how") && <HowItWorks />}
+        {runs && !playId && !route.startsWith("#/runs") && !route.startsWith("#/gallery") && !route.startsWith("#/presentation") && !route.startsWith("#/how") && <Home runs={runs} />}
       </main>
       <footer className="footer">
         <span>Консультативный прототип — не система управления движением.</span>
         <span>Данные синтетические, веса и деньги в условных единицах.</span>
       </footer>
+      {runs && <ShowcaseTour runs={runs} route={route} />}
     </div>
   );
 }
@@ -119,21 +123,22 @@ function RunList({ runs }: { runs: RunInfo[] }) {
 
 function PlayRoute({ runs, id, projector }: { runs: RunInfo[]; id: string; projector: boolean }) {
   const info = runs.find((r) => r.id === id);
-  const [model, setModel] = useState<ReplayModel | null>(null);
+  const [loaded, setLoaded] = useState<{ id: string; model: ReplayModel } | null>(null);
+  const model = loaded?.id === id ? loaded.model : null;
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!info) return;
     let alive = true;
-    setModel(null);
+    setProgress(0);
     setError(null);
     loadReplay(info.file, (p) => alive && setProgress(p))
-      .then((r) => alive && setModel(new ReplayModel(r)))
+      .then((r) => alive && setLoaded({ id, model: new ReplayModel(r) }))
       .catch((e: Error) => alive && setError(e.message));
     return () => {
       alive = false;
     };
-  }, [info]);
+  }, [info, id]);
   const title = useMemo(() => info?.title ?? id, [info, id]);
   useEffect(() => {
     document.title = `${title} — Бағдар`;

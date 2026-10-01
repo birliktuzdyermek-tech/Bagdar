@@ -17,6 +17,7 @@ const SECTIONS = [
   { href: "#/", label: "Главная", match: (r: string) => r === "#/" || r === "" || r === "#" },
   { href: "#/gallery", label: "Ситуации", match: (r: string) => r.startsWith("#/gallery") },
   { href: "#/runs", label: "Записи", match: (r: string) => r.startsWith("#/runs") || r.startsWith("#/play") },
+  { href: "#/how", label: "Как это работает", match: (r: string) => r.startsWith("#/how") },
   { href: "#/presentation", label: "Режим показа", match: (r: string) => r.startsWith("#/presentation") },
 ];
 
