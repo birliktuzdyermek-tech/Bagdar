@@ -458,7 +458,7 @@ class IncidentManager:
         card = {
             "id": f"d-{version:04d}-i{n}", "plan_version": version, "t": round(eng.t, 1), "type": "incident",
             "level": inc.level, "station_id": inc.station_id, "station": None, "section_id": inc.section_id,
-            "trains": list(inc.train_ids[:4]), "action": f"{inc.title}: план v{version} перестроен за "
+            "trains": list(inc.train_ids[:4]), "action": f"{inc.title}: план № {version} перестроен за "
             + f"{res.timings['total_ms'] / 1000:.1f} с".replace(".", ","),
             "reason": reason, "alternative": alternative,
             "cost_plan": after["J_lex"], "cost_alt": no_change["J_lex"] if no_change and no_change["valid"] else None,

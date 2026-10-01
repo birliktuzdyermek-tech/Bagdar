@@ -4,17 +4,16 @@ const TABS: { r: Route; label: string; hint: string }[] = [
   { r: "dispatcher", label: "Диспетчер", hint: "Живой участок: схема, график, решения Бағдара" },
   { r: "scenarios", label: "Сценарии", hint: "Готовые ситуации со сбоями — запуск в один клик" },
   { r: "versus", label: "Человек против Бағдара", hint: "Один поток поездов: слева без Бағдара, справа с ним" },
-  { r: "review", label: "Разбор", hint: "Перемотка, хронология, отчёт PDF и CSV" },
+  { r: "review", label: "Разбор и отчёт", hint: "Хронология прогона, перемотка к любому событию, отчёт PDF и таблицы CSV" },
 ];
 
 /** Общая шапка трёх сайтов проекта и разделы симулятора. */
-export function NavBar({ route, onSettings, onTour }: { route: Route; onSettings: () => void; onTour: () => void }) {
+export function NavBar({ route, onSettings, onTour, onHelp }: { route: Route; onSettings: () => void; onTour: () => void; onHelp: () => void }) {
   return (
     <nav className="navbar" aria-label="Разделы">
       <div className="nav-sites" aria-label="Сайты проекта">
         <span className="nav-site current" aria-current="page">Симулятор</span>
-        <span className="nav-site disabled" title="Отдельное приложение «Сеть» — масштаб и реальные линии">Сеть</span>
-        <a className="nav-site" href="/showcase/index.html#/presentation" title="Слайды для защиты, записи прогонов">Презентация ↗</a>
+        <a className="nav-site" href="/showcase/index.html#/" title="Витрина: слайды для защиты, «Кто первым?», записи прогонов">Витрина и слайды ↗</a>
       </div>
       <div className="nav-tabs" role="tablist">
         {TABS.map((t) => (
@@ -29,9 +28,9 @@ export function NavBar({ route, onSettings, onTour }: { route: Route; onSettings
         🚆 Кто первым? ↗
       </a>
       <button className="btn btn-small btn-tour" onClick={onTour} title="Пошаговое объяснение экрана простыми словами (2 минуты)">
-        🎓 Показ для новичков
+        🎓 Объяснить экран
       </button>
-      <a className="nav-link" href="/showcase/index.html#/how" title="Приоритеты, индекс, архитектура — простыми словами">Как это работает ↗</a>
+      <button className="btn btn-small" onClick={onHelp} title="Показать подсказку «С чего начать»">❔ С чего начать</button>
       <button className="btn btn-small" onClick={onSettings} title="Веса и пороги индекса, строгий ПТЭ, тарифы">⚙ Настройки</button>
     </nav>
   );

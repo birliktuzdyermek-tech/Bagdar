@@ -24,7 +24,7 @@ export function EventFeed() {
     <section className="card feed-card" aria-label="Лента событий">
       <div className="card-head">
         <span className="card-title">Лента событий</span>
-        <span className="card-sub">{shown.length} из {events.length}</span>
+        <span className="card-sub">что произошло, новое сверху · {shown.length} из {events.length}</span>
         <div className="spacer" />
         <div className="seg" role="group" aria-label="Фильтр ленты">
           <button aria-pressed={!all} onClick={() => setAll(false)}>Важные</button>

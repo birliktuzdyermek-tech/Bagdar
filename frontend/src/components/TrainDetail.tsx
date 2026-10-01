@@ -61,13 +61,13 @@ export function TrainDetail() {
         <div className="status-line">
           <span className={`badge ${delayBadge}`}>{delay < 60 ? "✓" : "⚠"} {delayLabel(delay)}</span>
           <span className="badge badge-neutral">{ts ? DISPLAY_LABEL[ts.display] ?? ts.display : "не на участке"}</span>
-          <span className="muted">допуск {Math.round(tol / 60)} мин · вес {cls?.weight ?? "—"}</span>
+          <span className="muted" title="Допуск — на сколько минут поезд этого класса может опоздать без нарушения ПТЭ. Вес — цена минуты его задержки, у.е.">допуск опоздания {Math.round(tol / 60)} мин · минута стоит {cls?.weight ?? "—"} у.е.</span>
         </div>
         {ts?.wait_reason && <div className="wait">Ожидает: {ts.wait_reason}</div>}
         {ts?.advice && <AdviceBox a={ts.advice} />}
         {ts && ts.display !== "terminated" && (
           <div className="inject" aria-label="Внешнее событие">
-            <span className="muted">Задержать (событие для демо):</span>
+            <span className="muted">Задержать этот поезд:</span>
             {[5, 10, 15].map((m) => (
               <button key={m} className="btn btn-small" onClick={async () => {
                 try {

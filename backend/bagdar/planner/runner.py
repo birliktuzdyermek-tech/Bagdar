@@ -44,7 +44,7 @@ from bagdar.dto import plan_dto
 log = logging.getLogger("bagdar.planner")
 STALE_REQUESTS = ("прогноз конфликта", "отклонение от плана")
 MIN_SIM_GAP_S = 90   # неэкстренный пересчёт не чаще, чем раз в 90 с модели после применения плана
-SOLVER_NAMES = {"cpsat": "CP-SAT", "greedy": "эвристика", "repair": "прежний порядок", "fifo": "«кто первый пришёл»",
+SOLVER_NAMES = {"cpsat": "решатель CP-SAT", "greedy": "быстрая эвристика", "repair": "прежний порядок", "fifo": "«кто первый пришёл»",
                 "hold": "удержание",
                 "dispatcher": "решение диспетчера"}
 
@@ -254,23 +254,25 @@ class PlannerRunner:
         best_heur = min((c.cost.lex for c in res.candidates if c.valid and c.name != "cpsat" and c.cost),
                         default=None)
         gain = ""
-        if res.cost is not None and best_heur and best_heur > 0 and res.solver == "cpsat":
-            gain = f", на {round((1 - res.cost.lex / best_heur) * 100)} % лучше эвристики"
-        j = f"J = {res.cost.total:.0f} у.е." if res.cost else "J —"
-        status_txt = {"feasible": "допустим", "delayed": "допустим, есть задержки", "infeasible": "НЕ НАЙДЕН"}
+        if res.cost is not None and best_heur and best_heur > res.cost.lex and res.solver == "cpsat":
+            gain = f", на {round((1 - res.cost.lex / best_heur) * 100)} % дешевле простого перебора"
+        j = f"цена {res.cost.total:,.0f} у.е.".replace(",", " ") if res.cost else "цена не посчитана"
+        secs = f"{res.timings['total_ms'] / 1000:.1f} с".replace(".", ",")
+        status_txt = {"feasible": "проверен, конфликтов нет", "delayed": "проверен, но есть опоздания",
+                      "infeasible": "НЕ НАЙДЕН — поезда удержаны"}
         if propose:
             self.proposal = res
             eng.emit("plan_proposed", "warn",
-                     f"План v{self.version} ({names.get(res.solver, res.solver)}, {round(res.timings['total_ms'])} мс) "
-                     f"ждёт решения диспетчера: {len(c_cards)} карточк. уровня C. Пока действует план "
-                     f"v{self.current.version if self.current else 0}",
+                     f"План № {self.version} (составлен за {secs}, {names.get(res.solver, res.solver)}) "
+                     f"ждёт решения диспетчера: карточек уровня C — {len(c_cards)}. Пока действует план "
+                     f"№ {self.current.version if self.current else 0}",
                      data={"version": self.version, "solver": res.solver, "status": res.status})
         else:
             self._install(res.plan)
             sev = "critical" if res.status == "infeasible" else "info"
             eng.emit("plan_published", sev,
-                     f"План v{self.version}: {names.get(res.solver, res.solver)}, {round(res.timings['total_ms'])} мс, "
-                     f"{status_txt[res.status]}, {j}{gain}. Причина: {res.reason}",
+                     f"План № {self.version} составлен за {secs} ({names.get(res.solver, res.solver)}): "
+                     f"{status_txt[res.status]}, {j}{gain} · причина: {res.reason}",
                      data={"version": self.version, "solver": res.solver, "status": res.status,
                            "ms": round(res.timings["total_ms"]), "cp_status": res.cp.status})
             self._level_a(res)

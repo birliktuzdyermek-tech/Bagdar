@@ -173,8 +173,8 @@ export function IndexPanel() {
   return (
     <section className="card index-card" aria-label="Индекс эффективности участка">
       <div className="card-head">
-        <span className="card-title">Индекс эффективности</span>
-        <span className="card-sub">0–100 · веса и пороги из конфига</span>
+        <span className="card-title">Индекс участка</span>
+        <span className="card-sub">одно число 0–100: насколько хорошо работает участок. 100 — всё по графику, ниже 75 — внимание, ниже 50 — плохо</span>
       </div>
       <div className="card-body">
         <div className="index-hero">
@@ -201,6 +201,7 @@ export function IndexPanel() {
         )}
         <div className="index-chart" ref={ref} role="img"
           aria-label={`Динамика индекса: ${history.length} точек, сейчас ${index?.value != null ? Math.round(index.value) : "нет данных"}`} />
+        <div className="muted small" style={{ margin: "6px 0 2px" }}>Из чего складывается (полоска — оценка, справа — сколько очков потеряно):</div>
         <ul className="factors">
           {(index?.factors ?? []).map((f) => <FactorRow key={f.key} f={f} />)}
         </ul>

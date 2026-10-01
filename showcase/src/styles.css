@@ -242,6 +242,25 @@ html.projector .metric-value { font-size: 1.25rem; }
 .btn-big { font-size: 1.25rem; padding: 12px 26px; border-radius: 12px; text-decoration: none; }
 .hero-note { margin: 0; font-size: 0.875rem; color: var(--text-secondary); }
 
+/* с чего начать */
+.starts h2 { font-size: 1.4rem; margin-bottom: 10px; }
+.start-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1200px) { .start-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .start-cards { grid-template-columns: 1fr; } }
+.start-card {
+  display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 14px 16px; border-radius: 14px; text-decoration: none;
+  background: var(--surface-1); border: 1px solid var(--border-strong);
+  transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+a.start-card:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--surface-2); }
+.start-card.is-off { opacity: 0.75; }
+.start-ico { font-size: 1.8rem; line-height: 1; }
+.start-time { font-size: 0.8rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.start-title { font-size: 1.15rem; font-weight: 800; }
+.start-text { color: var(--text-secondary); line-height: 1.4; font-size: 0.95rem; }
+.start-text code { font-size: 0.85em; }
+.start-cards li:first-child .start-card { border-color: var(--accent); background: linear-gradient(160deg, var(--accent-soft), var(--surface-1)); }
+
 /* галерея */
 .gallery h1 { font-size: 2rem; margin-bottom: 8px; }
 .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }

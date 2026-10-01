@@ -19,18 +19,9 @@ import { VersusPage } from "./pages/VersusPage";
 import { GuidedTour } from "./components/GuidedTour";
 import { go } from "./lib/route";
 import { RewindBar } from "./components/RewindBar";
+import { readStartHidden, StartHere } from "./components/StartHere";
 import { usePlanSync } from "./store/plans";
 import { useSim } from "./store/sim";
-
-function PerfChip() {
-  const perf = useSim((s) => s.state?.perf);
-  if (!perf) return null;
-  return (
-    <span className="chip" title="Время одного шага модели на сервере и число шагов модели в секунду">
-      шаг модели {perf.step_us.toFixed(0)} мкс · {Math.round(perf.steps_per_s)} шаг/с
-    </span>
-  );
-}
 
 function readTheme(): string {
   try {
@@ -49,6 +40,7 @@ export default function App() {
   const route = useRoute();
   const [settings, setSettings] = useState(false);
   const [tour, setTour] = useState(false);
+  const [startHidden, setStartHidden] = useState(readStartHidden);
 
   usePlanSync();
   useEffect(() => {
@@ -67,18 +59,20 @@ export default function App() {
   return (
     <div className={`app route-${route}`}>
       <TopBar />
-      <NavBar route={route} onSettings={() => setSettings(true)} onTour={() => { go("dispatcher"); setTour(true); }} />
+      <NavBar route={route} onSettings={() => setSettings(true)} onTour={() => { go("dispatcher"); setTour(true); }}
+        onHelp={() => { go("dispatcher"); setStartHidden(false); }} />
       {route === "dispatcher" && <Toolbar theme={theme} onTheme={() => setTheme(theme === "dark" ? "light" : "dark")} />}
       {route === "dispatcher" && <RewindBar />}
       {route === "scenarios" && <ScenariosPage />}
       {route === "review" && <ReviewPage />}
       {route === "versus" && <VersusPage />}
-      {route === "dispatcher" && <main className="main">
+      {route === "dispatcher" && <main className={`main ${startHidden ? "" : "has-start"}`}>
         {conn === "closed" && (
           <div className="banner main-banner" role="alert">
             Нет связи с сервером симуляции — переподключение…
           </div>
         )}
+        {!startHidden && <StartHere onClose={() => setStartHidden(true)} onTour={() => { setStartHidden(true); setTour(true); }} />}
         <section className="card scheme-card" aria-label="Схема участка">
           <div className="card-head">
             <span className="card-title">Схема участка</span>
@@ -86,8 +80,7 @@ export default function App() {
               {world ? `${world.name} · ${world.stations.length} раздельных пунктов · ${world.sections.length} перегонов · seed ${world.seed}` : ""}
             </span>
             <div className="spacer" />
-            <span className="card-sub">Схема не в масштабе. Клик по станции — путевое развитие, по поезду — подробности.</span>
-            <PerfChip />
+            <span className="card-sub">Поезда едут между станциями, схема не в масштабе. Нажмите на поезд или станцию — внизу откроется карточка.</span>
           </div>
           <LineScheme />
           <SchemeLegend />

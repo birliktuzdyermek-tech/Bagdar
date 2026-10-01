@@ -12,14 +12,14 @@ const NO_INCIDENTS: IncidentActive[] = [];   // стабильная ссылк�
 type Kind = EventIn["type"];
 
 const KINDS: { key: Kind; label: string; hint: string }[] = [
-  { key: "section_closed", label: "Закрыть перегон", hint: "Уровень C: варианты плана с ценой" },
-  { key: "signal_fault", label: "Отказ светофора", hint: "Движение как при ПАБ, не выше 40 км/ч" },
-  { key: "switch_fault", label: "Отказ стрелки", hint: "Боковой путь станции недоступен" },
-  { key: "track_unavailable", label: "Путь недоступен", hint: "Любой путь станции выключен" },
-  { key: "speed_restriction", label: "Ограничение скорости", hint: "Приказ на ограничение по перегону" },
-  { key: "train_delay", label: "Задержать поезд", hint: "Опоздание выбранного поезда" },
-  { key: "add_trains", label: "Рост потока", hint: "Дополнительные грузовые сверх графика" },
-  { key: "extra_train", label: "Внеочередной поезд", hint: "Восстановительный — идёт первым (слой 1)" },
+  { key: "section_closed", label: "Закрыть перегон", hint: "Перегон между двумя станциями закрыт — поезда через него не пройдут. Самый наглядный сбой: Бағдар предложит варианты с ценой" },
+  { key: "signal_fault", label: "Отказ светофора", hint: "Светофор на перегоне не работает: ехать можно, но по одному и не быстрее 40 км/ч" },
+  { key: "switch_fault", label: "Отказ стрелки", hint: "На станции сломалась стрелка — боковой путь недоступен, принимать поезда негде" },
+  { key: "track_unavailable", label: "Путь недоступен", hint: "Один путь станции закрыт (например, на осмотр)" },
+  { key: "speed_restriction", label: "Ограничение скорости", hint: "На перегоне нельзя быстрее указанной скорости" },
+  { key: "train_delay", label: "Задержать поезд", hint: "Выбранный на схеме поезд опоздает на столько минут" },
+  { key: "add_trains", label: "Рост потока", hint: "Лишние грузовые поезда, которых не было в графике" },
+  { key: "extra_train", label: "Внеочередной поезд", hint: "Восстановительный поезд — идёт первым, все остальные его пропускают" },
 ];
 
 const KIND_LABEL: Record<string, string> = Object.fromEntries(KINDS.map((k) => [k.key, k.label]));
@@ -116,8 +116,8 @@ export function DisruptionPanel() {
   return (
     <section className="card disrupt-card" aria-label="Сбои и сценарий">
       <div className="card-head">
-        <span className="card-title">Сбои</span>
-        <span className="card-sub">{world ? `сценарий: ${world.scenario_id}` : ""}</span>
+        <span className="card-title">Сбои — сломайте сами</span>
+        <span className="card-sub">выберите, что сломать, и нажмите «Применить»: Бағдар за 1–2 с перестроит план, справа появится разбор</span>
       </div>
       <div className="card-body">
         <div className="seg seg-wrap" role="group" aria-label="Тип сбоя">
@@ -179,17 +179,17 @@ export function DisruptionPanel() {
             <label className="field small"><input type="checkbox" checked={unknown} onChange={(e) => setUnknown(e.target.checked)} /> срок неизвестен</label>
           )}
           <button className="btn btn-primary btn-small" onClick={apply} disabled={busy || !world || past}
-            title={past ? "Идёт перемотка: вернитесь к текущему моменту, чтобы ломать" : undefined}>Применить</button>
+            title={past ? "Идёт перемотка: вернитесь к текущему моменту, чтобы ломать" : "Устроить этот сбой прямо сейчас"}>💥 Применить</button>
         </div>
         {msg && <div className="muted small" role="status">{msg}</div>}
         {next && (
           <div className="scenario-next small">
-            Сценарий: в {clock(next.t, false)} (через {Math.max(0, Math.round((next.t - t) / 60))} мин) — {KIND_LABEL[next.kind] ?? next.kind}
+            По сценарию в {clock(next.t, false)} (через {Math.max(0, Math.round((next.t - t) / 60))} мин) случится само: {KIND_LABEL[next.kind] ?? next.kind}
           </div>
         )}
         <div className="incidents-head">Действуют сейчас</div>
         {active.length === 0 ? (
-          <div className="muted small">Сбоев нет.</div>
+          <div className="muted small">Сбоев нет — всё работает.</div>
         ) : (
           <ul className="incidents">
             {active.map((i) => (

@@ -293,7 +293,7 @@ function PlannerCard({ model, t }: { model: ReplayModel; t: number }) {
           <dd>{p.status === "feasible" ? "✓ допустим" : p.status === "delayed" ? "◐ допустим, есть задержки" : p.status === "infeasible" ? "✕ не найден" : p.status ?? "—"}</dd>
           <dt>Время расчёта</dt>
           <dd>{p.compute_ms != null ? `${num(p.compute_ms)} мс` : "—"}</dd>
-          <dt title="Целевая функция плана, условные единицы">J плана</dt>
+          <dt title="Цена плана: задержки, остановки, простой — условные единицы">Цена плана</dt>
           <dd>{p.J != null ? `${num(p.J)} у.е.` : "—"} <span className="muted">условные</span></dd>
           <dt>Решений всего</dt>
           <dd>{p.cards_total}</dd>

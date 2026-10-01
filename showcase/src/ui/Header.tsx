@@ -6,20 +6,19 @@ interface SiteConfig {
   presentation: string | null;
 }
 
-const ITEMS: { key: keyof SiteConfig; label: string }[] = [
-  { key: "simulator", label: "Симулятор" },
-  { key: "network", label: "Сеть" },
-  { key: "presentation", label: "Презентация" },
+const ITEMS: { key: keyof SiteConfig; label: string; hint: string }[] = [
+  { key: "simulator", label: "Симулятор", hint: "Живой участок: сломать перегон самому. Нужен запущенный сервер" },
+  { key: "network", label: "Сеть", hint: "Отдельное приложение «Сеть»" },
+  { key: "presentation", label: "Витрина", hint: "Этот сайт: слайды, «Кто первым?», записи прогонов" },
 ];
 
 // Разделы самой витрины
 const SECTIONS = [
-  { href: "#/", label: "Главная", match: (r: string) => r === "#/" || r === "" || r === "#" },
+  { href: "#/", label: "С чего начать", match: (r: string) => r === "#/" || r === "" || r === "#" },
   { href: "#/meet", label: "Кто первым?", match: (r: string) => r.startsWith("#/meet") },
-  { href: "#/gallery", label: "Ситуации", match: (r: string) => r.startsWith("#/gallery") },
-  { href: "#/runs", label: "Записи", match: (r: string) => r.startsWith("#/runs") || r.startsWith("#/play") },
+  { href: "#/presentation", label: "Слайды", match: (r: string) => r.startsWith("#/presentation") },
+  { href: "#/runs", label: "Записи прогонов", match: (r: string) => r.startsWith("#/runs") || r.startsWith("#/play") || r.startsWith("#/gallery") },
   { href: "#/how", label: "Как это работает", match: (r: string) => r.startsWith("#/how") },
-  { href: "#/presentation", label: "Режим показа", match: (r: string) => r.startsWith("#/presentation") },
 ];
 
 /** Общая шапка трёх сайтов. Адреса — public/site.config.json, null — пункт неактивен. */
@@ -40,14 +39,12 @@ export function Header({ projector, onProjector, route }: { projector: boolean; 
         {ITEMS.map((it) => {
           const url = cfg?.[it.key] ?? null;
           const current = it.key === "presentation";
-          return url ? (
-            <a key={it.key} className={`nav-item ${current ? "current" : ""}`} href={current ? "#/" : url} aria-current={current ? "page" : undefined}>
-              {it.label}
+          if (!url) return null;    // раздел без адреса не показываем: серый пункт только путает
+          return (
+            <a key={it.key} className={`nav-item ${current ? "current" : ""}`} href={current ? "#/" : url} title={it.hint}
+              aria-current={current ? "page" : undefined} target={current ? undefined : "_blank"} rel={current ? undefined : "noreferrer"}>
+              {it.label}{current ? "" : " ↗"}
             </a>
-          ) : (
-            <span key={it.key} className="nav-item disabled" aria-disabled="true" title="Адрес пока не задан в site.config.json">
-              {it.label}
-            </span>
           );
         })}
       </nav>

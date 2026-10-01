@@ -9,19 +9,22 @@ function Recovery() {
   const rec = useSim((s) => s.state?.planner.recovery);
   const t = useSim((s) => s.state?.t ?? 0);
   if (!rec) return null;
-  let text = "график в норме";
+  let text = "уже в норме";
   let title = "Ни один поезд по плану не выходит за допуск по опозданию";
   if (rec.affected > 0) {
     const parts: string[] = [];
-    if (rec.recovery_at != null) parts.push(`через ${Math.max(1, Math.round((rec.recovery_at - t) / 60))} мин`);
-    if (rec.beyond_horizon > 0) parts.push(`${rec.beyond_horizon} п. за горизонтом`);
+    if (rec.recovery_at != null) {
+      const m = Math.max(1, Math.round((rec.recovery_at - t) / 60));
+      parts.push(m >= 90 ? `через ${Math.floor(m / 60)} ч ${m % 60} мин` : `через ${m} мин`);
+    }
+    if (rec.beyond_horizon > 0) parts.push(`${rec.beyond_horizon} п. — позже 3 ч`);
     text = parts.join(", ") || "—";
     title = `По действующему плану за допуск выходят ${rec.affected} поезд(ов); вне допуска сейчас: ${rec.late_now}. `
       + "Время — когда восстановятся те, кто восстанавливается на горизонте 3 ч.";
   }
   return (
     <div className="kpi" title={title}>
-      <span className="kpi-label">Восстановление{rec.affected > 0 ? ` · задето ${rec.affected}` : ""}</span>
+      <span className="kpi-label">График восстановится{rec.affected > 0 ? ` · задето ${rec.affected}` : ""}</span>
       <span className="kpi-value kpi-small">{text}</span>
     </div>
   );
@@ -51,38 +54,38 @@ export function TopBar() {
           {state ? (state.running ? `идёт ×${state.speed}` : "пауза") : "нет данных"}
         </span>
       </div>
-      <div className="top-index" title={index?.reasons.join("\n") || "Индекс эффективности участка, 0–100"}>
-        <span className="kpi-label">Индекс</span>
+      <div className="top-index" title={"Насколько хорошо работает участок, 0–100: 100 — всё по графику. " + (index?.reasons.join("\n") || "")}>
+        <span className="kpi-label">Индекс участка</span>
         <span className="top-index-row">
           <span className="top-index-value">{index?.value != null ? Math.round(index.value) : "—"}</span>
           <span className={`badge ${indexCls}`}><span aria-hidden>{ist.icon}</span> {index?.status_label ?? "нет данных"}</span>
         </span>
       </div>
       <div className="kpis">
-        <div className="kpi">
+        <div className="kpi" title="Сколько поездов сейчас на станциях и перегонах участка">
           <span className="kpi-label">Поездов на участке</span>
           <span className="kpi-value">{m?.active_trains ?? "—"}</span>
         </div>
-        <div className="kpi">
+        <div className="kpi" title="В среднем на один поезд, относительно расписания">
           <span className="kpi-label">Средняя задержка</span>
           <span className="kpi-value">{m ? `${minutes(m.avg_delay_s)} мин` : "—"}</span>
         </div>
         <div className="kpi" title="Конфликты на ближайший час, если ничего не перепланировать. Найденный конфликт запускает пересчёт.">
-          <span className="kpi-label">Конфликты (прогноз)</span>
+          <span className="kpi-label">Конфликтов впереди</span>
           <span className="kpi-value">
             {state && state.planner.conflicts > 0 && <span className="warn-mark" aria-hidden>▲ </span>}
             {state ? state.planner.conflicts : "—"}
           </span>
         </div>
-        <div className="kpi" title="Время последнего пересчёта плана целиком: эвристика, CP-SAT, проверка, карточки решений">
-          <span className="kpi-label">Пересчёт плана</span>
+        <div className="kpi" title="Сколько секунд Бағдар считал последний план: решатель, проверка, карточки с объяснениями">
+          <span className="kpi-label">План пересчитан за</span>
           <span className="kpi-value">
             {state?.planner.busy ? "считает…" : state?.planner.compute_ms != null
               ? `${(state.planner.compute_ms / 1000).toFixed(1).replace(".", ",")} с` : "—"}
           </span>
         </div>
         <Recovery />
-        <div className="kpi" title={"Проблемы, отсортированные по цене. Красными показываются только три самых дорогих.\n"
+        <div className="kpi" title={"Опоздания сверх допуска, конфликты, сбои — по убыванию цены. Красным на экране только три самых дорогих.\n"
           + alarms.all.slice(0, 8).map((a) => `• ${a.label}`).join("\n")}>
           <span className="kpi-label">Проблемы</span>
           <span className="kpi-value">

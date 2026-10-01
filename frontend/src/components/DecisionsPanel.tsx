@@ -7,12 +7,12 @@ import { clock, num } from "../lib/format";
 import { useSim } from "../store/sim";
 
 const LEVEL: Record<string, { label: string; cls: string; hint: string }> = {
-  A: { label: "A · авто", cls: "badge-neutral", hint: "Мелкая корректировка в пределах запаса, применена сама" },
-  B: { label: "B · авто с уведомлением", cls: "badge-accent", hint: "Меняется порядок поездов: применено сразу, 30 с на отмену" },
+  A: { label: "A · само", cls: "badge-neutral", hint: "Мелкая поправка в пределах запаса графика — применена без вопросов" },
+  B: { label: "B · сделано", cls: "badge-accent", hint: "Поменялся порядок поездов: применено сразу, 30 секунд на отмену" },
   C: {
-    label: "C · нужен выбор",
+    label: "C · с вариантами",
     cls: "badge-warning",
-    hint: "Пассажирский остаётся сверх допуска. Варианты с ценой; в «полном авто» сразу применён лучший",
+    hint: "Пассажирский всё равно опоздает сверх допуска. Бағдар предлагает варианты с ценой; в «полном авто» сразу применяет лучший",
   },
 };
 
@@ -36,12 +36,12 @@ const STATUS: Record<string, { text: string; cls: string }> = {
 };
 
 const SOLVER: Record<string, string> = {
-  cpsat: "CP-SAT", greedy: "эвристика", repair: "прежний порядок", fifo: "«кто первый пришёл»", hold: "удержание",
+  cpsat: "решатель CP-SAT", greedy: "быстрая эвристика", repair: "прежний порядок", fifo: "«кто первый пришёл»", hold: "удержание",
   dispatcher: "решение диспетчера",
 };
 const PLAN_STATUS: Record<string, { text: string; cls: string }> = {
-  feasible: { text: "допустим", cls: "badge-good" },
-  delayed: { text: "допустим, есть задержки", cls: "badge-warning" },
+  feasible: { text: "проверен: конфликтов нет", cls: "badge-good" },
+  delayed: { text: "проверен, но есть опоздания", cls: "badge-warning" },
   infeasible: { text: "не найден — поезда удержаны", cls: "badge-critical" },
 };
 
@@ -88,9 +88,9 @@ function VariantRow({ v, card, left, chosen }: { v: Variant; card: DecisionCard;
         {v.title}
       </div>
       <div className="variant-meta muted tabular">
-        J {num(v.J)} у.е.
+        цена {num(v.J)} у.е.
         {v.delta_money != null && v.delta_money > 0.5 && <> · дороже на {num(v.delta_money)}</>}
-        {" · "}пасс. сверх допуска: {v.late_pax}
+        {" · "}пассажирских сверх допуска: {v.late_pax}
         {v.pte_violations > 0 && <> · нарушений ПТЭ: {v.pte_violations}</>}
         {!v.valid && <> · недопустим: {v.note}</>}
       </div>
@@ -129,7 +129,7 @@ function Card({ c, left }: { c: DecisionCard; left: number | null | undefined })
         <span className="decision-type">{TYPE[c.type] ?? c.type}</span>
         <span className={`badge ${st.cls}`}>{st.text}</span>
         <span className="spacer" />
-        <span className="muted tabular">{clock(c.t, false)} · v{c.plan_version}</span>
+        <span className="muted tabular" title="Когда принято и номер плана">{clock(c.t, false)} · план № {c.plan_version}</span>
       </div>
       <div className="decision-action">{c.action}</div>
       {c.type !== "incident" && <div className="decision-row"><span className="muted">Почему:</span> {c.reason}</div>}
@@ -228,9 +228,9 @@ export function DecisionsPanel() {
     <section className="card decisions-card" aria-label="Решения Бағдара">
       <div className="card-head">
         <span className="card-title">Решения Бағдара</span>
-        <span className="card-sub">{cards.length ? `${cards.length} за прогон` : ""}</span>
+        <span className="card-sub">{cards.length ? `${cards.length} за прогон · ` : ""}что он поменял в плане и почему; решение остаётся за вами</span>
         <span className="spacer" />
-        <label className="switch" title="A и B применяются сразу; C — лучшим вариантом. Выключите, чтобы решения C ждали вашего выбора">
+        <label className="switch" title="Включено: Бағдар сам применяет лучший вариант. Выключите — решения уровня C будут ждать вашего выбора">
           <input type="checkbox" checked={fullAuto} disabled={!planner}
             onChange={(e) => api.autonomy(e.target.checked).catch((err) => setError(String(err.message ?? err)))} />
           Полный авто
@@ -240,22 +240,22 @@ export function DecisionsPanel() {
         {planner && planner.version > 0 ? (
           <div className="planner-box">
             <div className="status-line" style={{ margin: 0 }}>
-              <b>План v{planner.applied_version}</b>
-              <span className="muted">{SOLVER[planner.solver ?? ""] ?? planner.solver}</span>
+              <b>План № {planner.applied_version}</b>
               {st && <span className={`badge ${st.cls}`}>{st.text}</span>}
               {planner.busy && <span className="badge badge-accent">пересчёт…</span>}
             </div>
             <div className="muted" style={{ fontSize: 12.5 }}>
-              Пересчёт {planner.compute_ms != null ? `${(planner.compute_ms / 1000).toFixed(1).replace(".", ",")} с` : "—"}
-              {planner.J != null && <> · J = {num(planner.J)} у.е.</>}
-              {compare?.bestHeur != null && compare.cp != null && compare.bestHeur > 0 && (
-                <> · эвристика {num(compare.bestHeur)} → CP-SAT {num(compare.cp)} (−{Math.max(0, Math.round((1 - compare.cp / compare.bestHeur) * 100))} %)</>
+              Составлен за {planner.compute_ms != null ? `${(planner.compute_ms / 1000).toFixed(1).replace(".", ",")} с` : "—"}
+              {" · "}{SOLVER[planner.solver ?? ""] ?? planner.solver}
+              {planner.J != null && <> · цена плана {num(planner.J)} у.е.</>}
+              {compare?.bestHeur != null && compare.cp != null && compare.bestHeur > 0 && compare.bestHeur > compare.cp * 1.01 && (
+                <> — на {Math.max(1, Math.round((1 - compare.cp / compare.bestHeur) * 100))} % дешевле простого перебора</>
               )}
-              {planner.overrides > 0 && <> · решений диспетчера в силе: {planner.overrides}</>}
+              {planner.overrides > 0 && <> · ваших решений в силе: {planner.overrides}</>}
             </div>
             {planner.awaiting_choice && (
               <div className="wait" style={{ margin: "4px 0 0" }}>
-                План v{planner.version} ждёт вашего выбора. Пока действует v{planner.applied_version}, прогнозные конфликты
+                План № {planner.version} ждёт вашего выбора. Пока действует план № {planner.applied_version}, прогнозные конфликты
                 остаются на схеме и графике.
               </div>
             )}
@@ -265,11 +265,13 @@ export function DecisionsPanel() {
           <div className="empty">Планировщик готовит первый план…</div>
         )}
         {shown.length === 0 ? (
-          <div className="empty">Порядок поездов пока не менялся: исходный график бесконфликтен. Задержите поезд в его карточке — система перестроит план и объяснит решения.</div>
+          <div className="empty">Пока менять нечего: исходный график без конфликтов. Задержите поезд (нажмите на него) или устройте сбой в карточке «Сбои» — здесь появятся карточки: что Бағдар решил и почему.</div>
         ) : (
           <ul className="decisions">{shown.map((c) => <Card key={c.id} c={c} left={left.get(c.id)} />)}</ul>
         )}
-        <div className="muted small" style={{ marginTop: 8 }}>Все цены — условные единицы (у.е.), не тарифы перевозчика.</div>
+        <div className="muted small" style={{ marginTop: 8 }}>
+          Уровни: <b>A</b> — мелочь, сделано само · <b>B</b> — сделано, 30 с на отмену · <b>C</b> — ждёт вашего выбора. Цены — условные единицы (у.е.).
+        </div>
       </div>
     </section>
   );

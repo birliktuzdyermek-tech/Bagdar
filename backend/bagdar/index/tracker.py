@@ -196,7 +196,7 @@ def saturation_radar(trend, now: float, delay_crit_s: float) -> dict:
                 f"Задержка растёт на {sd / 60:.1f} мин/ч, в очереди {queue} п.").replace(".0 мин/ч", " мин/ч")
     else:
         status = "ok"
-        text = f"Насыщения не видно: задержка {'растёт' if sd > 0 else 'не растёт'} ({sd / 60:+.1f} мин/ч)"
+        text = f"насыщения не видно, задержка {'растёт' if sd > 0 else 'не растёт'} ({sd / 60:+.1f} мин/ч)".replace(".", ",")
     return {"status": status, "eta_s": None if eta is None else round(eta), "text": text,
             "delay_slope_min_h": round(sd / 60, 2), "load_slope_pct_h": round(sl * 100, 2), "queue": queue,
             "delay_now_min": round(cur_d / 60, 1), "load_now_pct": round(cur_l * 100, 1)}
