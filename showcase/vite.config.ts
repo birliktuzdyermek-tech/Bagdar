@@ -8,6 +8,11 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 export default defineConfig({
   base: "./",
+  // A fresh service-worker URL per build refreshes the complete offline cache,
+  // including replay files that may change without touching application code.
+  define: {
+    __BAGDAR_BUILD_ID__: JSON.stringify(process.env.RENDER_GIT_COMMIT || new Date().toISOString()),
+  },
   plugins: [react()],
   server: { port: 5180, fs: { allow: [repoRoot] } },
   preview: { port: 5180 },

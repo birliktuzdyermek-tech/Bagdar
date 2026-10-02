@@ -1,0 +1,8 @@
+.home .bg-caption { display: none; }
+
+.hero-recording {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 650;
+}

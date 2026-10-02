@@ -3,6 +3,7 @@ import { num } from "../lib/format";
 import { useCountUp } from "../lib/motion";
 import type { RunInfo } from "../replay/types";
 import { BgReplay } from "./BgReplay";
+import "./home.css";
 
 // Число пар поездов, которые нужно развести между собой: n·(n−1)/2.
 const SCALE = [
@@ -50,6 +51,7 @@ export function Home({ runs }: { runs: RunInfo[] }) {
       <section className="hero" aria-labelledby="hero-title">
         <BgReplay run={main} />
         <div className="hero-body">
+          {main && <p className="hero-recording">Фон — запись прогона «{main.title}»</p>}
           <p className="hero-kicker">Бағдар — по-казахски «курс, ориентир»</p>
           <h1 id="hero-title" className="hero-title">
             Автодиспетчер, который видит участок целиком и сам перестраивает график при сбоях

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { GROUPS, MODE_LABEL, SITUATIONS, type Mode, type Situation } from "../data/situations";
 import type { RunInfo } from "../replay/types";
+import "./gallery.css";
 
 type Filter = "all" | Mode | "recorded";
 
@@ -26,12 +27,12 @@ export function Gallery({ runs }: { runs: RunInfo[] }) {
     <section className="gallery" aria-labelledby="gallery-title">
       <h1 id="gallery-title">Ситуации</h1>
       <p className="lead">
-        17 ситуаций, с которыми человек-диспетчер не справляется в одиночку. Карточка с записью проигрывает настоящий прогон. Карточка
-        без записи помечена «скоро»: её покажем, когда Ядро научится моделировать этот сбой.
+        17 проектных ситуаций для Бағдара. Там, где есть запись, ссылка открывает связанный настоящий прогон; описание карточки не является отчётом о нём.
+        Остальные ситуации помечены «скоро»: записи появятся, когда Ядро научится моделировать эти сбои.
       </p>
-      <div className="filters" role="radiogroup" aria-label="Фильтр ситуаций">
+      <div className="filters" role="group" aria-label="Фильтр ситуаций">
         {FILTERS.map((f) => (
-          <button key={f.key} role="radio" aria-checked={filter === f.key} className={`btn ${filter === f.key ? "on" : ""}`} onClick={() => setFilter(f.key)}>
+          <button key={f.key} type="button" aria-pressed={filter === f.key} className={`btn ${filter === f.key ? "on" : ""}`} onClick={() => setFilter(f.key)}>
             {f.label}
             {f.key === "recorded" && ` · ${bySituation.size}`}
           </button>
@@ -72,11 +73,21 @@ function SituationCard({ s, runs }: { s: Situation; runs: RunInfo[] }) {
       </dl>
       <div className="sit-foot">
         {has ? (
-          runs.map((r) => (
-            <a key={r.id} className="btn btn-primary" href={`#/play/${r.id}`} title="Проиграть запись настоящего прогона">
-              ▶ Запись: {r.title}
-            </a>
-          ))
+          <>
+            {runs.map((r) => (
+              <div key={r.id} className="sit-run-link">
+                <a className="btn btn-primary" href={`#/play/${r.id}`} title="Проиграть запись настоящего прогона">
+                  ▶ Запись: {r.title}
+                </a>
+                {r.note && <small className="muted">{r.note}</small>}
+                {(r.injected ?? []).map((event) => (
+                  <small key={`${event.at}-${event.train_id}`} className="muted">
+                    В записи: внешняя задержка поезда {event.train_id} на {event.minutes} мин в {event.at}. Описание ситуации и действий выше — проектный сценарий, не результат этого прогона.
+                  </small>
+                ))}
+              </div>
+            ))}
+          </>
         ) : (
           <span className="badge badge-soon" title="Ядро пока не моделирует этот сбой, записи нет">
             ⏳ скоро

@@ -1,0 +1,11 @@
+.voice-video { margin-top: 12px; }
+.voice-video-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.voice-video-head .panel-title { margin-bottom: 2px; }
+.voice-video-head p { margin: 0; }
+.voice-video-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.voice-video-actions .toggle { white-space: nowrap; }
+.voice-video-actions .btn-recording { border-color: var(--critical); color: var(--critical); }
+.voice-video-status { margin: 8px 0 0; color: var(--text-primary); font-size: .9rem; }
+@media (max-width: 650px) {
+  .voice-video-actions { width: 100%; }
+}
